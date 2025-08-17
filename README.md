@@ -234,6 +234,14 @@ end
   - [🚨 Advices](#-advices)
   - [⚠️ Troubleshooting](#️-troubleshooting)
     - [Make your entrypoint scripts executable](#make-your-entrypoint-scripts-executable)
+  - [🧪 CLI Debugging](#-cli-debugging)
+    - [Basic Usage](#basic-usage)
+    - [Customization with Blocks](#customization-with-blocks)
+    - [Testing Methods](#testing-methods)
+      - [1. Test with STDIN (default)](#1-test-with-stdin-default)
+      - [2. Test with default sample data instead of STDIN](#2-test-with-default-sample-data-instead-of-stdin)
+      - [3. Test with Sample Data + Customization](#3-test-with-sample-data--customization)
+    - [Example Hook with CLI Testing](#example-hook-with-cli-testing)
   - [🐛 Debugging](#-debugging)
     - [Test an individual entrypoint](#test-an-individual-entrypoint)
 
@@ -783,6 +791,108 @@ Don't forget to make the scripts called from `settings.json` executable:
 chmod +x ~/.claude/hooks/entrypoints/user_prompt_submit.rb
 ```
 
+
+## 🧪 CLI Debugging
+
+The `ClaudeHooks::CLI` module provides utilities to simplify testing hooks in isolation. Instead of writing repetitive JSON parsing and error handling code, you can use the CLI test runner.
+
+### Basic Usage
+
+Replace the traditional testing boilerplate:
+
+```ruby
+# Old way (15+ lines of repetitive code)
+if __FILE__ == $0
+  begin
+    require 'json'
+    input_data = JSON.parse(STDIN.read)
+    hook = MyHook.new(input_data)
+    result = hook.call
+    puts JSON.generate(result)
+  rescue StandardError => e
+    STDERR.puts "Error: #{e.message}"
+    puts JSON.generate({
+      continue: false,
+      stopReason: "Error: #{e.message}",
+      suppressOutput: false
+    })
+    exit 1
+  end
+end
+```
+
+With the simple CLI test runner:
+
+```ruby
+# New way (1 line!)
+if __FILE__ == $0
+  ClaudeHooks::CLI.test_runner(MyHook)
+end
+```
+
+### Customization with Blocks
+
+You can customize the input data for testing using blocks:
+
+```ruby
+if __FILE__ == $0
+  ClaudeHooks::CLI.test_runner(MyHook) do |input_data|
+    input_data['debug_mode'] = true
+    input_data['custom_field'] = 'test_value'
+    input_data['user_name'] = 'TestUser'
+  end
+end
+```
+
+### Testing Methods
+
+#### 1. Test with STDIN (default)
+```ruby
+ClaudeHooks::CLI.test_runner(MyHook)
+# Usage: echo '{"session_id":"test","prompt":"Hello"}' | ruby my_hook.rb
+```
+
+#### 2. Test with default sample data instead of STDIN
+```ruby
+ClaudeHooks::CLI.run_with_sample_data(MyHook, { 'prompt' => 'test prompt' })
+# Provides default values, no STDIN needed
+```
+
+#### 3. Test with Sample Data + Customization
+```ruby
+ClaudeHooks::CLI.run_with_sample_data(MyHook) do |input_data|
+  input_data['prompt'] = 'Custom test prompt'
+  input_data['debug'] = true
+end
+```
+
+### Example Hook with CLI Testing
+
+```ruby
+#!/usr/bin/env ruby
+
+require 'claude_hooks'
+
+class MyTestHook < ClaudeHooks::UserPromptSubmit
+  def call
+    log "Debug mode: #{input_data['debug_mode']}"
+    log "Processing: #{prompt}"
+
+    if input_data['debug_mode']
+      log "All input keys: #{input_data.keys.join(', ')}"
+    end
+
+    output_data
+  end
+end
+
+# Test runner with customization
+if __FILE__ == $0
+  ClaudeHooks::CLI.test_runner(MyTestHook) do |input_data|
+    input_data['debug_mode'] = true
+  end
+end
+```
 
 ## 🐛 Debugging
 

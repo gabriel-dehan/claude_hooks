@@ -39,5 +39,7 @@ end
 
 # If this file is run directly (for testing), call the hook script
 if __FILE__ == $0
-  ClaudeHooks::CLI.test_runner(AppendRules)
+  ClaudeHooks::CLI.test_runner(AppendRules) do |input_data|
+    input_data['session_id'] = 'session-id-override-01'
+  end
 end

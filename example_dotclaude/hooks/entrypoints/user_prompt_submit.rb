@@ -22,16 +22,7 @@ begin
   # Output final merged result to Claude Code
   puts JSON.generate(hook_output)
 
-  exit 0
-rescue JSON::ParserError => e
-  STDERR.puts "Error parsing JSON: #{e.message}"
-
-  puts JSON.generate({
-    continue: false,
-    stopReason: "Hook JSON parsing error: #{e.message}",
-    suppressOutput: false
-  })
-  exit 1
+  exit 0 # Don't forget to exit with the right exit code (0, 1, 2)
 rescue StandardError => e
   STDERR.puts "Error in UserPromptSubmit hook: #{e.message} #{e.backtrace.join("\n")}"
 

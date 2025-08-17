@@ -9,10 +9,22 @@ module ClaudeHooks
   module CLI
     class << self
       # Run a hook class directly from command line
-      # Usage: ClaudeHooks::CLI.run_hook(YourHookClass)
-      def run_hook(hook_class, input_data = nil)
+      # Usage: 
+      #   ClaudeHooks::CLI.run_hook(YourHookClass)
+      #   ClaudeHooks::CLI.run_hook(YourHookClass, custom_input_data)
+      #   
+      #   # With customization block:
+      #   ClaudeHooks::CLI.run_hook(YourHookClass) do |input_data|
+      #     input_data['debug_mode'] = true
+      #   end
+      def run_hook(hook_class, input_data = nil, &block)
         # If no input data provided, read from STDIN
         input_data ||= read_stdin_input
+        
+        # Apply customization block if provided
+        if block_given?
+          yield(input_data)
+        end
         
         # Create and execute the hook
         hook = hook_class.new(input_data)
@@ -28,13 +40,37 @@ module ClaudeHooks
 
       # Create a test runner block for a hook class
       # This generates the common if __FILE__ == $0 block content
-      # Usage: ClaudeHooks::CLI.test_runner(YourHookClass)
-      def test_runner(hook_class)
-        run_hook(hook_class)
+      # 
+      # Usage: 
+      #   ClaudeHooks::CLI.test_runner(YourHookClass)
+      #   
+      #   # With customization block:
+      #   ClaudeHooks::CLI.test_runner(YourHookClass) do |input_data|
+      #     input_data['custom_field'] = 'test_value'
+      #     input_data['user_name'] = 'TestUser'
+      #   end
+      def test_runner(hook_class, &block)
+        input_data = read_stdin_input
+        
+        # Apply customization block if provided
+        if block_given?
+          yield(input_data)
+        end
+        
+        run_hook(hook_class, input_data)
       end
 
       # Run hook with sample data (useful for development)
-      def run_with_sample_data(hook_class, sample_data = {})
+      # Usage:
+      #   ClaudeHooks::CLI.run_with_sample_data(YourHookClass)
+      #   ClaudeHooks::CLI.run_with_sample_data(YourHookClass, { 'prompt' => 'test prompt' })
+      #   
+      #   # With customization block:
+      #   ClaudeHooks::CLI.run_with_sample_data(YourHookClass) do |input_data|
+      #     input_data['prompt'] = 'Custom test prompt'
+      #     input_data['debug'] = true
+      #   end
+      def run_with_sample_data(hook_class, sample_data = {}, &block)
         default_sample = {
           'session_id' => 'test-session',
           'transcript_path' => '/tmp/test_transcript.md',
@@ -44,6 +80,12 @@ module ClaudeHooks
 
         # Merge with hook-specific sample data
         merged_data = default_sample.merge(sample_data)
+        
+        # Apply customization block if provided
+        if block_given?
+          yield(merged_data)
+        end
+        
         run_hook(hook_class, merged_data)
       end
 
