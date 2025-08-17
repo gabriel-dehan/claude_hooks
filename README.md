@@ -201,7 +201,7 @@ The gem will read from it as fallback for any missing environment variables.
 ### Core Components
 
 1. **`ClaudeHooks::Base`** - Base class with common functionality (logging, config, validation)
-2. **Hook Type Classes** - Self-contained classes (`ClaudeHooks::UserPromptSubmit`, `ClaudeHooks::PreToolUse`, `ClaudeHooks::PostToolUse`, etc.)
+2. **Hook Handler Classes** - Self-contained classes (`ClaudeHooks::UserPromptSubmit`, `ClaudeHooks::PreToolUse`, `ClaudeHooks::PostToolUse`, etc.)
 3. **Logger** - Dedicated logging class with multiline block support
 4. **Configuration** - Shared configuration management via `ClaudeHooks::Configuration`
 
@@ -232,7 +232,7 @@ The gem will read from it as fallback for any missing environment variables.
 The framework supports the following hook types:
 
 | Hook Type | Class | Description |
-|-----------|-------------|
+|-----------|-------|-------------|
 | **SessionStart** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session or resumes |
 | **UserPromptSubmit** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
 | **Notification** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
