@@ -737,7 +737,7 @@ exit 0
 For the operation to stop for a UserPromptSubmit hook, you would return structured JSON data followed by `exit 1`:
 
 ```ruby
-$stderr.puts JSON.generate({
+STDERR.puts JSON.generate({
   continue: false,
   stopReason: "JSON parsing error: #{e.message}",
   suppressOutput: false
@@ -746,13 +746,13 @@ exit 1
 ```
 
 > [!WARNING]
-> Don't forget to use `$stderr.puts` to output the JSON to STDERR.
+> Don't forget to use `STDERR.puts` to output the JSON to STDERR.
 
 
 ## 🚨 Advices
 
 1. **Logging**: Use `log()` method instead of `puts` to avoid interfering with JSON output
-2. **Error Handling**: Hooks should handle their own errors and use the `log` method for debugging. For errors, don't forget to exit with the right exit code (1, 2) and output the JSON indicating the error to STDERR using `$stderr.puts`.
+2. **Error Handling**: Hooks should handle their own errors and use the `log` method for debugging. For errors, don't forget to exit with the right exit code (1, 2) and output the JSON indicating the error to STDERR using `STDERR.puts`.
 3. **Output Format**: Always return `output_data` or `nil` from your `call` method
 4. **Path Management**: Use `path_for()` for all file operations relative to the Claude base directory
 
