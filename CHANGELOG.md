@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of claude_hooks gem
 - Ruby DSL framework for creating Claude Code hooks
 - Support for all 8 hook types: UserPromptSubmit, PreToolUse, PostToolUse, Notification, Stop, SubagentStop, PreCompact, SessionStart
-- Environment-based configuration with `RUBY_CLAUDE_CODE_` prefix
+- Environment-based configuration with `RUBY_CLAUDE_HOOKS_` prefix
 - Session-based logging system
 - Intelligent output merging for multiple hook scripts
 - Comprehensive API for each hook type
@@ -28,4 +28,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update `require_relative` statements to `require 'claude_hooks'`
 - Change hook class inheritance from `HookTypes::Base` to `ClaudeHooks::Base`
 - Replace specific hook classes: `UserPromptSubmitHook` → `ClaudeHooks::UserPromptSubmit`, etc.
-- Set environment variables with `RUBY_CLAUDE_CODE_` prefix instead of relying on config file
+- Set environment variables with `RUBY_CLAUDE_HOOKS_` prefix instead of relying on config file

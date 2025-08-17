@@ -101,16 +101,16 @@ This gem uses either environment variables or a global configuration file.
 |--------|-------------|---------|
 | `baseDir` | Base directory for all Claude files | `~/.claude` |
 | `logDirectory` | Directory for logs (relative to baseDir) | `logs` |
-| `userName` | Your name | `Gabriel` |
+| `userName` | Your name | `unknown` |
 
 #### Environment Variables (Preferred)
 
-The gem uses environment variables with the `RUBY_CLAUDE_CODE_` prefix for configuration:
+The gem uses environment variables with the `RUBY_CLAUDE_HOOKS_` prefix for configuration:
 
 ```bash
-export RUBY_CLAUDE_CODE_BASE_DIR="~/.claude"           # Default: ~/.claude
-export RUBY_CLAUDE_CODE_LOG_DIR="logs"                 # Default: logs (relative to base_dir)
-export RUBY_CLAUDE_CODE_USER_NAME="YourName"
+export RUBY_CLAUDE_HOOKS_BASE_DIR="~/.claude"           # Default: ~/.claude
+export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                 # Default: logs (relative to base_dir)
+export RUBY_CLAUDE_HOOKS_USER_NAME="YourName"
 ```
 
 #### Configuration File
@@ -219,12 +219,12 @@ The gem will read from it as fallback for any missing environment variables.
 │   └── subagent_stop.rb
 |
 └── handlers/                    # Hook handlers for specific hook type
-    └── user_prompt_submit/
+    ├── user_prompt_submit/
     │   ├── append_rules.rb
     │   └── log_user_prompt.rb
-    ├── ...
-    └── pre_tool_use/
-        └── tool_monitor.rb
+    ├── pre_tool_use/
+    │   └── tool_monitor.rb
+    └── ...
 ```
 
 ## 🪝 Hook Types
@@ -274,7 +274,7 @@ graph TD
   F --> J[📋 Entrypoint<br />Calls _ClaudeHooks::UserPromptSubmit.merge_outputs_ to 🔀 merge outputs]
   G --> J
 
-  J --> K[📋 Entrypoint<br />Outputs JSON to STDIN or STDERR]
+  J --> K[📋 Entrypoint<br />Outputs JSON to STDOUT or STDERR]
   K --> L[🤖 Yields back to Claude Code]
   L --> B
 ```
@@ -546,7 +546,7 @@ TEXT
 #### Log File Location
 Logs are written to session-specific files in the configured log directory:
 - **Defaults to**: `~/.claude/logs/hooks/session-{session_id}.log`
-- **Configurable path**: Set via `config.json` → `logDirectory` or via `RUBY_CLAUDE_CODE_LOG_DIR` environment variable
+- **Configurable path**: Set via `config.json` → `logDirectory` or via `RUBY_CLAUDE_HOOKS_LOG_DIR` environment variable
 
 #### Log Output Format
 ```
@@ -568,7 +568,7 @@ First, register an entrypoint in `~/.claude/settings.json`:
       "hooks": [
         {
           "type": "command",
-          "command": "~/.claude/entrypoints/pre_tool_use.rb"
+          "command": "~/.claude/hooks/entrypoints/pre_tool_use.rb"
         }
       ]
     }
@@ -578,8 +578,8 @@ First, register an entrypoint in `~/.claude/settings.json`:
 
 Then, create your main entrypoint script and don't forget to make it executable:
 ```bash
-touch ~/.claude/hooks/handlers/pre_tool_use.rb
-chmod +x ~/.claude/hooks/handlers/pre_tool_use.rb
+touch ~/.claude/hooks/entrypoints/pre_tool_use.rb
+chmod +x ~/.claude/hooks/entrypoints/pre_tool_use.rb
 ```
 
 ```ruby
@@ -681,7 +681,7 @@ Claude Code hooks support multiple exit codes:
 
 
 ### Example: Success
-Ror the operation to continue for a UserPromptSubmit hook, you would return structured JSON data followed by `exit 0`:
+For the operation to continue for a UserPromptSubmit hook, you would return structured JSON data followed by `exit 0`:
 
 ```ruby
 puts JSON.generate({

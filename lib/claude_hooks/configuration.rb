@@ -4,7 +4,7 @@ require 'json'
 
 module ClaudeHooks
   class Configuration
-    ENV_PREFIX = 'RUBY_CLAUDE_CODE_'
+    ENV_PREFIX = 'RUBY_CLAUDE_HOOKS_'
 
     class << self
       # Load the entire config as a hash (from ENV and optional config file)
