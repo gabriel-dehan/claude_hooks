@@ -13,7 +13,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write  # Required for creating tags and releases
-      packages: write
 
     steps:
     - uses: actions/checkout@v4
@@ -81,18 +80,6 @@ jobs:
         git config --local user.name "GitHub Action"
         git tag "v${VERSION}"
         git push origin "v${VERSION}"
-
-    - name: Publish to GitHub Packages
-      if: steps.version_check.outputs.should_publish == 'true'
-      run: |
-        mkdir -p $HOME/.gem
-        touch $HOME/.gem/credentials
-        chmod 0600 $HOME/.gem/credentials
-        printf -- "---\n:github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-        gem push --KEY github --host https://rubygems.pkg.github.com/${OWNER} *.gem
-      env:
-        GEM_HOST_API_KEY: "Bearer ${{secrets.GITHUB_TOKEN}}"
-        OWNER: ${{ github.repository_owner }}
 
     - name: Publish to RubyGems
       if: steps.version_check.outputs.should_publish == 'true'
