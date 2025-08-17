@@ -248,7 +248,7 @@ The framework supports the following hook types:
 
 ```mermaid
 graph LR
-    A[JSON from STDIN] --> B[Hook does its thing] --> C[JSON to STDOUT or STDERR]
+    A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR]
 ```
 
 ### 🔄 Claude Hook Execution Flow
