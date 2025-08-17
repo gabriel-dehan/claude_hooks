@@ -7,6 +7,18 @@ module ClaudeHooks
     ENV_PREFIX = 'RUBY_CLAUDE_CODE_'
 
     class << self
+      # Load the entire config as a hash (from ENV and optional config file)
+      def config
+        @config ||= load_config
+      end
+
+      # Unmemoize config
+      def reload!
+        @config = nil
+        @base_dir = nil
+        @config_file_path = nil
+      end
+
       # Get the base directory from ENV or default
       def base_dir
         @base_dir ||= begin
@@ -18,11 +30,6 @@ module ClaudeHooks
       # Get the full path for a file/directory relative to base_dir
       def path_for(relative_path)
         File.join(base_dir, relative_path)
-      end
-
-      # Load the entire config as a hash (from ENV and optional config file)
-      def config
-        @config ||= load_config
       end
 
       # Get the log directory path
@@ -38,13 +45,6 @@ module ClaudeHooks
       # Get user name from ENV or config
       def user_name
         ENV["#{ENV_PREFIX}USER_NAME"] || config.dig('userName') || 'unknown'
-      end
-
-      # Reload config (useful for testing or if config changes)
-      def reload!
-        @config = nil
-        @base_dir = nil
-        @config_file_path = nil
       end
 
       private

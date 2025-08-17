@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'json'
 require 'claude_hooks'
-require_relative 'examples/user_prompt_submit_scripts/append_rules'
-require_relative 'examples/user_prompt_submit_scripts/log_user_prompt'
+require 'json'
+require_relative '../user_prompt_submit/append_rules'
+require_relative '../user_prompt_submit/log_user_prompt'
 
 begin
   # Read input from stdin

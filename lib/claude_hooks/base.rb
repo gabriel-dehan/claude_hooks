@@ -50,7 +50,7 @@ module ClaudeHooks
     # === COMMON INPUT DATA ACCESS ===
 
     def session_id
-      @input_data['session_id'] || Configuration.session_id
+      @input_data['session_id'] || 'claude-default-session'
     end
 
     def transcript_path
