@@ -34,7 +34,7 @@ module ClaudeHooks
 
       # Get the log directory path
       def logs_directory
-        log_dir = ENV["#{ENV_PREFIX}LOG_DIR"] || config.dig('logDirectory') || 'logs'
+        log_dir = get_config_value('LOG_DIR', 'logDirectory') || 'logs'
         if log_dir.start_with?('/')
           log_dir  # Absolute path
         else
@@ -42,9 +42,41 @@ module ClaudeHooks
         end
       end
 
-      # Get user name from ENV or config
-      def user_name
-        ENV["#{ENV_PREFIX}USER_NAME"] || config.dig('userName') || 'unknown'
+
+      # Get any configuration value by key
+      # First checks ENV with prefix, then config file, then returns default
+      def get_config_value(env_key, config_key = nil, default = nil)
+        # Check environment variable first
+        env_value = ENV["#{ENV_PREFIX}#{env_key}"]
+        return env_value if env_value
+
+        # Check config file using provided key or converted env_key
+        file_key = config_key || env_key_to_config_key(env_key)
+        config_value = config.dig(file_key)
+        return config_value if config_value
+
+        # Return default
+        default
+      end
+
+      # Allow access to any config value using method_missing
+      def method_missing(method_name, *args, &block)
+        # Convert method name to ENV key format (e.g., my_custom_setting -> MY_CUSTOM_SETTING)
+        env_key = method_name.to_s.upcase
+        config_key = method_name.to_s
+
+        value = get_config_value(env_key, config_key)
+        return value unless value.nil?
+
+        super
+      end
+
+      def respond_to_missing?(method_name, include_private = false)
+        # Check if we have a config value for this method
+        env_key = method_name.to_s.upcase
+        config_key = method_name.to_s
+        
+        !get_config_value(env_key, config_key).nil? || super
       end
 
       private
@@ -54,6 +86,17 @@ module ClaudeHooks
       end
 
       def load_config
+        # Start with config file
+        file_config = load_config_file
+        
+        # Merge with ENV variables
+        env_config = load_env_config
+        
+        # ENV variables take precedence
+        file_config.merge(env_config)
+      end
+
+      def load_config_file
         config_file = config_file_path
 
         if File.exist?(config_file)
@@ -66,6 +109,35 @@ module ClaudeHooks
         else
           # No config file is fine - we'll use ENV vars and defaults
           {}
+        end
+      end
+
+      def load_env_config
+        env_config = {}
+        
+        ENV.each do |key, value|
+          next unless key.start_with?(ENV_PREFIX)
+          
+          # Remove prefix and convert to config key format
+          config_key = env_key_to_config_key(key.sub(ENV_PREFIX, ''))
+          env_config[config_key] = value
+        end
+        
+        env_config
+      end
+
+      def env_key_to_config_key(env_key)
+        # Convert SCREAMING_SNAKE_CASE to camelCase
+        # BASE_DIR -> baseDir, LOG_DIR -> logDirectory (with special handling)
+        case env_key
+        when 'LOG_DIR'
+          'logDirectory'
+        when 'BASE_DIR'
+          'baseDir'
+        else
+          # Convert SCREAMING_SNAKE_CASE to camelCase
+          parts = env_key.downcase.split('_')
+          parts.first + parts[1..-1].map(&:capitalize).join
         end
       end
     end

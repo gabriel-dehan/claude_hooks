@@ -95,13 +95,12 @@ $ gem install claude_hooks
 This gem uses either environment variables or a global configuration file.
 
 
-#### Configuration Options
+#### Required Configuration Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `baseDir` | Base directory for all Claude files | `~/.claude` |
 | `logDirectory` | Directory for logs (relative to baseDir) | `logs` |
-| `userName` | Your name | `unknown` |
 
 #### Environment Variables (Preferred)
 
@@ -110,6 +109,11 @@ The gem uses environment variables with the `RUBY_CLAUDE_HOOKS_` prefix for conf
 ```bash
 export RUBY_CLAUDE_HOOKS_BASE_DIR="~/.claude"           # Default: ~/.claude
 export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                 # Default: logs (relative to base_dir)
+
+# You can add any custom configuration
+export RUBY_CLAUDE_HOOKS_API_KEY="your-api-key"
+export RUBY_CLAUDE_HOOKS_DEBUG_MODE="true"
+export RUBY_CLAUDE_HOOKS_WEBHOOK_URL="https://example.com/webhook"
 export RUBY_CLAUDE_HOOKS_USER_NAME="YourName"
 ```
 
@@ -122,9 +126,39 @@ The gem will read from it as fallback for any missing environment variables.
 {
   "baseDir": "~/.claude",
   "logDirectory": "logs",
-  "userName": "Gaby"
+  "apiKey": "your-api-key",
+  "debugMode": true,
+  "webhookUrl": "https://example.com/webhook",
+  "userName": "YourName"
 }
 ```
+
+#### Accessing Custom Configuration
+
+You can access any configuration value in your handlers:
+
+```ruby
+class MyHandler < ClaudeHooks::UserPromptSubmit
+  def call
+    # Access built-in config
+    log "Base dir: #{config.base_dir}"
+    log "Logs dir: #{config.logs_directory}"
+    
+    # Access custom config via method calls
+    log "API Key: #{config.api_key}"
+    log "Debug mode: #{config.debug_mode}"
+    log "User: #{config.user_name}"
+    
+    # Or use get_config_value for more control
+    webhook_url = config.get_config_value('WEBHOOK_URL', 'webhookUrl', 'default-url')
+    log "Webhook: #{webhook_url}"
+    
+    output_data
+  end
+end
+```
+
+**Configuration Priority:** Environment variables always take precedence over config file values.
 
 ## 📖 Table of Contents
 
@@ -520,6 +554,9 @@ Available in all hooks via the base `ClaudeHooks::Base` class:
 | `base_dir` | Get the base Claude directory |
 | `path_for(relative_path)` | Get absolute path relative to base dir |
 | `config` | Access the full configuration object |
+| `config.get_config_value(env_key, config_key, default)` | Get any config value with fallback |
+| `config.logs_directory` | Get logs directory path |
+| `config.your_custom_key` | Access any custom config via method_missing |
 
 #### Utility Methods
 | Method | Description |
