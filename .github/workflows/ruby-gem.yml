@@ -21,17 +21,21 @@ jobs:
         fetch-depth: 0  # Fetch full history to compare versions
 
     - name: Set up Ruby
-      uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # v1.146.0
+      uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 3.0
+        ruby-version: '3.0'
         bundler-cache: true
 
     - name: Get current version
       id: current_version
       run: |
-        # Install dependencies first to ensure we can load the gem
-        bundle install --quiet
-        CURRENT_VERSION=$(bundle exec ruby -r './lib/claude_hooks/version.rb' -e 'puts ClaudeHooks::VERSION')
+        # Try to install dependencies, fallback to direct ruby if bundle fails
+        if bundle install --quiet 2>/dev/null; then
+          CURRENT_VERSION=$(bundle exec ruby -r './lib/claude_hooks/version.rb' -e 'puts ClaudeHooks::VERSION')
+        else
+          echo "Bundle install failed, using direct ruby"
+          CURRENT_VERSION=$(ruby -r './lib/claude_hooks/version.rb' -e 'puts ClaudeHooks::VERSION')
+        fi
         echo "version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
         echo "Current version: ${CURRENT_VERSION}"
 
@@ -49,7 +53,7 @@ jobs:
           LAST_VERSION="none"
           echo "No previous releases found - this will be the first release"
         fi
-        
+
         echo "Current version: ${CURRENT_VERSION}"
 
         if [ "${CURRENT_VERSION}" != "${LAST_VERSION}" ]; then
