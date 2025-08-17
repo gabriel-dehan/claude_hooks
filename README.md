@@ -70,7 +70,7 @@ That's it! Your hook will now add context to every user prompt. 🎉
 
 ## 📦 Installation
 
-Add to your Gemfile:
+Add to your Gemfile (you can add a Gemfile in your `.claude` directory if needed):
 
 ```ruby
 gem 'claude_hooks'
