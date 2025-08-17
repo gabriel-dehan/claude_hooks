@@ -4,6 +4,70 @@ A Ruby DSL framework for creating Claude Code hooks. This will hopefully make cr
 
 [**What does it bring?**](WHY.md)
 
+## 🚀 Quick Start
+
+> [!NOTE]
+> An example is available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/).
+
+Here's how to create your first hook:
+
+1. **Install the gem:**
+```bash
+  gem install claude_hooks
+```
+
+1. **Create a simple hook script**
+```ruby
+#!/usr/bin/env ruby
+require 'claude_hooks'
+
+# Inherit from the right hook type class to get access to helper methods
+class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
+  def call
+    log "User asked: #{prompt}"
+    add_context!("Remember to be extra helpful!")
+    output_data
+  end
+end
+
+# Run the hook
+if __FILE__ == $0
+  # Read Claude Code's input data from STDIN
+  input_data = JSON.parse(STDIN.read)
+
+  hook = AddContextAfterPrompt.new(input_data)
+  output = hook.call
+
+  puts JSON.generate(output)
+  exit 0
+end
+```
+
+3. ⚠️ **Make it executable (and test it)**
+```bash
+chmod +x add_context_after_prompt.rb
+echo '{"session_id":"test","prompt":"Hello!"}' | ruby add_context_after_prompt.rb
+```
+
+4. **Register it in your `.claude/settings.json`**
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "path/to/your/hook.rb"
+        }
+      ]
+    }]
+  }
+}
+```
+
+That's it! Your hook will now add context to every user prompt. 🎉
+
 ## 📦 Installation
 
 Add to your Gemfile:
@@ -52,6 +116,7 @@ The gem will read from it as fallback for any missing environment variables.
 ```
 
 - [Ruby DSL for Claude Code hooks](#ruby-dsl-for-claude-code-hooks)
+  - [🚀 Quick Start](#-quick-start)
   - [📦 Installation](#-installation)
     - [🔧 Configuration](#-configuration)
       - [Environment Variables (Preferred)](#environment-variables-preferred)

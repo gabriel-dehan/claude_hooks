@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "example_dotclaude/hooks/entrypoint_scripts/user_prompt_submit.rb"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/entrypoints/user_prompt_submit.rb"
           }
         ]
       }
