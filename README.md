@@ -6,8 +6,8 @@ A Ruby DSL framework for creating Claude Code hooks. This will hopefully make cr
 
 ## 🚀 Quick Start
 
-> [!NOTE]
-> An example is available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/).
+> [!TIP]
+> An example is available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/)
 
 Here's how to create your first hook:
 
@@ -92,6 +92,15 @@ $ gem install claude_hooks
 
 This gem uses either environment variables or a global configuration file.
 
+
+#### Configuration Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `baseDir` | Base directory for all Claude files | `~/.claude` |
+| `logDirectory` | Directory for logs (relative to baseDir) | `logs` |
+| `userName` | Your name | `Gabriel` |
+
 #### Environment Variables (Preferred)
 
 The gem uses environment variables with the `RUBY_CLAUDE_CODE_` prefix for configuration:
@@ -119,16 +128,17 @@ The gem will read from it as fallback for any missing environment variables.
   - [🚀 Quick Start](#-quick-start)
   - [📦 Installation](#-installation)
     - [🔧 Configuration](#-configuration)
+      - [Configuration Options](#configuration-options)
       - [Environment Variables (Preferred)](#environment-variables-preferred)
       - [Configuration File](#configuration-file)
   - [🏗️ Architecture](#️-architecture)
     - [Core Components](#core-components)
-    - [Architecture](#architecture)
+    - [How to architecture your .claude/hooks/ directory](#how-to-architecture-your-claudehooks-directory)
   - [🪝 Hook Types](#-hook-types)
   - [🚀 Creating Hook Scripts](#-creating-hook-scripts)
     - [🔄 Hook Execution Flow](#-hook-execution-flow)
     - [Basic Hook Script Structure](#basic-hook-script-structure)
-    - [Hook Types and Input Fields](#hook-types-and-input-fields)
+    - [Input Fields](#input-fields)
   - [📚 API Reference](#-api-reference)
     - [Common API Methods](#common-api-methods)
       - [Input Methods](#input-methods)
@@ -167,73 +177,61 @@ The gem will read from it as fallback for any missing environment variables.
       - [Log Output Format](#log-output-format)
     - [🔄 Hook Output Merging](#-hook-output-merging)
   - [📝 Example: Tool usage monitor](#-example-tool-usage-monitor)
-  - [🔧 Configuration](#-configuration-1)
-    - [Configuration File](#configuration-file-1)
-      - [Configuration Options](#configuration-options)
-    - [Registering Hooks](#registering-hooks)
   - [🔄 Hook Output Patterns](#-hook-output-patterns)
     - [Pattern 1: Simple Exit Codes](#pattern-1-simple-exit-codes)
     - [Pattern 2: JSON Output + exit 0 (Recommended)](#pattern-2-json-output--exit-0-recommended)
   - [🚨 Advices](#-advices)
   - [⚠️ Troubleshooting](#️-troubleshooting)
-    - [Make your scripts executable](#make-your-scripts-executable)
+    - [Make your entrypoint scripts executable](#make-your-entrypoint-scripts-executable)
   - [🐛 Debugging](#-debugging)
-    - [Test Individual Hooks](#test-individual-hooks)
+    - [Test an individual entrypoint](#test-an-individual-entrypoint)
 
 
 ## 🏗️ Architecture
 
 ### Core Components
 
-1. **`HookTypes::Base`** - Base class with common functionality (logging, config, validation)
-2. **Hook Type Classes** - Self-contained classes in `hook_types/` (`UserPromptSubmitHook`, `PreToolUseHook`, `PostToolUseHook`)
-3. **SessionLogger** - Dedicated logging class with multiline block support
-4. **Config Management** - Shared configuration management via `ClaudeConfig::ConfigLoader` (see `config/config.json`)
+1. **`ClaudeHooks::Base`** - Base class with common functionality (logging, config, validation)
+2. **Hook Type Classes** - Self-contained classes (`ClaudeHooks::UserPromptSubmit`, `ClaudeHooks::PreToolUse`, `ClaudeHooks::PostToolUse`, etc.)
+3. **Logger** - Dedicated logging class with multiline block support
+4. **Configuration** - Shared configuration management via `ClaudeHooks::Configuration`
 
-### Architecture
+### How to architecture your .claude/hooks/ directory
 
 ```
-hooks
-├── README.md
-├── hook_scripts/
-│   ├── utils/
-│   |    └── session_logger.rb           # Session-based logging
-|   |
-│   ├── hook_types/                      # Helper classes per hook type
-│   │   ├── base.rb                      # Base HookTypes::Base class
-│   │   ├── notification_hook.rb
-│   │   ├── post_tool_use_hook.rb
-│   │   ├── pre_compact_hook.rb
-│   │   ├── pre_tool_use_hook.rb
-│   │   ├── session_start_hook.rb
-│   │   ├── stop_hook.rb
-│   │   ├── subagent_stop_hook.rb
-│   │   └── user_prompt_submit_hook.rb
-|   |
-│   ├── post_tool_use_scripts/           # Hook scripts for specific hook type
-│   │   └── some_script.rb
-|   ├── ...
-│   └── user_prompt_submit_scripts/      # Hook scripts for specific hook type
-│       └── some_other_script.rb
+.claude/hooks/
+├── entrypoints/                # Main entry points
+│   ├── notification.rb
+│   ├── pre_tool_use.rb
+│   ├── post_tool_use.rb
+│   ├── pre_compact.rb
+│   ├── session_start.rb
+│   ├── stop.rb
+│   └── subagent_stop.rb
 |
-├── notification.rb                     # Main entry point for specific hook type
-└── user_prompt_submit.rb               # Main entry point for specific hook type
+└── scripts/                    # Hook scripts for specific hook type
+    └── user_prompt_submit/
+    │   ├── append_rules.rb
+    │   └── log_user_prompt.rb
+    ├── ...
+    └── pre_tool_use/
+        └── tool_monitor.rb
 ```
 
 ## 🪝 Hook Types
 
 The framework supports the following hook types:
 
-| Hook Type | Description |
+| Hook Type | Class | Description |
 |-----------|-------------|
-| **UserPromptSubmit** | Hooks that run before the user's prompt is processed |
-| **PreToolUse** | Hooks that run before a tool is used |
-| **PostToolUse** | Hooks that run after a tool is used |
-| **Notification** | Hooks that run when Claude Code sends notifications |
-| **Stop** | Hooks that run when Claude Code finishes responding |
-| **SubagentStop** | Hooks that run when subagent tasks complete |
-| **PreCompact** | Hooks that run before transcript compaction |
-| **SessionStart** | Hooks that run when Claude Code starts a new session or resumes |
+| **SessionStart** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session or resumes |
+| **UserPromptSubmit** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
+| **Notification** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
+| **PreToolUse** | `ClaudeHooks::PreToolUse` | Hooks that run before a tool is used |
+| **PostToolUse** | `ClaudeHooks::PostToolUse` | Hooks that run after a tool is used |
+| **Stop** | `ClaudeHooks::Stop` | Hooks that run when Claude Code finishes responding |
+| **SubagentStop** | `ClaudeHooks::SubagentStop` | Hooks that run when subagent tasks complete |
+| **PreCompact** | `ClaudeHooks::PreCompact` | Hooks that run before transcript compaction |
 
 ## 🚀 Creating Hook Scripts
 
@@ -256,7 +254,7 @@ graph TD
   E --> F["📝 AppendContextRules.call<br/><em>Returns output_data</em>"]
   E --> G["📝 PromptGuard.call<br/><em>Returns output_data</em>"]
 
-  F --> J["UserPromptSubmitHook.merge_outputs<br/>🔀 Merge Results"]
+  F --> J["ClaudeHooks::UserPromptSubmit.merge_outputs<br/>🔀 Merge Results"]
   G --> J
 
   J --> K["JSON output to Claude Code<br/><em>Claude Code continues</em>"]
@@ -301,9 +299,9 @@ class MyHookScript < ClaudeHooks::UserPromptSubmit
 end
 ```
 
-### Hook Types and Input Fields
+### Input Fields
 
-The framework supports the following hook types with their respective input fields:
+The framework supports all existing hook types with their respective input fields:
 
 | Hook Type | Input Fields |
 |-----------|--------------|
@@ -321,7 +319,7 @@ The framework supports the following hook types with their respective input fiel
 
 ### Common API Methods
 
-Available in all hook types through `HookScriptBase`:
+Available in all hook types through `ClaudeHooks::Base`:
 
 #### Input Methods
 | Method | Description |
@@ -348,7 +346,7 @@ Available in all hook types through `HookScriptBase`:
 
 ### UserPromptSubmit API
 
-Available when inheriting from `UserPromptSubmitHook`:
+Available when inheriting from `ClaudeHooks::UserPromptSubmit`:
 
 #### Input Methods
 | Method | Description |
@@ -368,7 +366,7 @@ Available when inheriting from `UserPromptSubmitHook`:
 
 ### PreToolUse API
 
-Available when inheriting from `PreToolUseHook`:
+Available when inheriting from `ClaudeHooks::PreToolUse`:
 
 #### Input Methods
 | Method | Description |
@@ -385,7 +383,7 @@ Available when inheriting from `PreToolUseHook`:
 
 ### PostToolUse API
 
-Available when inheriting from `PostToolUseHook`:
+Available when inheriting from `ClaudeHooks::PostToolUse`:
 
 #### Input Methods
 | Method | Description |
@@ -402,7 +400,7 @@ Available when inheriting from `PostToolUseHook`:
 
 ### Notification API
 
-Available when inheriting from `NotificationHook`:
+Available when inheriting from `ClaudeHooks::Notification`:
 
 #### Input Methods
 | Method | Description |
@@ -415,7 +413,7 @@ Notifications are outside facing and do not have any specific output methods.
 
 ### Stop API
 
-Available when inheriting from `StopHook`:
+Available when inheriting from `ClaudeHooks::Stop`:
 
 #### Input Methods
 | Method | Description |
@@ -431,7 +429,7 @@ Available when inheriting from `StopHook`:
 
 ### SubagentStop API
 
-Available when inheriting from `SubagentStopHook` (inherits from `StopHook`):
+Available when inheriting from `ClaudeHooks::SubagentStop` (inherits from `ClaudeHooks::Stop`):
 
 #### Input Methods
 | Method | Description |
@@ -447,7 +445,7 @@ Available when inheriting from `SubagentStopHook` (inherits from `StopHook`):
 
 ### PreCompact API
 
-Available when inheriting from `PreCompactHook`:
+Available when inheriting from `ClaudeHooks::PreCompact`:
 
 #### Input Methods
 | Method | Description |
@@ -465,7 +463,7 @@ No specific output methods are available to alter compaction behavior.
 
 ### SessionStart API
 
-Available when inheriting from `SessionStartHook`:
+Available when inheriting from `ClaudeHooks::SessionStart`:
 
 #### Input Methods
 | Method | Description |
@@ -481,7 +479,7 @@ Available when inheriting from `SessionStartHook`:
 
 ### Configuration and Utility Methods
 
-Available in all hooks via the base `HookScriptBase` class:
+Available in all hooks via the base `ClaudeHooks::Base` class:
 
 #### Configuration Methods
 | Method | Description |
@@ -498,7 +496,7 @@ Available in all hooks via the base `HookScriptBase` class:
 
 ### 📝 Logging
 
-HookScriptBase provides a **session logger** that will write logs to session-specific files.
+`ClaudeHooks::Base` provides a **session logger** that will write logs to session-specific files.
 
 ```ruby
 log "Simple message"
@@ -529,9 +527,9 @@ Each hook script type provides a merging method `merge_outputs` that will try to
 
 ```ruby
 # Merge results from multiple UserPromptSubmit hooks
-merged_result = UserPromptSubmitHook.merge_outputs(output1, output2, output3)
+merged_result = ClaudeHooks::UserPromptSubmit.merge_outputs(output1, output2, output3)
 
-# UserPromptSubmitHook merge_outputs follows the following merge logic:
+# ClaudeHooks::UserPromptSubmit.merge_outputs follows the following merge logic:
 # - continue: false wins (any hook script can stop execution)
 # - suppressOutput: true wins (any hook script can suppress output)
 # - decision: "block" wins (any hook script can block)
@@ -541,7 +539,9 @@ merged_result = UserPromptSubmitHook.merge_outputs(output1, output2, output3)
 
 ## 📝 Example: Tool usage monitor
 
-First register a hook in `~/.claude/settings.json`:
+Let's create a hook that will monitor tool usage and ask for permission before using dangerous tools.
+
+First, register an entrypoint in `~/.claude/settings.json`:
 
 ```json
 "hooks": {
@@ -551,7 +551,7 @@ First register a hook in `~/.claude/settings.json`:
       "hooks": [
         {
           "type": "command",
-          "command": "~/.claude/hooks/pre_tool_use.rb"
+          "command": "~/.claude/entrypoints/pre_tool_use.rb"
         }
       ]
     }
@@ -559,42 +559,17 @@ First register a hook in `~/.claude/settings.json`:
 }
 ```
 
-Then create a Hook Script that will be used to monitor tool usage.
-
-```ruby
-#!/usr/bin/env ruby
-
-require 'claude_hooks'
-
-class ToolMonitor < ClaudeHooks::PreToolUse
-  DANGEROUS_TOOLS = %w[bash_exec file_delete system_command].freeze
-
-  def call
-    log "Monitoring tool usage: #{tool_name}"
-
-    if DANGEROUS_TOOLS.include?(tool_name)
-      log "Dangerous tool detected: #{tool_name}", level: :warn
-      ask_for_permission!("The tool '#{tool_name}' can modify your system. Allow?")
-    else
-      approve_tool!("Safe tool usage")
-    end
-
-    output_data
-  end
-end
-```
-
-Finally create your main dispatcher script and don't forget to make it executable:
-```
-touch ~/.claude/hooks/pre_tool_use.rb
-chmod +x ~/.claude/hooks/pre_tool_use.rb
+Then, create your main entrypoint script and don't forget to make it executable:
+```bash
+touch ~/.claude/hooks/handlers/pre_tool_use.rb
+chmod +x ~/.claude/hooks/handlers/pre_tool_use.rb
 ```
 
 ```ruby
 #!/usr/bin/env ruby
 
 require 'json'
-require_relative 'hook_scripts/tool_monitor'
+require_relative '../handlers/pre_tool_use/tool_monitor'
 
 begin
   # Read input from stdin
@@ -626,57 +601,33 @@ rescue StandardError => e
 end
 ```
 
-## 🔧 Configuration
+Finally, create the handler that will be used to monitor tool usage.
 
-### Configuration File
-
-The framework uses `~/.claude/config/config.json`:
-
-```json
-{
-  "baseDir": "~/.claude",
-  "logDirectory": "logs"
-}
+```bash
+touch ~/.claude/hooks/handlers/pre_tool_use/tool_monitor.rb
 ```
 
-#### Configuration Options
+```ruby
+#!/usr/bin/env ruby
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `baseDir` | Base directory for all Claude files | `~/.claude` |
-| `logDirectory` | Directory for logs (relative to baseDir) | `logs` |
+require 'claude_hooks'
 
-### Registering Hooks
+class ToolMonitor < ClaudeHooks::PreToolUse
+  DANGEROUS_TOOLS = %w[curl wget rm].freeze
 
-Register hooks in `~/.claude/settings.json`:
+  def call
+    log "Monitoring tool usage: #{tool_name}"
 
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/user_prompt_submit.rb"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/pre_tool_use_on_edit.rb"
-          }
-        ]
-      }
-    ],
+    if DANGEROUS_TOOLS.include?(tool_name)
+      log "Dangerous tool detected: #{tool_name}", level: :warn
+      ask_for_permission!("The tool '#{tool_name}' can impact your system. Allow?")
+    else
+      approve_tool!("Safe tool usage")
+    end
 
-}
+    output_data
+  end
+end
 ```
 
 ## 🔄 Hook Output Patterns
@@ -719,20 +670,20 @@ exit 0
 
 ## ⚠️ Troubleshooting
 
-### Make your scripts executable
+### Make your entrypoint scripts executable
 
 Don't forget to make the scripts called from `settings.json` executable:
 
 ```bash
-chmod +x ~/.claude/hooks/user_prompt_submit.rb
+chmod +x ~/.claude/hooks/entrypoints/user_prompt_submit.rb
 ```
 
 
 ## 🐛 Debugging
 
-### Test Individual Hooks
+### Test an individual entrypoint
 
 ```bash
 # Test with sample data
-echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | ruby your_hook.rb
+echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | ruby ~/.claude/hooks/entrypoints/user_prompt_submit.rb
 ```
