@@ -1,6 +1,6 @@
 # Ruby DSL for Claude Code hooks
 
-A Ruby DSL framework for creating Claude Code hooks. This will hopefully make creating and configuring new hooks way easier.
+A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will hopefully make creating and configuring new hooks way easier.
 
 [**Why use this instead of writing bash, or simple ruby scripts?**](WHY.md)
 
