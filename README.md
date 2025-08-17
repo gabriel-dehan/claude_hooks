@@ -2,7 +2,7 @@
 
 A Ruby DSL framework for creating Claude Code hooks. This will hopefully make creating and configuring new hooks way easier.
 
-[**What does it bring?**](WHY.md)
+[**Why use this instead of writing bash, or simple ruby scripts?**](WHY.md)
 
 ## 🚀 Quick Start
 
