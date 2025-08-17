@@ -113,8 +113,7 @@ export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                 # Default: logs (relativ
 # You can add any custom configuration
 export RUBY_CLAUDE_HOOKS_API_KEY="your-api-key"
 export RUBY_CLAUDE_HOOKS_DEBUG_MODE="true"
-export RUBY_CLAUDE_HOOKS_WEBHOOK_URL="https://example.com/webhook"
-export RUBY_CLAUDE_HOOKS_USER_NAME="YourName"
+export RUBY_CLAUDE_HOOKS_USER_NAME="Gabriel"
 ```
 
 #### Configuration File
@@ -128,8 +127,7 @@ The gem will read from it as fallback for any missing environment variables.
   "logDirectory": "logs",
   "apiKey": "your-api-key",
   "debugMode": true,
-  "webhookUrl": "https://example.com/webhook",
-  "userName": "YourName"
+  "userName": "Gabriel"
 }
 ```
 
@@ -143,16 +141,16 @@ class MyHandler < ClaudeHooks::UserPromptSubmit
     # Access built-in config
     log "Base dir: #{config.base_dir}"
     log "Logs dir: #{config.logs_directory}"
-    
+
     # Access custom config via method calls
     log "API Key: #{config.api_key}"
     log "Debug mode: #{config.debug_mode}"
     log "User: #{config.user_name}"
-    
+
     # Or use get_config_value for more control
-    webhook_url = config.get_config_value('WEBHOOK_URL', 'webhookUrl', 'default-url')
-    log "Webhook: #{webhook_url}"
-    
+    user_name = config.get_config_value('USER_NAME', 'userName', )
+    log "Username: #{user_name}"
+
     output_data
   end
 end
@@ -166,9 +164,10 @@ end
   - [🚀 Quick Start](#-quick-start)
   - [📦 Installation](#-installation)
     - [🔧 Configuration](#-configuration)
-      - [Configuration Options](#configuration-options)
+      - [Required Configuration Options](#required-configuration-options)
       - [Environment Variables (Preferred)](#environment-variables-preferred)
       - [Configuration File](#configuration-file)
+      - [Accessing Custom Configuration](#accessing-custom-configuration)
   - [📖 Table of Contents](#-table-of-contents)
   - [🏗️ Architecture](#️-architecture)
     - [Core Components](#core-components)
