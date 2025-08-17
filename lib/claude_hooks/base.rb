@@ -43,7 +43,7 @@ module ClaudeHooks
       raise NotImplementedError, "Subclasses must implement the call method"
     end
 
-    def output_string
+    def stringify_output
       JSON.generate(@output_data)
     end
 

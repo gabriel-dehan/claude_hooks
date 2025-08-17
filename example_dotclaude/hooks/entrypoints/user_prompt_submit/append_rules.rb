@@ -45,7 +45,7 @@ if __FILE__ == $0
     input_data = JSON.parse(STDIN.read)
     hook = AppendRules.new(input_data)
     hook.call
-    puts hook.output_string
+    puts hook.stringify_output
   rescue JSON::ParserError => e
     STDERR.puts "Error parsing JSON: #{e.message}"
     puts JSON.generate({

@@ -59,6 +59,6 @@ Each script can run standalone for testing:
 ```ruby
 if __FILE__ == $0
   hook = AppendRules.new(JSON.parse(STDIN.read))
-  puts hook.output_string
+  puts hook.stringify_output
 end
 ```
