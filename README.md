@@ -73,23 +73,31 @@ That's it! Your hook will now add context to every user prompt. 🎉
 
 ## 📦 Installation
 
-Add to your Gemfile (you can add a Gemfile in your `.claude` directory if needed):
+Install it globally (simpler):
+
+```bash
+$ gem install claude_hooks
+```
+
+**Note:** Claude Code itself will still use the system-installed gem, not the bundled version unless you use `bundle exec` to run it in your `.claude/settings.json`.
+
+Or add it to your Gemfile (you can add a Gemfile in your `.claude` directory if needed):
+
 
 ```ruby
+# .claude/Gemfile
+source 'https://rubygems.org'
 gem 'claude_hooks'
 ```
 
-And then execute:
+And then run:
 
 ```bash
 $ bundle install
 ```
 
-Or install it globally:
-
-```bash
-$ gem install claude_hooks
-```
+> [!WARNING]
+> If you use a Gemfile, you need to use `bundle exec` to run your hooks in your `.claude/settings.json`.
 
 ### 🔧 Configuration
 
@@ -578,6 +586,14 @@ log <<~TEXT
   Database connection established
   System ready
 TEXT
+```
+
+You can also use the logger from an entrypoint script:
+```ruby
+require 'claude_hooks'
+
+logger = ClaudeHooks::Logger.new("TEST-SESSION-01", 'entrypoint')
+logger.log "Simple message"
 ```
 
 #### Log File Location
