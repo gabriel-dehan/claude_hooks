@@ -63,7 +63,8 @@ module ClaudeHooks
       def method_missing(method_name, *args, &block)
         # Convert method name to ENV key format (e.g., my_custom_setting -> MY_CUSTOM_SETTING)
         env_key = method_name.to_s.upcase
-        config_key = method_name.to_s
+        # Convert snake_case method name to camelCase for config file lookup
+        config_key = snake_case_to_camel_case(method_name.to_s)
 
         value = get_config_value(env_key, config_key)
         return value unless value.nil?
@@ -74,12 +75,18 @@ module ClaudeHooks
       def respond_to_missing?(method_name, include_private = false)
         # Check if we have a config value for this method
         env_key = method_name.to_s.upcase
-        config_key = method_name.to_s
+        config_key = snake_case_to_camel_case(method_name.to_s)
         
         !get_config_value(env_key, config_key).nil? || super
       end
 
       private
+
+      def snake_case_to_camel_case(snake_str)
+        # Convert snake_case to camelCase (e.g., user_name -> userName)
+        parts = snake_str.split('_')
+        parts.first + parts[1..-1].map(&:capitalize).join
+      end
 
       def config_file_path
         @config_file_path ||= path_for('config/config.json')

@@ -39,28 +39,5 @@ end
 
 # If this file is run directly (for testing), call the hook script
 if __FILE__ == $0
-  begin
-    require 'json'
-
-    input_data = JSON.parse(STDIN.read)
-    hook = AppendRules.new(input_data)
-    hook.call
-    puts hook.stringify_output
-  rescue JSON::ParserError => e
-    STDERR.puts "Error parsing JSON: #{e.message}"
-    puts JSON.generate({
-      continue: false,
-      stopReason: "JSON parsing error in AppendRules: #{e.message}",
-      suppressOutput: false
-    })
-    exit 0
-  rescue StandardError => e
-    STDERR.puts "Error in AppendRules hook: #{e.message}, #{e.backtrace.join("\n")}"
-    puts JSON.generate({
-      continue: false,
-      stopReason: "AppendRules execution error: #{e.message}",
-      suppressOutput: false
-    })
-    exit 0
-  end
+  ClaudeHooks::CLI.test_runner(AppendRules)
 end

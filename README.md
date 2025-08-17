@@ -19,6 +19,7 @@ Here's how to create a simple hook:
 1. **Create a simple hook script**
 ```ruby
 #!/usr/bin/env ruby
+require 'json'
 require 'claude_hooks'
 
 # Inherit from the right hook type class to get access to helper methods

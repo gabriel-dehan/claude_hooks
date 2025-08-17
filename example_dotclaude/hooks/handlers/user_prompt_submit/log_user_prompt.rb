@@ -33,18 +33,5 @@ end
 
 # If this file is run directly (for testing), call the hook
 if __FILE__ == $0
-  begin
-    require 'json'
-
-    hook = LogUserPrompt.new(JSON.parse(STDIN.read))
-    hook.call
-  rescue StandardError => e
-    STDERR.puts "Error in LogUserPrompt hook: #{e.message}, #{e.backtrace.join("\n")}"
-    puts JSON.generate({
-      continue: false,
-      stopReason: "LogUserPrompt execution error: #{e.message}",
-      suppressOutput: false
-    })
-    exit 0
-  end
+  ClaudeHooks::CLI.test_runner(LogUserPrompt)
 end

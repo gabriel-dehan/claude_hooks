@@ -26,7 +26,7 @@ module ClaudeHooks
 
     attr_reader :config, :input_data, :output_data, :logger
     def initialize(input_data = {})
-      @config = Configuration.config
+      @config = Configuration
       @input_data = input_data
       @output_data = {
         'continue' => true,
@@ -108,11 +108,11 @@ module ClaudeHooks
     # === CONFIG AND UTILITY METHODS ===
 
     def base_dir
-      Configuration.base_dir
+      config.base_dir
     end
 
     def path_for(relative_path)
-      Configuration.path_for(relative_path)
+      config.path_for(relative_path)
     end
 
     # Supports both single messages and blocks for multiline logging
