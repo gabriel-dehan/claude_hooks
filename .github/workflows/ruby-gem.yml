@@ -1,0 +1,124 @@
+name: Ruby Gem
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-publish:
+    name: Build + Publish
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write  # Required for creating tags and releases
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history to compare versions
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # v1.146.0
+      with:
+        ruby-version: 3.0
+        bundler-cache: true
+
+    - name: Get current version
+      id: current_version
+      run: |
+        # Install dependencies first to ensure we can load the gem
+        bundle install --quiet
+        CURRENT_VERSION=$(bundle exec ruby -r './lib/claude_hooks/version.rb' -e 'puts ClaudeHooks::VERSION')
+        echo "version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+        echo "Current version: ${CURRENT_VERSION}"
+
+    - name: Check if version changed
+      id: version_check
+      run: |
+        CURRENT_VERSION="${{ steps.current_version.outputs.version }}"
+
+        # Get the previous version from the last release tag
+        if git describe --tags --abbrev=0 >/dev/null 2>&1; then
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          LAST_VERSION=${LAST_TAG#v}  # Remove 'v' prefix if present
+          echo "Last released version: ${LAST_VERSION}"
+        else
+          LAST_VERSION="none"
+          echo "No previous releases found - this will be the first release"
+        fi
+        
+        echo "Current version: ${CURRENT_VERSION}"
+
+        if [ "${CURRENT_VERSION}" != "${LAST_VERSION}" ]; then
+          if [ "${LAST_VERSION}" = "none" ]; then
+            echo "🎉 First release! Publishing version ${CURRENT_VERSION}"
+          else
+            echo "Version changed from ${LAST_VERSION} to ${CURRENT_VERSION}"
+          fi
+          echo "should_publish=true" >> $GITHUB_OUTPUT
+        else
+          echo "Version unchanged (${CURRENT_VERSION})"
+          echo "should_publish=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Build gem
+      if: steps.version_check.outputs.should_publish == 'true'
+      run: |
+        gem build *.gemspec
+
+    - name: Create Git tag
+      if: steps.version_check.outputs.should_publish == 'true'
+      run: |
+        VERSION="${{ steps.current_version.outputs.version }}"
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git tag "v${VERSION}"
+        git push origin "v${VERSION}"
+
+    - name: Publish to GitHub Packages
+      if: steps.version_check.outputs.should_publish == 'true'
+      run: |
+        mkdir -p $HOME/.gem
+        touch $HOME/.gem/credentials
+        chmod 0600 $HOME/.gem/credentials
+        printf -- "---\n:github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+        gem push --KEY github --host https://rubygems.pkg.github.com/${OWNER} *.gem
+      env:
+        GEM_HOST_API_KEY: "Bearer ${{secrets.GITHUB_TOKEN}}"
+        OWNER: ${{ github.repository_owner }}
+
+    - name: Publish to RubyGems
+      if: steps.version_check.outputs.should_publish == 'true'
+      run: |
+        mkdir -p $HOME/.gem
+        touch $HOME/.gem/credentials
+        chmod 0600 $HOME/.gem/credentials
+        printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+        gem push *.gem
+      env:
+        GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
+
+    - name: Create GitHub Release
+      if: steps.version_check.outputs.should_publish == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.current_version.outputs.version }}
+        name: Release v${{ steps.current_version.outputs.version }}
+        body: |
+          ## Changes in v${{ steps.current_version.outputs.version }}
+
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+        draft: false
+        prerelease: false
+        files: "*.gem"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Skip message
+      if: steps.version_check.outputs.should_publish == 'false'
+      run: |
+        echo "⏭️ Skipping gem publication - version unchanged"
+        echo "💡 To publish a new version, update the version in lib/claude_hooks/version.rb"
