@@ -184,7 +184,7 @@ end
   - [🪝 Hook Types](#-hook-types)
   - [🚀 Claude Hook Flow](#-claude-hook-flow)
     - [A very simplified view of how a hook works in Claude Code](#a-very-simplified-view-of-how-a-hook-works-in-claude-code)
-    - [🔄 Claude Hook Execution Flow](#-claude-hook-execution-flow)
+    - [🔄 Proposal: a more robust Claude Hook execution flow](#-proposal-a-more-robust-claude-hook-execution-flow)
     - [Basic Hook Handler Structure](#basic-hook-handler-structure)
     - [Input Fields](#input-fields)
   - [📚 API Reference](#-api-reference)
@@ -301,7 +301,7 @@ graph LR
     A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR]
 ```
 
-### 🔄 Claude Hook Execution Flow
+### 🔄 Proposal: a more robust Claude Hook execution flow
 
 1. An entrypoint for a hook is set in `~/.claude/settings.json`
 2. Claude Code calls the entrypoint script (e.g., `hooks/entrypoints/pre_tool_use.rb`)
