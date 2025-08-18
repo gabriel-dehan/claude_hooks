@@ -298,7 +298,7 @@ The framework supports the following hook types:
 
 ```mermaid
 graph LR
-    A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR]
+  A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR] --> E[Yields back to Claude Code] --> A
 ```
 
 ### 🔄 Proposal: a more robust Claude Hook execution flow
@@ -318,8 +318,8 @@ graph TD
   C --> D[📋 Entrypoint<br />Parses JSON from STDIN]
   D --> E[📋 Entrypoint<br />Calls hook handlers]
 
-  E --> F[📝 AppendContextRules.call<br/><em>Returns output_data</em>]
-  E --> G[📝 PromptGuard.call<br/><em>Returns output_data</em>]
+  E --> F[📝 Handler<br />AppendContextRules.call<br/><em>Returns output_data</em>]
+  E --> G[📝 Handler<br />PromptGuard.call<br/><em>Returns output_data</em>]
 
   F --> J[📋 Entrypoint<br />Calls _ClaudeHooks::UserPromptSubmit.merge_outputs_ to 🔀 merge outputs]
   G --> J
