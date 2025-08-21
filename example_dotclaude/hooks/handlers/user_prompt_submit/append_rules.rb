@@ -8,12 +8,12 @@ class AppendRules < ClaudeHooks::UserPromptSubmit
   def call
     log "Executing AppendRules hook"
 
-    # Read the rule content
-    rule_content = read_rule_content
+    # Read the rules
+    rules = read_rules
 
-    if rule_content
-      add_additional_context!(rule_content)
-      log "Successfully added rule content as additional context (#{rule_content.length} characters)"
+    if rules
+      add_additional_context!(rules)
+      log "Successfully added rules as additional context (#{rules.length} characters)"
     else
       log "No rule content found", level: :warn
     end
@@ -23,8 +23,9 @@ class AppendRules < ClaudeHooks::UserPromptSubmit
 
   private
 
-  def read_rule_content
-    rule_file_path = path_for('rules/post-user-prompt.rule.md')
+  def read_rules
+    # If we were in the project directory, we would use project_path_for instead
+    rule_file_path = home_path_for('rules/post-user-prompt.rule.md')
 
     if File.exist?(rule_file_path)
       content = File.read(rule_file_path).strip
@@ -32,7 +33,8 @@ class AppendRules < ClaudeHooks::UserPromptSubmit
     end
 
     log "Rule file not found or empty at: #{rule_file_path}", level: :warn
-    log "Base directory: #{base_dir}"
+    # If we were in the project directory, we would use project_claude_dir instead
+    log "Base directory: #{home_claude_dir}"
     nil
   end
 end
