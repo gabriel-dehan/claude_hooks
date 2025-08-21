@@ -121,11 +121,12 @@ You can configure Claude Hooks through environment variables with the `RUBY_CLAU
 
 ```bash
 # Existing configuration options
-export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                 # Default: logs (relative to HOME/.claude)
-export CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY="project"     # Config merge strategy: "project" or "home", default: "project"
-export RUBY_CLAUDE_HOOKS_BASE_DIR="~/.claude"           # Deprecated: fallback base directory
+export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                  # Default: logs (relative to HOME/.claude)
+export RUBY_CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY="project" # Config merge strategy: "project" or "home", default: "project"
+export RUBY_CLAUDE_HOOKS_BASE_DIR="~/.claude"            # DEPRECATED: fallback base directory
 
-# Any variable prefixed with RUBY_CLAUDE_HOOKS_ will also be available through the config object
+# Any variable prefixed with RUBY_CLAUDE_HOOKS_
+# will also be available through the config object
 export RUBY_CLAUDE_HOOKS_API_KEY="your-api-key"
 export RUBY_CLAUDE_HOOKS_DEBUG_MODE="true"
 export RUBY_CLAUDE_HOOKS_USER_NAME="Gabriel"
@@ -161,7 +162,7 @@ When both config files exist, they will be merged with configurable precedence:
 - **Default (`project`)**: Project config values override home config values
 - **Home precedence (`home`)**: Home config values override project config values
 
-Set merge strategy: `export CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY="home" | "project"` (default: "project")
+Set merge strategy: `export RUBY_CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY="home" | "project"` (default: "project")
 
 > [!WARNING]
 > Environment Variables > Merged Config Files

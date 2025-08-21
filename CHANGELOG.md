@@ -5,12 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-08-21
+
+### Fixed
+- Fixed name of environment variable for the merge strategy
+
 ## [0.2.0] - 2025-08-21
 
 ### Added
 - **Dual Configuration System**: Support for both home-level (`$HOME/.claude`) and project-level (`$CLAUDE_PROJECT_DIR/.claude`) configurations
 - **Configuration Merging**: Intelligent merging of home and project configs with configurable precedence
-- New environment variable `CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY` to control merge behavior ("project" or "home")
+- New environment variable `RUBY_CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY` to control merge behavior ("project" or "home")
 - New directory access methods: `home_claude_dir`, `project_claude_dir`
 - New path utility methods: `home_path_for(path)`, `project_path_for(path)`
 - Enhanced `path_for(path, base_dir=nil)` method with optional base directory parameter

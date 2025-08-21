@@ -122,7 +122,7 @@ module ClaudeHooks
         # Check if we have a config value for this method
         env_key = method_name.to_s.upcase
         config_key = snake_case_to_camel_case(method_name.to_s)
-        
+
         !get_config_value(env_key, config_key).nil? || super
       end
 
@@ -155,10 +155,10 @@ module ClaudeHooks
       def load_config
         # Load and merge config files from both locations
         merged_file_config = load_and_merge_config_files
-        
+
         # Merge with ENV variables
         env_config = load_env_config
-        
+
         # ENV variables take precedence over file configs
         merged_file_config.merge(env_config)
       end
@@ -166,10 +166,10 @@ module ClaudeHooks
       def load_and_merge_config_files
         home_config = load_config_file_from_path(home_config_file_path)
         project_config = load_config_file_from_path(project_config_file_path) if project_config_file_path
-        
+
         # Determine merge strategy
-        merge_strategy = ENV['CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY'] || 'project'
-        
+        merge_strategy = ENV['RUBY_CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY'] || 'project'
+
         if project_config && merge_strategy == 'project'
           # Project config takes precedence
           home_config.merge(project_config)
@@ -205,15 +205,15 @@ module ClaudeHooks
 
       def load_env_config
         env_config = {}
-        
+
         ENV.each do |key, value|
           next unless key.start_with?(ENV_PREFIX)
-          
+
           # Remove prefix and convert to config key format
           config_key = env_key_to_config_key(key.sub(ENV_PREFIX, ''))
           env_config[config_key] = value
         end
-        
+
         env_config
       end
 
