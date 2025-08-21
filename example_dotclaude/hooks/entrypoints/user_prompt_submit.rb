@@ -2,8 +2,8 @@
 
 require 'claude_hooks'
 require 'json'
-require_relative '../user_prompt_submit/append_rules'
-require_relative '../user_prompt_submit/log_user_prompt'
+require_relative '../handlers/user_prompt_submit/append_rules'
+require_relative '../handlers/user_prompt_submit/log_user_prompt'
 
 begin
   # Read input from stdin

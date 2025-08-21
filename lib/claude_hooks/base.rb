@@ -111,8 +111,24 @@ module ClaudeHooks
       config.base_dir
     end
 
-    def path_for(relative_path)
-      config.path_for(relative_path)
+    def home_claude_dir
+      config.home_claude_dir
+    end
+
+    def project_claude_dir
+      config.project_claude_dir
+    end
+
+    def path_for(relative_path, base_directory = nil)
+      config.path_for(relative_path, base_directory)
+    end
+
+    def home_path_for(relative_path)
+      config.home_path_for(relative_path)
+    end
+
+    def project_path_for(relative_path)
+      config.project_path_for(relative_path)
     end
 
     # Supports both single messages and blocks for multiline logging

@@ -103,23 +103,25 @@ $ bundle install
 
 ### 🔧 Configuration
 
-This gem uses either environment variables or a global configuration file.
+This gem supports **dual configuration locations**: both home-level (`$HOME/.claude`) and project-level (`$CLAUDE_PROJECT_DIR/.claude`) configurations can coexist and be merged.
 
+#### Configuration Directories
 
-#### Required Configuration Options
+| Directory | Description | Purpose |
+|-----------|-------------|---------|
+| `$HOME/.claude` | Home Claude directory | Global user settings and logs |
+| `$CLAUDE_PROJECT_DIR/.claude` | Project Claude directory | Project-specific settings |
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `baseDir` | Base directory for all Claude files | `~/.claude` |
-| `logDirectory` | Directory for logs (relative to baseDir) | `logs` |
+**Logs Location**: Logs always go to `$HOME/.claude/{logDirectory}` regardless of which config is active.
 
-#### Environment Variables (Preferred)
+#### Environment Variables
 
 The gem uses environment variables with the `RUBY_CLAUDE_HOOKS_` prefix for configuration:
 
 ```bash
-export RUBY_CLAUDE_HOOKS_BASE_DIR="~/.claude"           # Default: ~/.claude
-export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                 # Default: logs (relative to base_dir)
+export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                 # Default: logs (relative to HOME/.claude)
+export CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY="project"     # Config merge strategy: "project" or "home", default: "project"
+export RUBY_CLAUDE_HOOKS_BASE_DIR="~/.claude"           # Deprecated: fallback base directory
 
 # You can add any custom configuration
 export RUBY_CLAUDE_HOOKS_API_KEY="your-api-key"
@@ -127,20 +129,36 @@ export RUBY_CLAUDE_HOOKS_DEBUG_MODE="true"
 export RUBY_CLAUDE_HOOKS_USER_NAME="Gabriel"
 ```
 
-#### Configuration File
+#### Configuration Files
 
-You can choose to use a global configuration file by setting it up in `~/.claude/config/config.json`.
-The gem will read from it as fallback for any missing environment variables.
+You can use configuration files in **both locations**:
 
+**Home config** (`$HOME/.claude/config/config.json`):
 ```json
 {
-  "baseDir": "~/.claude",
   "logDirectory": "logs",
-  "apiKey": "your-api-key",
-  "debugMode": true,
+  "apiKey": "your-global-api-key",
   "userName": "Gabriel"
 }
 ```
+
+**Project config** (`$CLAUDE_PROJECT_DIR/.claude/config/config.json`):
+```json
+{
+  "projectSpecificConfig": "someValue",
+}
+```
+
+#### Configuration Merging
+
+When both configs exist, they are merged with configurable precedence:
+
+- **Default (`project`)**: Project config values override home config values
+- **Home precedence (`home`)**: Home config values override project config values
+
+Set merge strategy: `export CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY="home" | "project"`
+
+**Priority Order**: Environment Variables > Merged Config Files
 
 #### Accessing Custom Configuration
 
@@ -149,9 +167,15 @@ You can access any configuration value in your handlers:
 ```ruby
 class MyHandler < ClaudeHooks::UserPromptSubmit
   def call
-    # Access built-in config
-    log "Base dir: #{config.base_dir}"
+    # Access directory paths
+    log "Home Claude dir: #{home_claude_dir}"
+    log "Project Claude dir: #{project_claude_dir}"  # nil if CLAUDE_PROJECT_DIR not set
+    log "Base dir (legacy): #{base_dir}"
     log "Logs dir: #{config.logs_directory}"
+
+    # Path utilities
+    log "Home config path: #{home_path_for('config')}"
+    log "Project hooks path: #{project_path_for('hooks')}"  # nil if no project dir
 
     # Access custom config via method calls
     log "API Key: #{config.api_key}"
@@ -159,7 +183,7 @@ class MyHandler < ClaudeHooks::UserPromptSubmit
     log "User: #{config.user_name}"
 
     # Or use get_config_value for more control
-    user_name = config.get_config_value('USER_NAME', 'userName', )
+    user_name = config.get_config_value('USER_NAME', 'userName')
     log "Username: #{user_name}"
 
     output_data
@@ -175,9 +199,10 @@ end
   - [🚀 Quick Start](#-quick-start)
   - [📦 Installation](#-installation)
     - [🔧 Configuration](#-configuration)
-      - [Required Configuration Options](#required-configuration-options)
-      - [Environment Variables (Preferred)](#environment-variables-preferred)
-      - [Configuration File](#configuration-file)
+      - [Configuration Directories](#configuration-directories)
+      - [Environment Variables](#environment-variables)
+      - [Configuration Files](#configuration-files)
+      - [Configuration Merging](#configuration-merging)
       - [Accessing Custom Configuration](#accessing-custom-configuration)
   - [📖 Table of Contents](#-table-of-contents)
   - [🏗️ Architecture](#️-architecture)
@@ -244,6 +269,11 @@ end
       - [2. Test with default sample data instead of STDIN](#2-test-with-default-sample-data-instead-of-stdin)
       - [3. Test with Sample Data + Customization](#3-test-with-sample-data--customization)
     - [Example Hook with CLI Testing](#example-hook-with-cli-testing)
+  - [🏠 Dual Configuration System](#-dual-configuration-system)
+    - [Home vs Project Configurations](#home-vs-project-configurations)
+    - [Migration from Single Configuration](#migration-from-single-configuration)
+    - [Configuration Examples](#configuration-examples)
+    - [Testing Configurations](#testing-configurations)
   - [🐛 Debugging](#-debugging)
     - [Test an individual entrypoint](#test-an-individual-entrypoint)
 
@@ -569,11 +599,15 @@ Available in all hooks via the base `ClaudeHooks::Base` class:
 #### Configuration Methods
 | Method | Description |
 |--------|-------------|
-| `base_dir` | Get the base Claude directory |
-| `path_for(relative_path)` | Get absolute path relative to base dir |
+| `home_claude_dir` | Get the home Claude directory (`$HOME/.claude`) |
+| `project_claude_dir` | Get the project Claude directory (`$CLAUDE_PROJECT_DIR/.claude`, or `nil`) |
+| `base_dir` | Get the base Claude directory (**deprecated**) |
+| `path_for(relative_path, base_dir=nil)` | Get absolute path relative to specified or default base dir (**deprecated**) |
+| `home_path_for(relative_path)` | Get absolute path relative to home Claude directory |
+| `project_path_for(relative_path)` | Get absolute path relative to project Claude directory (or `nil`) |
 | `config` | Access the full configuration object |
 | `config.get_config_value(env_key, config_key, default)` | Get any config value with fallback |
-| `config.logs_directory` | Get logs directory path |
+| `config.logs_directory` | Get logs directory path (always under home directory) |
 | `config.your_custom_key` | Access any custom config via method_missing |
 
 #### Utility Methods
@@ -894,6 +928,53 @@ if __FILE__ == $0
     input_data['debug_mode'] = true
   end
 end
+```
+
+## 🏠 Dual Configuration System
+
+### Home vs Project Configurations
+
+The gem supports both **home-level** and **project-level** configurations:
+
+- **Home**: `$HOME/.claude/config/config.json` - Global user settings
+- **Project**: `$CLAUDE_PROJECT_DIR/.claude/config/config.json` - Project-specific settings
+
+### Migration from Single Configuration
+
+If you're upgrading from a previous version, your existing configuration will continue to work:
+
+- `RUBY_CLAUDE_HOOKS_BASE_DIR` is still supported for backward compatibility
+- Existing hooks using `base_dir` and `path_for` continue to work unchanged
+- New projects can take advantage of the dual configuration system
+
+### Configuration Examples
+
+**Global user settings** (`$HOME/.claude/config/config.json`):
+```json
+{
+  "userName": "YourName",
+  "apiKey": "global-api-key",
+  "logDirectory": "logs"
+}
+```
+
+**Project-specific overrides** (`$PROJECT/.claude/config/config.json`):
+```json
+{
+  "userName": "ProjectTeamName",
+  "logDirectory": "project-logs",
+  "projectId": "my-special-project"
+}
+```
+
+**Result**: Project settings override home settings, environment variables override both.
+
+### Testing Configurations
+
+Run the configuration tests to verify your setup:
+
+```bash
+ruby test/run_all_tests.rb
 ```
 
 ## 🐛 Debugging
