@@ -4,7 +4,7 @@ A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will 
 
 [**Why use this instead of writing bash, or simple ruby scripts?**](WHY.md)
 
-> You might also be interested in my other project, a [Claude Code statusline](https://github.com/gabriel-dehan/claude_monitor_statusline) that shows your Claude usage in realtime ✨.
+> You might also be interested in my other project, a [Claude Code statusline](https://github.com/gabriel-dehan/claude_monitor_statusline) that shows your Claude usage in realtime, inside Claude Code ✨.
 
 ## 🚀 Quick Start
 
