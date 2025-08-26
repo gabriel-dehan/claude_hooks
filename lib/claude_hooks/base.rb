@@ -35,7 +35,6 @@ module ClaudeHooks
         'suppressOutput' => false
       }
       @output = ClaudeHooks::Output::Base.for_hook_type(hook_type, @output_data)
-      p "OUTPUT: #{@output.inspect}"
       @logger = Logger.new(session_id, self.class.name)
 
       validate_input!

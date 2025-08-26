@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 
+# Ensure we load the local version, not the gem
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
+
 require 'stringio'
-require_relative '../lib/claude_hooks'
+require 'claude_hooks'
 require_relative '../example_dotclaude/hooks/handlers/user_prompt_submit/append_rules'
 
 puts "=== Testing Integration with Existing Hooks ==="
@@ -17,6 +20,8 @@ input_data = {
 
 # Create the hook
 hook = AppendRules.new(input_data)
+puts "Hook class: #{hook.class}"
+puts "Hook type: #{hook.hook_type}"
 result = hook.call
 
 puts "Hook result: #{result.inspect}"
@@ -53,6 +58,16 @@ begin
   
   # We can't actually run entrypoint because it would exit, but we can test its existence
   puts "CLI.entrypoint method exists: #{ClaudeHooks::CLI.respond_to?(:entrypoint)}"
+  puts "Available CLI public methods: #{ClaudeHooks::CLI.methods(false).sort}"
+  puts "Available CLI private methods: #{ClaudeHooks::CLI.private_methods(false).sort}"
+  
+  # Try to get the method directly
+  begin
+    method = ClaudeHooks::CLI.method(:entrypoint)
+    puts "CLI.entrypoint method object: #{method}"
+  rescue => e
+    puts "Failed to get entrypoint method: #{e.message}"
+  end
   
   $stdin = original_stdin
 rescue => e

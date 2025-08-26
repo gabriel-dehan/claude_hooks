@@ -107,16 +107,6 @@ module ClaudeHooks
 
       # Factory method to create the correct output class for a given hook type
       def self.for_hook_type(hook_type, data)
-        # Require output classes on demand to avoid circular dependencies
-        require_relative 'user_prompt_submit'
-        require_relative 'pre_tool_use'
-        require_relative 'post_tool_use'
-        require_relative 'stop'
-        require_relative 'subagent_stop'
-        require_relative 'notification'
-        require_relative 'session_start'
-        require_relative 'pre_compact'
-        
         case hook_type
         when 'UserPromptSubmit'
           UserPromptSubmit.new(data)

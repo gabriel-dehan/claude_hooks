@@ -89,32 +89,6 @@ module ClaudeHooks
         run_hook(hook_class, merged_data)
       end
 
-      private
-
-      def read_stdin_input
-        stdin_content = STDIN.read.strip
-        return {} if stdin_content.empty?
-        
-        JSON.parse(stdin_content)
-      rescue JSON::ParserError => e
-        raise "Invalid JSON input: #{e.message}"
-      end
-
-      def handle_error(error, hook_class)
-        STDERR.puts "Error in #{hook_class.name} hook: #{error.message}"
-        STDERR.puts error.backtrace.join("\n") if error.backtrace
-
-        # Output error response in Claude Code format
-        error_response = {
-          continue: false,
-          stopReason: "#{hook_class.name} execution error: #{error.message}",
-          suppressOutput: false
-        }
-
-        puts JSON.generate(error_response)
-        exit 1
-      end
-
       # Simplified entrypoint helper for hook scripts
       # This handles all the STDIN reading, JSON parsing, error handling, and output execution
       # 
@@ -179,6 +153,32 @@ module ClaudeHooks
           stopReason: "Hook execution error: #{e.message}",
           suppressOutput: false
         }
+        puts JSON.generate(error_response)
+        exit 1
+      end
+
+      private
+
+      def read_stdin_input
+        stdin_content = STDIN.read.strip
+        return {} if stdin_content.empty?
+        
+        JSON.parse(stdin_content)
+      rescue JSON::ParserError => e
+        raise "Invalid JSON input: #{e.message}"
+      end
+
+      def handle_error(error, hook_class)
+        STDERR.puts "Error in #{hook_class.name} hook: #{error.message}"
+        STDERR.puts error.backtrace.join("\n") if error.backtrace
+
+        # Output error response in Claude Code format
+        error_response = {
+          continue: false,
+          stopReason: "#{hook_class.name} execution error: #{error.message}",
+          suppressOutput: false
+        }
+
         puts JSON.generate(error_response)
         exit 1
       end
