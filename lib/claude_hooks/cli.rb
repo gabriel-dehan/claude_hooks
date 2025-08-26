@@ -98,7 +98,7 @@ module ClaudeHooks
       #    ClaudeHooks::CLI.entrypoint do |input_data|
       #      hook = MyHook.new(input_data)
       #      hook.call
-      #      hook.output.exit_with_output
+      #      hook.exit_and_output
       #    end
       #
       # 2. Simple form - single hook class:
@@ -116,7 +116,7 @@ module ClaudeHooks
       #        hook1.output,
       #        hook2.output
       #      )
-      #      merged.exit_with_output
+      #      merged.exit_and_output
       #    end
       def entrypoint(hook_class = nil, &block)
         # Read and parse input from STDIN
@@ -129,7 +129,7 @@ module ClaudeHooks
           # Simple single hook form
           hook = hook_class.new(input_data)
           hook.call
-          hook.output.exit_with_output
+          hook.exit_and_output
         else
           raise ArgumentError, "Either provide a hook_class or a block"
         end

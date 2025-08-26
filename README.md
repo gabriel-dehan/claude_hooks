@@ -763,10 +763,10 @@ Claude Code hooks support multiple exit codes with different behaviors depending
 - **`exit 2`**: Blocking error, in most cases `STDERR` will be fed back to Claude.
 - **Other exit codes**: Treated as non-blocking errors - `STDERR` fed back to the user, execution continues.
 
-> ![WARNING] 
+> [!WARNING]
 > Some exit codes have different meanings depending on the hook type, here is a table to help summarize this.
 
-| Hook Event       | Exit Code 0 (Success)                                      | Exit Code 1 and other Exit Codes (Non-blocking Error) | Exit Code 2 (Blocking Error)                                   |
+| Hook Event       | Exit 0 (Success)                                      | Exit 1 (Non-blocking Error) | Exit Code 2 (Blocking Error)                                   |
 |------------------|------------------------------------------------------------|-------------------------------------------------------|----------------------------------------------------------------|
 | UserPromptSubmit | Operation continues<br/><br />**`STDOUT` added as context to Claude**       | Non-blocking error<br/><br />`STDERR` shown to user                | **Blocks prompt processing**<br/>**Erases prompt**<br/><br />`STDERR` shown to user only |
 | PreToolUse       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | **Blocks the tool call**<br/><br />`STDERR` shown to Claude                     |

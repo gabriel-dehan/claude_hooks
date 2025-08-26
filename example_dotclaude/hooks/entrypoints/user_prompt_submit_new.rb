@@ -29,7 +29,7 @@ begin
   )
 
   # NEW: Let the output object handle all the exit logic!
-  merged_output.exit_with_output  # This handles JSON output, streams, and exit codes automatically
+  merged_output.exit_and_output  # This handles JSON output, streams, and exit codes automatically
 
 rescue JSON::ParserError => e
   # Error handling becomes simpler too
@@ -38,7 +38,7 @@ rescue JSON::ParserError => e
     'stopReason' => "JSON parsing error: #{e.message}",
     'suppressOutput' => false
   })
-  error_output.exit_with_output  # Automatically uses STDERR and exit 1
+  error_output.exit_and_output  # Automatically uses STDERR and exit 1
 
 rescue StandardError => e
   # Same simple error pattern
@@ -47,7 +47,7 @@ rescue StandardError => e
     'stopReason' => "Hook execution error: #{e.message} #{e.backtrace.join("\n")}",
     'suppressOutput' => false
   })
-  error_output.exit_with_output  # Automatically uses STDERR and exit 1
+  error_output.exit_and_output  # Automatically uses STDERR and exit 1
 end
 
 # No need for manual exit codes, stream selection, or JSON generation!

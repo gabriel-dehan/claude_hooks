@@ -48,6 +48,10 @@ module ClaudeHooks
     def stringify_output
       JSON.generate(@output_data)
     end
+
+    def exit_and_output
+      @output.exit_and_output
+    end
     
     # === COMMON INPUT DATA ACCESS ===
 
