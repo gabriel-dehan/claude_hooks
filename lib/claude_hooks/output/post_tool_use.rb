@@ -39,7 +39,7 @@ module ClaudeHooks
         outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
           merged_data['decision'] = 'block' if output_data['decision'] == 'block'
-          merged_data['reason'] = [merged_data['reason'], output['reason']].compact.reject(&:empty?).join('; ')
+          merged_data['reason'] = [merged_data['reason'], output_data['reason']].compact.reject(&:empty?).join('; ')
         end
 
         new(merged_data)
