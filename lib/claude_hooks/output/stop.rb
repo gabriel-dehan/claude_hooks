@@ -43,13 +43,17 @@ module ClaudeHooks
       # === MERGE HELPER ===
 
       def self.merge(*outputs)
+        compacted_outputs = outputs.compact
+        return compacted_outputs.first if compacted_outputs.length == 1
+        return super(*outputs) if compacted_outputs.empty?
+        
         merged = super(*outputs)
         merged_data = merged.data
 
         # A blocking reason is actually a "continue instructions"
         blocking_reasons = []
 
-        outputs.each do |output|
+        compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
 
           # Handle decision - if any hook says 'block', respect that

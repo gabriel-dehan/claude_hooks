@@ -51,6 +51,10 @@ module ClaudeHooks
       # === MERGE HELPER ===
 
       def self.merge(*outputs)
+        compacted_outputs = outputs.compact
+        return compacted_outputs.first if compacted_outputs.length == 1
+        return super(*outputs) if compacted_outputs.empty?
+        
         merged = super(*outputs)
         merged_data = merged.data
 
@@ -58,7 +62,7 @@ module ClaudeHooks
         permission_decision = 'allow'
         permission_reasons = []
 
-        outputs.each do |output|
+        compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
           
           if output_data.dig('hookSpecificOutput', 'permissionDecision')

@@ -33,10 +33,14 @@ module ClaudeHooks
       # === MERGE HELPER ===
 
       def self.merge(*outputs)
+        compacted_outputs = outputs.compact
+        return compacted_outputs.first if compacted_outputs.length == 1
+        return super(*outputs) if compacted_outputs.empty?
+        
         merged = super(*outputs)
         merged_data = merged.data
 
-        outputs.each do |output|
+        compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
           merged_data['decision'] = 'block' if output_data['decision'] == 'block'
           merged_data['reason'] = [merged_data['reason'], output_data['reason']].compact.reject(&:empty?).join('; ')

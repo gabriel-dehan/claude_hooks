@@ -247,4 +247,272 @@ class TestOutputClasses < Minitest::Test
     assert_includes(merged.reason, 'Second reason')
     assert_equal(1, merged.exit_code) # PostToolUse uses exit code 1 when blocked
   end
+
+  # === STOP OUTPUT MERGE TESTS ===
+
+  def test_stop_merge_with_multiple_continue_instructions
+    data1 = {
+      'continue' => true,
+      'decision' => 'block',
+      'reason' => 'Continue with task A'
+    }
+    
+    data2 = {
+      'continue' => true,
+      'decision' => 'block', 
+      'reason' => 'Continue with task B'
+    }
+    
+    output1 = ClaudeHooks::Output::Stop.new(data1)
+    output2 = ClaudeHooks::Output::Stop.new(data2)
+    
+    merged = ClaudeHooks::Output::Stop.merge(output1, output2)
+    
+    assert_equal('block', merged.decision)
+    assert_includes(merged.reason, 'Continue with task A')
+    assert_includes(merged.reason, 'Continue with task B')
+    assert(merged.should_continue?)
+    assert_equal(2, merged.exit_code)
+  end
+
+  def test_stop_merge_normal_with_block_decision
+    data1 = {
+      'continue' => true
+    }
+    
+    data2 = {
+      'continue' => true,
+      'decision' => 'block',
+      'reason' => 'Force continue'
+    }
+    
+    output1 = ClaudeHooks::Output::Stop.new(data1)
+    output2 = ClaudeHooks::Output::Stop.new(data2)
+    
+    merged = ClaudeHooks::Output::Stop.merge(output1, output2)
+    
+    assert_equal('block', merged.decision)
+    assert_equal('Force continue', merged.reason)
+    assert(merged.should_continue?)
+    assert_equal(2, merged.exit_code)
+  end
+
+  # === SUBAGENT STOP MERGE TESTS ===
+
+  def test_subagent_stop_merge_inherits_stop_behavior
+    data1 = {
+      'continue' => true,
+      'decision' => 'block',
+      'reason' => 'Subagent continue instruction'
+    }
+    
+    data2 = {
+      'continue' => true,
+      'decision' => 'block',
+      'reason' => 'Another instruction'
+    }
+    
+    output1 = ClaudeHooks::Output::SubagentStop.new(data1)
+    output2 = ClaudeHooks::Output::SubagentStop.new(data2)
+    
+    merged = ClaudeHooks::Output::SubagentStop.merge(output1, output2)
+    
+    assert_instance_of(ClaudeHooks::Output::SubagentStop, merged)
+    assert_equal('block', merged.decision)
+    assert_includes(merged.reason, 'Subagent continue instruction')
+    assert_includes(merged.reason, 'Another instruction')
+    assert_equal(2, merged.exit_code)
+  end
+
+  # === SESSION START MERGE TESTS ===
+
+  def test_session_start_merge_with_context_joining
+    data1 = {
+      'continue' => true,
+      'hookSpecificOutput' => {
+        'additionalContext' => 'Session context 1'
+      }
+    }
+    
+    data2 = {
+      'continue' => true,
+      'hookSpecificOutput' => {
+        'additionalContext' => 'Session context 2'
+      }
+    }
+    
+    output1 = ClaudeHooks::Output::SessionStart.new(data1)
+    output2 = ClaudeHooks::Output::SessionStart.new(data2)
+    
+    merged = ClaudeHooks::Output::SessionStart.merge(output1, output2)
+    
+    assert_includes(merged.additional_context, 'Session context 1')
+    assert_includes(merged.additional_context, 'Session context 2')
+    assert_equal('SessionStart', merged.hook_specific_output['hookEventName'])
+    assert_equal(0, merged.exit_code)
+  end
+
+  def test_session_start_merge_with_empty_context
+    data1 = {
+      'continue' => true,
+      'hookSpecificOutput' => {
+        'additionalContext' => 'Only context'
+      }
+    }
+    
+    data2 = {
+      'continue' => true
+    }
+    
+    output1 = ClaudeHooks::Output::SessionStart.new(data1)
+    output2 = ClaudeHooks::Output::SessionStart.new(data2)
+    
+    merged = ClaudeHooks::Output::SessionStart.merge(output1, output2)
+    
+    assert_equal('Only context', merged.additional_context)
+  end
+
+  # === NOTIFICATION MERGE TESTS ===
+
+  def test_notification_merge_basic_behavior
+    data1 = {
+      'continue' => true,
+      'suppressOutput' => false
+    }
+    
+    data2 = {
+      'continue' => false,
+      'stopReason' => 'Notification error',
+      'suppressOutput' => true
+    }
+    
+    output1 = ClaudeHooks::Output::Notification.new(data1)
+    output2 = ClaudeHooks::Output::Notification.new(data2)
+    
+    merged = ClaudeHooks::Output::Notification.merge(output1, output2)
+    
+    refute(merged.continue?)
+    assert(merged.suppress_output?)
+    assert_equal('Notification error', merged.stop_reason)
+    assert_equal(1, merged.exit_code)
+  end
+
+  # === PRE COMPACT MERGE TESTS ===
+
+  def test_pre_compact_merge_basic_behavior
+    data1 = {
+      'continue' => true,
+      'suppressOutput' => false
+    }
+    
+    data2 = {
+      'continue' => false,
+      'stopReason' => 'Compaction error'
+    }
+    
+    output1 = ClaudeHooks::Output::PreCompact.new(data1)
+    output2 = ClaudeHooks::Output::PreCompact.new(data2)
+    
+    merged = ClaudeHooks::Output::PreCompact.merge(output1, output2)
+    
+    refute(merged.continue?)
+    assert_equal('Compaction error', merged.stop_reason)
+    assert_equal(1, merged.exit_code)
+  end
+
+  # === EDGE CASE MERGE TESTS ===
+
+  def test_merge_with_empty_array
+    merged = ClaudeHooks::Output::UserPromptSubmit.merge()
+    
+    # Empty merge should return a default instance (handled by base class)
+    assert_instance_of(ClaudeHooks::Output::UserPromptSubmit, merged)
+    assert(merged.continue?)
+    refute(merged.suppress_output?)
+    assert_equal('', merged.stop_reason)
+    assert_equal(0, merged.exit_code)
+  end
+
+  def test_merge_with_single_output
+    data = {
+      'continue' => true,
+      'decision' => 'block',
+      'reason' => 'Single reason'
+    }
+    
+    output = ClaudeHooks::Output::UserPromptSubmit.new(data)
+    merged = ClaudeHooks::Output::UserPromptSubmit.merge(output)
+    
+    # Single input should return the same object
+    assert_equal(output, merged)
+    assert_equal('block', merged.decision)
+    assert_equal('Single reason', merged.reason)
+  end
+
+  def test_merge_with_nil_outputs
+    data = {
+      'continue' => true,
+      'hookSpecificOutput' => {
+        'permissionDecision' => 'deny',
+        'permissionDecisionReason' => 'Blocked'
+      }
+    }
+    
+    output = ClaudeHooks::Output::PreToolUse.new(data)
+    merged = ClaudeHooks::Output::PreToolUse.merge(output, nil, output)
+    
+    # Should handle nil inputs gracefully
+    assert_equal('deny', merged.permission_decision)
+    assert_includes(merged.permission_reason, 'Blocked')
+  end
+
+  def test_base_merge_continue_false_wins
+    data1 = {
+      'continue' => true,
+      'suppressOutput' => false
+    }
+    
+    data2 = {
+      'continue' => false,
+      'stopReason' => 'Error occurred',
+      'suppressOutput' => true
+    }
+    
+    output1 = ClaudeHooks::Output::Notification.new(data1)
+    output2 = ClaudeHooks::Output::Notification.new(data2)
+    
+    merged = ClaudeHooks::Output::Notification.merge(output1, output2)
+    
+    refute(merged.continue?) # continue: false wins
+    assert(merged.suppress_output?) # suppressOutput: true wins
+    assert_equal('Error occurred', merged.stop_reason)
+  end
+
+  def test_pre_tool_use_merge_ask_over_allow
+    data1 = {
+      'continue' => true,
+      'hookSpecificOutput' => {
+        'permissionDecision' => 'allow',
+        'permissionDecisionReason' => 'Safe tool'
+      }
+    }
+    
+    data2 = {
+      'continue' => true,
+      'hookSpecificOutput' => {
+        'permissionDecision' => 'ask',
+        'permissionDecisionReason' => 'Needs approval'
+      }
+    }
+    
+    output1 = ClaudeHooks::Output::PreToolUse.new(data1)
+    output2 = ClaudeHooks::Output::PreToolUse.new(data2)
+    
+    merged = ClaudeHooks::Output::PreToolUse.merge(output1, output2)
+    
+    assert_equal('ask', merged.permission_decision) # ask wins over allow
+    assert_includes(merged.permission_reason, 'Safe tool')
+    assert_includes(merged.permission_reason, 'Needs approval')
+    assert_equal(2, merged.exit_code)
+  end
 end
