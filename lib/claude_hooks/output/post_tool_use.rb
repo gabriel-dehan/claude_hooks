@@ -25,7 +25,7 @@ module ClaudeHooks
 
       def exit_code
         return 1 unless continue?
-        return 2 if blocked?
+        return 1 if blocked?
 
         0
       end
@@ -39,7 +39,7 @@ module ClaudeHooks
         outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
           merged_data['decision'] = 'block' if output_data['decision'] == 'block'
-          merged['reason'] = [merged['reason'], output['reason']].compact.reject(&:empty?).join('; ')
+          merged_data['reason'] = [merged_data['reason'], output['reason']].compact.reject(&:empty?).join('; ')
         end
 
         new(merged_data)
