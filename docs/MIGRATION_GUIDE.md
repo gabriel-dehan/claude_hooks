@@ -73,7 +73,7 @@ begin
   github_guard.call
 
   # NEW: One line handles everything!
-  github_guard.output.execute!
+  github_guard.output.exit_with_output
 
 rescue StandardError => e
   # NEW: Simple error handling
@@ -82,7 +82,7 @@ rescue StandardError => e
     'stopReason' => "Hook execution error: #{e.message}",
     'suppressOutput' => false
   })
-  error_output.execute!  # Automatically uses STDERR and exit 1
+  error_output.exit_with_output  # Automatically uses STDERR and exit 1
 end
 ```
 
@@ -113,7 +113,7 @@ puts "Exit code: #{output.exit_code}"      # 0, 1, or 2 based on permission
 puts "Stream: #{output.output_stream}"     # :stdout or :stderr
 
 # One call handles everything
-output.execute!  # Prints JSON to correct stream and exits with correct code
+output.exit_with_output  # Prints JSON to correct stream and exits with correct code
 ```
 
 ### UserPromptSubmit Hooks
@@ -129,7 +129,7 @@ puts "Reason: #{output.reason}"
 puts "Context: #{output.additional_context}"
 
 # Automatic execution
-output.execute!  # Handles all the exit logic
+output.exit_with_output  # Handles all the exit logic
 ```
 
 ### Stop Hooks (Special Logic)
@@ -143,7 +143,7 @@ output = hook.output
 puts "Should continue? #{output.should_continue?}"      # true if decision == 'block'
 puts "Continue instructions: #{output.continue_instructions}"
 
-output.execute!  # exit 1 for "continue", exit 0 for "stop"
+output.exit_with_output  # exit 1 for "continue", exit 0 for "stop"
 ```
 
 ## Merging Multiple Hooks
@@ -162,7 +162,7 @@ merged_output = ClaudeHooks::Output::PreToolUse.merge(
   hook1.output,
   hook2.output
 )
-merged_output.execute!  # Handles everything automatically
+merged_output.exit_with_output  # Handles everything automatically
 ```
 
 ## Simplified Entrypoint Pattern
@@ -177,7 +177,7 @@ require_relative '../handlers/my_hook'
 ClaudeHooks::CLI.entrypoint do |input_data|
   hook = MyHook.new(input_data)
   hook.call
-  hook.output.execute!
+  hook.output.exit_with_output
 end
 ```
 
@@ -198,7 +198,7 @@ ClaudeHooks::CLI.entrypoint do |input_data|
     hook1.output,
     hook2.output
   )
-  merged.execute!
+  merged.exit_with_output
 end
 ```
 
@@ -218,7 +218,7 @@ Each handles the specific exit code logic and semantic helpers for its hook type
 ## Migration Steps
 
 1. **Update your hook handlers** to return `output_data` (most already do)
-2. **Replace manual exit logic** with `hook.output.execute!`
+2. **Replace manual exit logic** with `hook.output.exit_with_output`
 3. **Use semantic helpers** instead of digging through hash structures
 4. **Use output object merging** instead of class methods
 5. **Enjoy the simplified, cleaner code!**

@@ -46,7 +46,7 @@ module ClaudeHooks
       # === EXECUTION CONTROL ===
 
       # Main execution method - handles output and exits with correct code
-      def execute!
+      def exit_with_output
         stream = output_stream
         code = exit_code
 
