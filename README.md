@@ -757,17 +757,29 @@ merged_result = ClaudeHooks::UserPromptSubmit.merge_outputs(output1, output2, ou
 
 ### 🚪 Hook Exit Codes
 
-Claude Code hooks support multiple exit codes:
+Claude Code hooks support multiple exit codes with different behaviors depending on the hook type.
 
 ### Pattern 1: Simple Exit Codes
-- **`exit 0`**: Success, allow the operation to continue
-- **`exit 1`**: Non-blocking error, `STDERR` will be fed back to the user
-- **`exit 2`**: Blocking error, `STDERR` will be fed back to Claude
+- **`exit 0`**: Success, allows the operation to continue, for most hooks, `STDOUT` will be fed back to the user.
+- **`exit 1`**: Non-blocking error, `STDERR` will be fed back to the user.
+- **`exit 2`**: Blocking error, in most cases `STDERR` will be fed back to Claude.
+- **Other exit codes**: Treated as non-blocking errors - `STDERR` fed back to the user, execution continues.
 
-**Hook-specific meanings:**
-- **UserPromptSubmit**: `exit 1` blocks the prompt from being processed
-- **PreToolUse**: `exit 1` blocks the tool, `exit 2` asks for permission
-- **PostToolUse**: `exit 1` blocks the tool result from being used
+Some exit codes have different meanings depending on the hook type, here is a table to help summarize this:
+
+| Hook Event       | Exit Code 0 (Success)                                      | Exit Code 1 and other Exit Codes (Non-blocking Error) | Exit Code 2 (Blocking Error)                                   |
+|------------------|------------------------------------------------------------|-------------------------------------------------------|----------------------------------------------------------------|
+| UserPromptSubmit | Operation continues<br/><br />$\color{Orange}{\textsf{`STDOUT` added as context to Claude}}$       | Non-blocking error<br/><br />`STDERR` shown to user                | Blocks prompt processing<br/><br />Erases prompt<br/><br />`STDERR` shown to user only |
+| PreToolUse       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | Blocks the tool call<br/><br />`STDERR` shown to Claude                     |
+| PostToolUse      | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to Claude (tool already ran)                   |
+| Notification     | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+| Stop             | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | Blocks stoppage<br/><br />`STDERR` shown to Claude                          |
+| SubagentStop     | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | Blocks stoppage<br/><br />`STDERR` shown to Claude subagent                 |
+| PreCompact       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+| SessionStart     | Operation continues<br/><br />`STDOUT` added as context to Claude       | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+| SessionEnd       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+
+
 
 
 ### Example: Success
