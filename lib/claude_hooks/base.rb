@@ -3,6 +3,7 @@
 require 'json'
 require_relative 'configuration'
 require_relative 'logger'
+require_relative 'output/base'
 
 module ClaudeHooks
   # Base class for Claude Code hook scripts
@@ -24,7 +25,7 @@ module ClaudeHooks
       self.class.hook_type
     end
 
-    attr_reader :config, :input_data, :output_data, :logger
+    attr_reader :config, :input_data, :output_data, :output, :logger
     def initialize(input_data = {})
       @config = Configuration
       @input_data = input_data
@@ -33,6 +34,7 @@ module ClaudeHooks
         'stopReason' => '',
         'suppressOutput' => false
       }
+      @output = ClaudeHooks::Output::Base.for_hook_type(hook_type, @output_data)
       @logger = Logger.new(session_id, self.class.name)
 
       validate_input!
@@ -46,7 +48,7 @@ module ClaudeHooks
     def stringify_output
       JSON.generate(@output_data)
     end
-
+    
     # === COMMON INPUT DATA ACCESS ===
 
     def session_id
@@ -134,29 +136,6 @@ module ClaudeHooks
     # Supports both single messages and blocks for multiline logging
     def log(message = nil, level: :info, &block)
       @logger.log(message, level: level, &block)
-    end
-
-    protected
-
-    # === MERGE HELPER BASE ===
-
-    # Handles common merging logic for all hook types
-    # Subclasses should call super and add their specific logic
-    def self.merge_outputs(*outputs_data)
-      compacted_outputs_data = outputs_data.compact
-      return { 'continue' => true, 'stopReason' => '', 'suppressOutput' => false } if compacted_outputs_data.empty?
-
-      # Initialize merged result with defaults
-      merged = { 'continue' => true, 'stopReason' => '', 'suppressOutput' => false }
-
-      # Apply common merge logic
-      compacted_outputs_data.each do |output|
-        merged['continue'] = false if output['continue'] == false
-        merged['stopReason'] = [merged['stopReason'], output['stopReason']].compact.reject(&:empty?).join('; ')
-        merged['suppressOutput'] = true if output['suppressOutput'] == true
-      end
-
-      merged
     end
 
     private

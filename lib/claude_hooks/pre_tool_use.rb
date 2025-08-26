@@ -47,42 +47,5 @@ module ClaudeHooks
         'permissionDecisionReason' => reason
       }
     end
-
-    # === MERGE HELPER ===
-
-    # Merge multiple PreToolUse hook results intelligently
-    def self.merge_outputs(*outputs_data)
-      merged = super(*outputs_data)
-
-      # For PreToolUse: deny > ask > allow (most restrictive wins)
-      permission_decision = 'allow'
-      permission_reasons = []
-
-      outputs_data.compact.each do |output|
-        if output.dig('hookSpecificOutput', 'permissionDecision')
-          current_decision = output['hookSpecificOutput']['permissionDecision']
-          case current_decision
-          when 'deny'
-            permission_decision = 'deny'
-          when 'ask'
-            permission_decision = 'ask' unless permission_decision == 'deny'
-          end
-
-          if output['hookSpecificOutput']['permissionDecisionReason']
-            permission_reasons << output['hookSpecificOutput']['permissionDecisionReason']
-          end
-        end
-      end
-
-      unless permission_reasons.empty?
-        merged['hookSpecificOutput'] = {
-          'hookEventName' => hook_type,
-          'permissionDecision' => permission_decision,
-          'permissionDecisionReason' => permission_reasons.join('; ')
-        }
-      end
-
-      merged
-    end
   end
 end

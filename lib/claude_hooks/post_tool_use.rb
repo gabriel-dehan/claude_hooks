@@ -37,19 +37,5 @@ module ClaudeHooks
       @output_data['decision'] = nil
       @output_data['reason'] = nil
     end
-
-    # === MERGE HELPER ===
-
-    # Merge multiple PostToolUse hook results intelligently
-    def self.merge_outputs(*outputs_data)
-      merged = super(*outputs_data)
-
-      outputs_data.compact.each do |output|
-        merged['decision'] = 'block' if output['decision'] == 'block'
-        merged['reason'] = [merged['reason'], output['reason']].compact.reject(&:empty?).join('; ')
-      end
-
-      merged
-    end
   end
 end

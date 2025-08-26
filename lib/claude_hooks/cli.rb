@@ -114,6 +114,74 @@ module ClaudeHooks
         puts JSON.generate(error_response)
         exit 1
       end
+
+      # Simplified entrypoint helper for hook scripts
+      # This handles all the STDIN reading, JSON parsing, error handling, and output execution
+      # 
+      # Usage patterns:
+      # 
+      # 1. Block form - custom logic:
+      #    ClaudeHooks::CLI.entrypoint do |input_data|
+      #      hook = MyHook.new(input_data)
+      #      hook.call
+      #      hook.output.execute!
+      #    end
+      #
+      # 2. Simple form - single hook class:
+      #    ClaudeHooks::CLI.entrypoint(MyHook)
+      #
+      # 3. Multiple hooks with merging:
+      #    ClaudeHooks::CLI.entrypoint do |input_data|
+      #      hook1 = Hook1.new(input_data)
+      #      hook2 = Hook2.new(input_data)
+      #      result1 = hook1.call
+      #      result2 = hook2.call
+      #      
+      #      # Use the appropriate output class for merging
+      #      merged = ClaudeHooks::Output::PreToolUse.merge(
+      #        hook1.output,
+      #        hook2.output
+      #      )
+      #      merged.execute!
+      #    end
+      def entrypoint(hook_class = nil, &block)
+        # Read and parse input from STDIN
+        input_data = JSON.parse(STDIN.read)
+        
+        if block_given?
+          # Custom block form
+          yield(input_data)
+        elsif hook_class
+          # Simple single hook form
+          hook = hook_class.new(input_data)
+          hook.call
+          hook.output.execute!
+        else
+          raise ArgumentError, "Either provide a hook_class or a block"
+        end
+        
+      rescue JSON::ParserError => e
+        STDERR.puts "JSON parsing error: #{e.message}"
+        error_response = {
+          continue: false,
+          stopReason: "JSON parsing error: #{e.message}",
+          suppressOutput: false
+        }
+        puts JSON.generate(error_response)
+        exit 1
+        
+      rescue StandardError => e
+        STDERR.puts "Hook execution error: #{e.message}"
+        STDERR.puts e.backtrace.join("\n") if e.backtrace
+        
+        error_response = {
+          continue: false,
+          stopReason: "Hook execution error: #{e.message}",
+          suppressOutput: false
+        }
+        puts JSON.generate(error_response)
+        exit 1
+      end
     end
   end
 end
