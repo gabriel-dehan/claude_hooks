@@ -221,36 +221,36 @@ end
   - [📚 API Reference](#-api-reference)
     - [Common API Methods](#common-api-methods)
       - [Input Methods](#input-methods)
-      - [Output Methods](#output-methods)
-      - [Class Output Methods](#class-output-methods)
+      - [Hook State Methods](#hook-state-methods)
+      - [Output Object Methods](#output-object-methods)
     - [Configuration and Utility Methods](#configuration-and-utility-methods)
       - [Utility Methods](#utility-methods)
       - [Configuration Methods](#configuration-methods)
     - [UserPromptSubmit API](#userpromptsubmit-api)
       - [Input Methods](#input-methods-1)
-      - [Output Methods](#output-methods-1)
+      - [Output Methods](#output-methods)
     - [PreToolUse API](#pretooluse-api)
       - [Input Methods](#input-methods-2)
-      - [Output Methods](#output-methods-2)
+      - [Output Methods](#output-methods-1)
     - [PostToolUse API](#posttooluse-api)
       - [Input Methods](#input-methods-3)
-      - [Output Methods](#output-methods-3)
+      - [Output Methods](#output-methods-2)
     - [Notification API](#notification-api)
       - [Input Methods](#input-methods-4)
-      - [Output Methods](#output-methods-4)
+      - [Output Methods](#output-methods-3)
     - [Stop API](#stop-api)
       - [Input Methods](#input-methods-5)
-      - [Output Methods](#output-methods-5)
+      - [Output Methods](#output-methods-4)
     - [SubagentStop API](#subagentstop-api)
       - [Input Methods](#input-methods-6)
-      - [Output Methods](#output-methods-6)
+      - [Output Methods](#output-methods-5)
     - [PreCompact API](#precompact-api)
       - [Input Methods](#input-methods-7)
-      - [Output Methods](#output-methods-7)
+      - [Output Methods](#output-methods-6)
       - [Utility Methods](#utility-methods-1)
     - [SessionStart API](#sessionstart-api)
       - [Input Methods](#input-methods-8)
-      - [Output Methods](#output-methods-8)
+      - [Output Methods](#output-methods-7)
     - [📝 Logging](#-logging)
       - [Log File Location](#log-file-location)
       - [Log Output Format](#log-output-format)
@@ -430,8 +430,8 @@ Input methods are helpers to access data parsed from STDIN.
 | `read_transcript` | Read the transcript file |
 | `transcript` | Alias for `read_transcript` |
 
-#### Output Methods
-Output methods are helpers to modify `output_data`.
+#### Hook State Methods
+Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
 
 | Method | Description |
 |--------|-------------|
@@ -443,13 +443,31 @@ Output methods are helpers to modify `output_data`.
 | `show_output!` | Show stdout in transcript (default) |
 | `clear_specifics!` | Clear hook-specific output |
 
-#### Class Output Methods
+#### Output Object Methods
 
-Each hook type provides a **class method** `merge_outputs` that will try to intelligently merge multiple hook results, e.g. `ClaudeHooks::UserPromptSubmit.merge_outputs(output1, output2, output3)`.
+From a hook, you can always access the `output` object via `hook.output`. 
+This object provides helpers to access output data, for merging multiple outputs as well as sending the right exit codes and data back to Claude Code.
+
+**Output data access**
 
 | Method | Description |
 |--------|-------------|
-| `merge_outputs(*outputs_data)` | Intelligently merge multiple outputs into a single output |
+| `continue?` | Check if Claude should continue |
+| `suppress_output?` | Check if output should be suppressed |
+
+**Output data merging**
+For each hook type, the `output` object provides a **class method** `merge` that will try to intelligently merge multiple hook results, e.g. `ClaudeHooks::Output::UserPromptSubmit.merge(output1, output2, output3)`.
+
+| Method | Description |
+| `merge(*outputs)` | Intelligently merge multiple outputs into a single output |
+
+**Exit Control and Yielding back to Claude Code**
+
+| Method | Description |
+|--------|-------------|
+| `exit_and_output` | Prints the output to the correct stream (`STDIN` / `STDERR`) and exit with correct code |
+| `exit_code` | Get the calculated exit code based on hook-specific logic |
+| `output_stream` | Get the output stream (:stdout or :stderr) |
 
 ### Configuration and Utility Methods
 
