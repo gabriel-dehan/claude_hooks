@@ -2,8 +2,8 @@
 
 Those methods are available in **all hook types** and are inherited from `ClaudeHooks::Base`:
 
-## Input Methods
-Input methods are helpers to access data parsed from STDIN.
+## Input Helpers
+Input helpers to access the data provided by Claude Code through `STDIN`.
 
 | Method | Description |
 |--------|-------------|

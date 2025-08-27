@@ -2,8 +2,10 @@
 
 Available when inheriting from `ClaudeHooks::UserPromptSubmit`:
 
-## Input Methods
-Input methods are helpers to access data parsed from STDIN.
+## Input Helpers
+Input helpers to access the data provided by Claude Code through `STDIN`.
+
+[📚 Shared input helpers](COMMON.md#input-helpers)
 
 | Method | Description |
 |--------|-------------|
@@ -11,8 +13,10 @@ Input methods are helpers to access data parsed from STDIN.
 | `user_prompt` | Alias for `prompt` |
 | `current_prompt` | Alias for `prompt` |
 
-## Output Methods
-Output methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
+## Hook State Methods
+Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
+
+[📚 Shared hook state methods](COMMON.md#hook-state-methods)
 
 | Method | Description |
 |--------|-------------|
@@ -29,11 +33,3 @@ Output methods are helpers to modify the hook's internal state (`output_data`) b
 | `exit 0` | Operation continues<br/>**`STDOUT` added as context to Claude** |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
 | `exit 2` | **Blocks prompt processing**<br/>**Erases prompt**<br/>`STDERR` shown to user only |
-
-## Input Fields
-
-| Field | Description |
-|-------|-------------|
-| `prompt` | The user's prompt text |
-
-Along with the [common input fields](COMMON.md#input-methods).

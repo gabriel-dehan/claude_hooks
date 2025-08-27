@@ -2,15 +2,19 @@
 
 Available when inheriting from `ClaudeHooks::SessionStart`:
 
-## Input Methods
-Input methods are helpers to access data parsed from STDIN.
+## Input Helpers
+Input helpers to access the data provided by Claude Code through `STDIN`.
+
+[📚 Shared input helpers](COMMON.md#input-helpers)
 
 | Method | Description |
 |--------|-------------|
 | `source` | Get the session start source: `'startup'`, `'resume'`, or `'clear'` |
 
-## Output Methods
-Output methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
+## Hook State Methods
+Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
+
+[📚 Shared hook state methods](COMMON.md#hook-state-methods)
 
 | Method | Description |
 |--------|-------------|
@@ -25,11 +29,3 @@ Output methods are helpers to modify the hook's internal state (`output_data`) b
 | `exit 0` | Operation continues<br/>**`STDOUT` added as context to Claude** |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
 | `exit 2` | N/A<br/>`STDERR` shown to user only |
-
-## Input Fields
-
-| Field | Description |
-|-------|-------------|
-| `source` | The session start source: `'startup'`, `'resume'`, or `'clear'` |
-
-Along with the [common input fields](COMMON.md#input-methods).

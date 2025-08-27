@@ -2,15 +2,23 @@
 
 Available when inheriting from `ClaudeHooks::Stop`:
 
-## Input Methods
-Input methods are helpers to access data parsed from STDIN.
+## Input Helpers
+Input helpers to access the data provided by Claude Code through `STDIN`.
+
+[📚 Shared input helpers](COMMON.md#input-helpers)
 
 | Method | Description |
 |--------|-------------|
 | `stop_hook_active` | Check if Claude Code is already continuing as a result of a stop hook |
 
-## Output Methods
-Output methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
+## Hook State Methods
+Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
+
+[📚 Shared hook state methods](COMMON.md#hook-state-methods)
+
+> [!NOTE] 
+> In Stop hooks, the decision to "block" actually means to "force Claude to continue", we are "blocking" the blockage. 
+> This is counterintuitive and the reason why the method `block!` is aliased to `continue_with_instructions!`
 
 | Method | Description |
 |--------|-------------|
@@ -22,14 +30,6 @@ Output methods are helpers to modify the hook's internal state (`output_data`) b
 
 | Exit Code | Behavior |
 |-----------|----------|
-| `exit 0` | Operation continues<br/>`STDOUT` shown to user in transcript mode |
+| `exit 0` | Agent will stop<br/>`STDOUT` shown to user in transcript mode |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
 | `exit 2` | **Blocks stoppage**<br/>`STDERR` shown to Claude |
-
-## Input Fields
-
-| Field | Description |
-|-------|-------------|
-| `stop_hook_active` | Whether Claude Code is already continuing as a result of a stop hook |
-
-Along with the [common input fields](COMMON.md#input-methods).

@@ -2,16 +2,20 @@
 
 Available when inheriting from `ClaudeHooks::PreCompact`:
 
-## Input Methods
-Input methods are helpers to access data parsed from STDIN.
+## Input Helpers
+Input helpers to access the data provided by Claude Code through `STDIN`.
+
+[📚 Shared input helpers](COMMON.md#input-helpers)
 
 | Method | Description |
 |--------|-------------|
 | `trigger` | Get the compaction trigger: `'manual'` or `'auto'` |
 | `custom_instructions` | Get custom instructions (only available for manual trigger) |
 
-## Output Methods
-No specific output methods are available to alter compaction behavior.
+## Hook State Methods
+No specific hook state methods are available to alter compaction behavior.
+
+[📚 Shared hook state methods](COMMON.md#hook-state-methods)
 
 ## Utility Methods
 Utility methods for transcript management.
@@ -27,12 +31,3 @@ Utility methods for transcript management.
 | `exit 0` | Operation continues<br/>`STDOUT` shown to user in transcript mode |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
 | `exit 2` | N/A<br/>`STDERR` shown to user only |
-
-## Input Fields
-
-| Field | Description |
-|-------|-------------|
-| `trigger` | The compaction trigger: `'manual'` or `'auto'` |
-| `custom_instructions` | Custom instructions (only available for manual trigger) |
-
-Along with the [common input fields](COMMON.md#input-methods).
