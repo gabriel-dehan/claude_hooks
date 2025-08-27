@@ -333,7 +333,7 @@ Claude Code hooks in essence work in a very simple way:
 
 ```mermaid
 graph LR
-  A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR + Exit Code] --> E[Yields back to Claude Code] --> A
+  A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR<br />Exit Code] --> E[Yields back to Claude Code] --> A
 ```
 
 The main issue is that there are many different types of hooks and they each have different expectations regarding the data outputted to `STDIN` or `STDERR` and Claude Code will react differently for each specific exit code used depending on the hook type.
