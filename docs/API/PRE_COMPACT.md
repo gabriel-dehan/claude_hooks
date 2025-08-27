@@ -12,7 +12,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `trigger` | Get the compaction trigger: `'manual'` or `'auto'` |
 | `custom_instructions` | Get custom instructions (only available for manual trigger) |
 
-## Hook State Methods
+## Hook State Helpers
 No specific hook state methods are available to alter compaction behavior.
 
 [📚 Shared hook state methods](COMMON.md#hook-state-methods)

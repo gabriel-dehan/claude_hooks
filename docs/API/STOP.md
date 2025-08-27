@@ -11,7 +11,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 |--------|-------------|
 | `stop_hook_active` | Check if Claude Code is already continuing as a result of a stop hook |
 
-## Hook State Methods
+## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
 
 [📚 Shared hook state methods](COMMON.md#hook-state-methods)

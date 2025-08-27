@@ -219,9 +219,9 @@ end
     - [A very simplified view of how a hook works in Claude Code](#a-very-simplified-view-of-how-a-hook-works-in-claude-code)
     - [🔄 Proposal: a more robust Claude Hook execution flow](#-proposal-a-more-robust-claude-hook-execution-flow)
     - [Basic Hook Handler Structure](#basic-hook-handler-structure)
-    - [Input Fields](#input-fields)
   - [📚 API Reference](#-api-reference)
-    - [Common API Methods](#common-api-methods)
+    - [Input Fields](#input-fields)
+    - [Hooks API](#hooks-api)
     - [📝 Logging](#-logging)
       - [Log File Location](#log-file-location)
       - [Log Output Format](#log-output-format)
@@ -391,6 +391,19 @@ if __FILE__ == $0
 end
 ```
 
+## 📚 API Reference
+
+The goal of those APIs is to simplify reading from `STDIN` and writing to `STDOUT` or `STDERR` as well as exiting with the right exit codes: the way Claude Code expects you to.
+
+Each hook provides the following capabilities:
+
+| Category | Description |
+|----------|-------------|
+| Configuration & Utility | Access config, logging, and file path helpers |
+| Input Helpers | Access data parsed from STDIN (`session_id`, `transcript_path`, etc.) |
+| Hook State Helpers | Modify the hook's internal state (adding additional context, blocking a tool call, etc...) before yielding back to Claude Code |
+| Output Helpers | Access output data, merge results, and yield back to Claude with the proper exit codes |
+
 ### Input Fields
 
 The framework supports all existing hook types with their respective input fields:
@@ -407,22 +420,9 @@ The framework supports all existing hook types with their respective input field
 | **PreCompact**  | `trigger`, `custom_instructions` |
 | **SessionStart**  | `source` |
 
-## 📚 API Reference
+### Hooks API
 
-The goal of those APIs is to simplify reading from `STDIN` and writing to `STDOUT` or `STDERR` as well as exiting with the right exit codes: the way Claude Code expects you to.
-
-Each hook provides the following capabilities:
-
-| Category | Description |
-|----------|-------------|
-| **Configuration & Utility** | Access config, logging, and file path helpers |
-| **Input Methods** | Access data parsed from STDIN (session_id, transcript_path, etc.) |
-| **Hook State Methods** | Modify the hook's internal state (adding additional context, blocking a tool call, etc...) before yielding back to Claude Code |
-| **Output Object Methods** | Access output data, merge results, and yield back to Claude with the proper exit codes |
-
-### Common API Methods
-
-**All hook types** inherit from `ClaudeHooks::Base` and share a common API:
+**All hook types** inherit from `ClaudeHooks::Base` and share a common API, as well as hook specific APIs.
 
 - [📚 Common API Methods](docs/API/COMMON.md)
 - [🔔 Notification Hooks](docs/API/NOTIFICATION.md)
@@ -454,7 +454,8 @@ You can also use the logger from an entrypoint script:
 ```ruby
 require 'claude_hooks'
 
-logger = ClaudeHooks::Logger.new("TEST-SESSION-01", 'entrypoint')
+input_data = JSON.parse(STDIN.read)
+logger = ClaudeHooks::Logger.new(input_data["session_id"], 'entrypoint')
 logger.log "Simple message"
 ```
 
@@ -563,7 +564,8 @@ end
 Hooks provide access to their output (which acts as the "state" of a hook) through the `output` method. 
 This method will return an output object based on the hook's type class (e.g: `ClaudeHooks::Output::UserPromptSubmit`) that provides a lot of helper methods to access output data, for merging multiple outputs as well as sending the right exit codes and data back to Claude Code.
 
-You can also always access the raw output data hash instead of the output object using `output_data`.
+> [!TIP]
+> You can also always access the raw output data hash instead of the output object using `hook.output_data`.
 
 
 ### 🔄 Hook Output Merging

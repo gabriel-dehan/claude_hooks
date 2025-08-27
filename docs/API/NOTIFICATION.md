@@ -12,7 +12,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `message` | Get the notification message content |
 | `notification_message` | Alias for `message` |
 
-## Hook State Methods
+## Hook State Helpers
 Notifications are outside facing and do not have any specific state to modify.
 
 [📚 Shared hook state methods](COMMON.md#hook-state-methods)

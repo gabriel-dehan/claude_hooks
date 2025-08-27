@@ -15,7 +15,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `read_transcript` | Read the transcript file |
 | `transcript` | Alias for `read_transcript` |
 
-## Hook State Methods
+## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
 
 | Method | Description |
