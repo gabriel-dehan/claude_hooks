@@ -442,12 +442,13 @@ Each hook provides the following capabilities:
 |----------|-------------|
 | **Configuration & Utility** | Access config, logging, and file path helpers |
 | **Input Methods** | Access data parsed from STDIN (session_id, transcript_path, etc.) |
-| **Hook State Methods** | Modify the hook's internal state before yielding back to Claude Code |
+| **Hook State Methods** | Modify the hook's internal state (adding additional context, blocking a tool call, etc...) before yielding back to Claude Code |
 | **Output Object Methods** | Access output data, merge results, and yield back to Claude with the proper exit codes |
 
 ### Common API Methods
 
 **All hook types** inherit from `ClaudeHooks::Base` and share a common API:
+
 [📚 Common API Methods](docs/API/COMMON.md)
 
 ### UserPromptSubmit API
