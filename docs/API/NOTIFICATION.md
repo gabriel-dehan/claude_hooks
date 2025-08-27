@@ -17,6 +17,11 @@ Notifications are outside facing and do not have any specific state to modify.
 
 [📚 Shared hook state methods](COMMON.md#hook-state-methods)
 
+## Output Helpers
+Output helpers provide access to the hook's output data and helper methods for working with the output state.
+
+[📚 Shared output helpers](COMMON.md#output-helpers)
+
 ## Hook Exit Codes
 
 | Exit Code | Behavior |

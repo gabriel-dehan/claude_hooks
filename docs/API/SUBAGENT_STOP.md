@@ -26,6 +26,18 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `block!(instructions)` | Alias for `continue_with_instructions!` |
 | `ensure_stopping!` | Allow Claude to stop normally (default behavior) |
 
+## Output Helpers
+Output helpers provide access to the hook's output data and helper methods for working with the output state.
+
+[📚 Shared output helpers](COMMON.md#output-helpers)
+
+| Method | Description |
+|--------|-------------|
+| `output.should_continue?` | Check if Claude should be forced to continue (decision == 'block') |
+| `output.should_stop?` | Check if Claude should stop normally (decision != 'block') |
+| `output.continue_instructions` | Get the continue instructions (alias for `reason`) |
+| `output.reason` | Get the reason for the decision |
+
 ## Hook Exit Codes
 
 | Exit Code | Behavior |

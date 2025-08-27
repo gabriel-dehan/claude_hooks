@@ -26,7 +26,7 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `show_output!` | Show stdout in transcript (default) |
 | `clear_specifics!` | Clear hook-specific output |
 
-## Output Object Methods
+## Output Helpers
 
 From a hook, you can always access the `output` object via `hook.output`. 
 This object provides helpers to access output data, for merging multiple outputs as well as sending the right exit codes and data back to Claude Code.
@@ -37,24 +37,26 @@ This object provides helpers to access output data, for merging multiple outputs
 |--------|-------------|
 | `output` | Output object accessor |
 | `output_data` | RAW output data accessor |
-| `output.to_json` | Generates a JSON string of the output |
-| `continue?` | Check the hook state to see if Claude Code should continue |
-| `suppress_output?` | Check if output should be suppressed |
+| `output.continue?` | Check if Claude should continue processing |
+| `output.stop_reason` | Get the stop reason if continue is false |
+| `output.suppress_output?` | Check if output should be suppressed from transcript |
+| `output.hook_specific_output` | Get the hook-specific output data |
 
 ### Output data merging
 For each hook type, the `output` object provides a **class method** `merge` that will try to intelligently merge multiple hook results, e.g. `ClaudeHooks::Output::UserPromptSubmit.merge(output1, output2, output3)`.
 
 | Method | Description |
 |--------|-------------|
-| `merge(*outputs)` | Intelligently merge multiple outputs into a single output |
+| `merge(*outputs)` | Intelligently merge multiple outputs of the same type into a single output |
 
 ### Exit Control and Yielding back to Claude Code
 
 | Method | Description |
 |--------|-------------|
-| `exit_and_output` | Prints the output to the correct stream (`STDIN` / `STDERR`) and exit with correct code |
-| `exit_code` | Get the calculated exit code based on hook-specific logic |
-| `output_stream` | Get the output stream (:stdout or :stderr) |
+| `output.exit_and_output` | Automatically output to correct stream and exit with proper code |
+| `output.exit_code` | Get the calculated exit code based on hook state |
+| `output.output_stream` | Get the proper output stream (:stdout or :stderr) depending on hook state |
+| `output.to_json` | Generates a JSON string of the output |
 
 ## Configuration and Utility Methods
 

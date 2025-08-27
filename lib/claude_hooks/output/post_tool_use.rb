@@ -24,8 +24,8 @@ module ClaudeHooks
       # === EXIT CODE LOGIC ===
 
       def exit_code
-        return 1 unless continue?
-        return 1 if blocked?
+        return 2 unless continue?
+        return 2 if blocked?
 
         0
       end

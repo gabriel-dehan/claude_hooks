@@ -22,6 +22,15 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `add_context!(context)` | Alias for `add_additional_context!` |
 | `empty_additional_context!` | Clear additional context |
 
+## Output Helpers
+Output helpers provide access to the hook's output data and helper methods for working with the output state.
+
+[📚 Shared output helpers](COMMON.md#output-helpers)
+
+| Method | Description |
+|--------|-------------|
+| `output.additional_context` | Get the additional context that was added |
+
 ## Hook Exit Codes
 
 | Exit Code | Behavior |

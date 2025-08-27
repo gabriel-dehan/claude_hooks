@@ -48,7 +48,7 @@ class TestOutputClasses < Minitest::Test
     
     assert_equal('deny', output.permission_decision)
     assert(output.denied?)
-    assert_equal(1, output.exit_code)
+    assert_equal(2, output.exit_code)
     assert_equal(:stderr, output.output_stream)
   end
 
@@ -64,7 +64,7 @@ class TestOutputClasses < Minitest::Test
     output = ClaudeHooks::Output::PreToolUse.new(data)
     
     assert(output.should_ask_permission?)
-    assert_equal(2, output.exit_code)
+    assert_equal(1, output.exit_code)
     assert_equal(:stderr, output.output_stream)
   end
 
@@ -79,7 +79,7 @@ class TestOutputClasses < Minitest::Test
     
     output = ClaudeHooks::Output::PreToolUse.new(data)
     
-    assert_equal(1, output.exit_code) # continue false wins
+    assert_equal(2, output.exit_code) # continue false wins
     assert_equal(:stderr, output.output_stream)
   end
 
@@ -197,7 +197,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('deny', merged.permission_decision)
     assert_includes(merged.permission_reason, 'Safe')
     assert_includes(merged.permission_reason, 'Dangerous')
-    assert_equal(1, merged.exit_code)
+    assert_equal(2, merged.exit_code)
   end
 
   def test_user_prompt_submit_merge_with_context_joining
@@ -245,7 +245,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('block', merged.decision)
     assert_includes(merged.reason, 'First reason')
     assert_includes(merged.reason, 'Second reason')
-    assert_equal(1, merged.exit_code) # PostToolUse uses exit code 1 when blocked
+    assert_equal(2, merged.exit_code) # PostToolUse uses exit code 1 when blocked
   end
 
   # === STOP OUTPUT MERGE TESTS ===
@@ -513,6 +513,6 @@ class TestOutputClasses < Minitest::Test
     assert_equal('ask', merged.permission_decision) # ask wins over allow
     assert_includes(merged.permission_reason, 'Safe tool')
     assert_includes(merged.permission_reason, 'Needs approval')
-    assert_equal(2, merged.exit_code)
+    assert_equal(1, merged.exit_code)
   end
 end

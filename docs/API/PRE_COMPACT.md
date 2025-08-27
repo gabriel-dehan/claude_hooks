@@ -24,6 +24,12 @@ Utility methods for transcript management.
 |--------|-------------|
 | `backup_transcript!(backup_file_path)` | Create a backup of the transcript at the specified path |
 
+## Output Helpers
+Output helpers provide access to the hook's output data and helper methods for working with the output state.
+PreCompact hooks don't have any specific hook state and thus doesn't have any specific output helpers.
+
+[📚 Shared output helpers](COMMON.md#output-helpers)
+
 ## Hook Exit Codes
 
 | Exit Code | Behavior |

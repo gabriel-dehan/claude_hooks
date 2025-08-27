@@ -27,9 +27,8 @@ module ClaudeHooks
 
       # === EXIT CODE LOGIC ===
 
-      # Determine exit code based on continue flag and decision
       def exit_code
-        return 1 unless continue?
+        return 2 unless continue?
         return 2 if blocked?
 
         0

@@ -35,14 +35,14 @@ module ClaudeHooks
       # Priority: continue false > permission decision
       def exit_code
         # If continue is explicitly false, exit with error
-        return 1 unless continue?
+        return 2 unless continue?
 
         # Otherwise, use permission decision
         case permission_decision
         when 'deny'
-          1  # Block the tool
+          2  # Block the tool
         when 'ask'
-          2  # Ask for permission
+          1  # Ask for permission
         else 
           0  # Allow the tool
         end

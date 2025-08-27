@@ -561,8 +561,12 @@ end
 
 ## 🔄 Hook Output
 
-Hooks provide access to their output (which acts as the "state" of a hook) through the `output` method. 
-This method will return an output object based on the hook's type class (e.g: `ClaudeHooks::Output::UserPromptSubmit`) that provides a lot of helper methods to access output data, for merging multiple outputs as well as sending the right exit codes and data back to Claude Code.
+Hooks provide access to their output (which acts as the "state" of a hook) through the `output` method.
+
+This method will return an output object based on the hook's type class (e.g: `ClaudeHooks::Output::UserPromptSubmit`) that provides helper methods: 
+- to access output data
+- for merging multiple outputs 
+- for sending the right exit codes and output data back to Claude Code through the proper stream.
 
 > [!TIP]
 > You can also always access the raw output data hash instead of the output object using `hook.output_data`.
@@ -570,7 +574,7 @@ This method will return an output object based on the hook's type class (e.g: `C
 
 ### 🔄 Hook Output Merging
 
-Most of the time, you will want to call multiple hooks from a same entrypoint.
+Often, you will want to call multiple hooks from a same entrypoint.
 Each hook type's `output` provides a `merge` method that will try to intelligently merge multiple hook results:
 
 ```ruby
@@ -619,6 +623,7 @@ end
 Claude Code hooks support multiple exit codes with different behaviors depending on the hook type.
 
 - **`exit 0`**: Success, allows the operation to continue, for most hooks, `STDOUT` will be fed back to the user.
+  - Claude Code does not see stdout if the exit code is 0, except for hooks where `STDOUT` is injected as context.
 - **`exit 1`**: Non-blocking error, `STDERR` will be fed back to the user.
 - **`exit 2`**: Blocking error, in most cases `STDERR` will be fed back to Claude.
 - **Other exit codes**: Treated as non-blocking errors - `STDERR` fed back to the user, execution continues.

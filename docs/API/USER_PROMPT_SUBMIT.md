@@ -26,6 +26,18 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `block_prompt!(reason)` | Block the prompt from processing |
 | `unblock_prompt!` | Unblock a previously blocked prompt |
 
+## Output Helpers
+Output helpers provide access to the hook's output data and helper methods for working with the output state.
+
+[📚 Shared output helpers](COMMON.md#output-helpers)
+
+| Method | Description |
+|--------|-------------|
+| `output.decision` | Get the decision: "block" or nil (default) |
+| `output.reason` | Get the reason for the decision |
+| `output.blocked?` | Check if the prompt has been blocked (decision == 'block') |
+| `output.additional_context` | Get the additional context that was added |
+
 ## Hook Exit Codes
 
 | Exit Code | Behavior |

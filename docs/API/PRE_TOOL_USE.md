@@ -23,6 +23,20 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `block_tool!(reason)` | Block tool usage with feedback |
 | `ask_for_permission!(reason)` | Request user permission |
 
+## Output Helpers
+Output helpers provide access to the hook's output data and helper methods for working with the output state.
+
+[📚 Shared output helpers](COMMON.md#output-helpers)
+
+| Method | Description |
+|--------|-------------|
+| `output.allowed?` | Check if the tool has been explicitly allowed (permission_decision == 'allow') |
+| `output.denied?` | Check if the tool has been denied (permission_decision == 'deny') |
+| `output.blocked?` | Alias for `denied?` |
+| `output.should_ask_permission?` | Check if user permission is required (permission_decision == 'ask') |
+| `output.permission_decision` | Get the permission decision: 'allow', 'deny', or 'ask' |
+| `output.permission_reason` | Get the reason for the permission decision |
+
 ## Hook Exit Codes
 
 | Exit Code | Behavior |
