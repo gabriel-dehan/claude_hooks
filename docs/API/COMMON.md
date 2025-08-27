@@ -20,8 +20,6 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 
 | Method | Description |
 |--------|-------------|
-| `output_data` | Output data accessor |
-| `stringify_output` | Generates a JSON string from `output_data` |
 | `allow_continue!` | Allow Claude to continue (default) |
 | `prevent_continue!(reason)` | Stop Claude with reason |
 | `suppress_output!` | Hide stdout from transcript |
@@ -37,7 +35,10 @@ This object provides helpers to access output data, for merging multiple outputs
 
 | Method | Description |
 |--------|-------------|
-| `continue?` | Check if Claude should continue |
+| `output` | Output object accessor |
+| `output_data` | RAW output data accessor |
+| `output.to_json` | Generates a JSON string of the output |
+| `continue?` | Check the hook state to see if Claude Code should continue |
 | `suppress_output?` | Check if output should be suppressed |
 
 ### Output data merging
@@ -56,8 +57,6 @@ For each hook type, the `output` object provides a **class method** `merge` that
 | `output_stream` | Get the output stream (:stdout or :stderr) |
 
 ## Configuration and Utility Methods
-
-Available in all hooks via the base `ClaudeHooks::Base` class:
 
 ### Utility Methods
 | Method | Description |
