@@ -3,6 +3,7 @@
 Available when inheriting from `ClaudeHooks::Notification`:
 
 ## Input Fields
+These are the data fields provided by Claude Code through `STDIN`
 [📚 Shared input fields](README.md#input-fields)
 
 | Field | Description |
@@ -11,9 +12,8 @@ Available when inheriting from `ClaudeHooks::Notification`:
 
 
 ## Input Methods
+Input methods are helpers to access data parsed from `STDIN`.
 [📚 Shared input methods](COMMON.md#input-methods)
-
-Input methods are helpers to access data parsed from STDIN.
 
 | Method | Description |
 |--------|-------------|
@@ -21,9 +21,8 @@ Input methods are helpers to access data parsed from STDIN.
 | `notification_message` | Alias for `message` |
 
 ## Hook State Methods
-[📚 Shared hook state methods](COMMON.md#hook-state-methods)
-
 Notifications are outside facing and do not have any specific state to modify.
+[📚 Shared hook state methods](COMMON.md#hook-state-methods)
 
 ## Hook Exit Codes
 
