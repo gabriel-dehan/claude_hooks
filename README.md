@@ -285,14 +285,14 @@ The framework supports the following hook types:
 
 | Hook Type | Class | Description |
 |-----------|-------|-------------|
-| **SessionStart** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session or resumes |
-| **UserPromptSubmit** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
-| **Notification** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
-| **PreToolUse** | `ClaudeHooks::PreToolUse` | Hooks that run before a tool is used |
-| **PostToolUse** | `ClaudeHooks::PostToolUse` | Hooks that run after a tool is used |
-| **Stop** | `ClaudeHooks::Stop` | Hooks that run when Claude Code finishes responding |
-| **SubagentStop** | `ClaudeHooks::SubagentStop` | Hooks that run when subagent tasks complete |
-| **PreCompact** | `ClaudeHooks::PreCompact` | Hooks that run before transcript compaction |
+| **[SessionStart](docs/API/SESSION_START.md)** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session or resumes |
+| **[UserPromptSubmit](docs/API/USER_PROMPT_SUBMIT.md)** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
+| **[Notification](docs/API/NOTIFICATION.md)** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
+| **[PreToolUse](docs/API/PRE_TOOL_USE.md)** | `ClaudeHooks::PreToolUse` | Hooks that run before a tool is used |
+| **[PostToolUse](docs/API/POST_TOOL_USE.md)** | `ClaudeHooks::PostToolUse` | Hooks that run after a tool is used |
+| **[Stop](docs/API/STOP.md)** | `ClaudeHooks::Stop` | Hooks that run when Claude Code finishes responding |
+| **[SubagentStop](docs/API/SUBAGENT_STOP.md)** | `ClaudeHooks::SubagentStop` | Hooks that run when subagent tasks complete |
+| **[PreCompact](docs/API/PRE_COMPACT.md)** | `ClaudeHooks::PreCompact` | Hooks that run before transcript compaction |
 
 ## 🚀 Claude Hook Flow
 
@@ -424,7 +424,15 @@ Each hook provides the following capabilities:
 
 **All hook types** inherit from `ClaudeHooks::Base` and share a common API:
 
-[📚 Common API Methods](docs/API/COMMON.md)
+- [📚 Common API Methods](docs/API/COMMON.md)
+- [🔔 Notification Hooks](docs/API/NOTIFICATION.md)
+- [🚀 Session Start Hooks](docs/API/SESSION_START.md)
+- [🖋️ User Prompt Submit Hooks](docs/API/USER_PROMPT_SUBMIT.md)
+- [🛠️ Pre-Tool Use Hooks](docs/API/PRE_TOOL_USE.md)
+- [🔧 Post-Tool Use Hooks](docs/API/POST_TOOL_USE.md)
+- [📝 Pre-Compact Hooks](docs/API/PRE_COMPACT.md)
+- [⏹️ Stop Hooks](docs/API/STOP.md)
+- [⏹️ Subagent Stop Hooks](docs/API/SUBAGENT_STOP.md)
 
 ### 📝 Logging
 
