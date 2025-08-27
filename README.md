@@ -41,7 +41,8 @@ if __FILE__ == $0
   hook = AddContextAfterPrompt.new(input_data)
   hook.call
   
-  # Uses exit code 0 (success) and prints output to STDIN
+  # Handles output and exit code depending on the hook state.
+  # In this case, uses exit code 0 (success) and prints output to STDIN
   hook.exit_and_output
 end
 ```
