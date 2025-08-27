@@ -44,6 +44,7 @@ This object provides helpers to access output data, for merging multiple outputs
 For each hook type, the `output` object provides a **class method** `merge` that will try to intelligently merge multiple hook results, e.g. `ClaudeHooks::Output::UserPromptSubmit.merge(output1, output2, output3)`.
 
 | Method | Description |
+|--------|-------------|
 | `merge(*outputs)` | Intelligently merge multiple outputs into a single output |
 
 ### Exit Control and Yielding back to Claude Code
