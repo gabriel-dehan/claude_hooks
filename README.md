@@ -420,6 +420,7 @@ The framework supports all existing hook types with their respective input field
 | **SubagentStop**  | `stop_hook_active` |
 | **PreCompact**  | `trigger`, `custom_instructions` |
 | **SessionStart**  | `source` |
+| **SessionEnd**  | `reason` |
 
 ### Hooks API
 
@@ -638,12 +639,12 @@ Claude Code hooks support multiple exit codes with different behaviors depending
 | UserPromptSubmit | Operation continues<br/><br />**`STDOUT` added as context to Claude**       | Non-blocking error<br/><br />`STDERR` shown to user                | **Blocks prompt processing**<br/>**Erases prompt**<br/><br />`STDERR` shown to user only |
 | PreToolUse       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | **Blocks the tool call**<br/><br />`STDERR` shown to Claude                     |
 | PostToolUse      | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to Claude *(tool already ran)*                   |
-| Notification     | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+| Notification     | Operation continues<br/><br />Logged to debug only (`--debug`) | Non-blocking error<br/><br />Logged to debug only (`--debug`)                | N/A<br/><br />Logged to debug only (`--debug`)                                   |
 | Stop             | Agent will stop<br/><br />`STDOUT` shown to user in transcript mode | Agent will stop<br/><br />`STDERR` shown to user                | **Blocks stoppage**<br/><br />`STDERR` shown to Claude                          |
 | SubagentStop     | Subagent will stop<br/><br />`STDOUT` shown to user in transcript mode | Subagent will stop<br/><br />`STDERR` shown to user                | **Blocks stoppage**<br/><br />`STDERR` shown to Claude subagent                 |
 | PreCompact       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
 | SessionStart     | Operation continues<br/><br />**`STDOUT` added as context to Claude**       | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
-| SessionEnd       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+| SessionEnd       | Operation continues<br/><br />Logged to debug only (`--debug`) | Non-blocking error<br/><br />Logged to debug only (`--debug`)                | N/A<br/><br />Logged to debug only (`--debug`)                                   |
 
 
 #### Manually outputing and exiting example with success

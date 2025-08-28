@@ -42,7 +42,7 @@ module ClaudeHooks
         when 'deny'
           2  # Block the tool
         when 'ask'
-          1  # Ask for permission
+          0  # Ask for permission
         else 
           0  # Allow the tool
         end

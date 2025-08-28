@@ -15,6 +15,10 @@ module ClaudeHooks
         @data['reason'] || ''
       end
 
+      def additional_context
+        hook_specific_output['additionalContext'] || ''
+      end
+
       # === SEMANTIC HELPERS ===
 
       def blocked?
@@ -39,11 +43,22 @@ module ClaudeHooks
         
         merged = super(*outputs)
         merged_data = merged.data
+        contexts = []
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
           merged_data['decision'] = 'block' if output_data['decision'] == 'block'
           merged_data['reason'] = [merged_data['reason'], output_data['reason']].compact.reject(&:empty?).join('; ')
+
+          context = output_data.dig('hookSpecificOutput', 'additionalContext')
+          contexts << context if context && !context.empty?
+        end
+
+        unless contexts.empty?
+          merged_data['hookSpecificOutput'] = {
+            'hookEventName' => 'PostToolUse',
+            'additionalContext' => contexts.join("\n\n")
+          }
         end
 
         new(merged_data)

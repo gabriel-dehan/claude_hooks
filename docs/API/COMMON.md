@@ -25,6 +25,8 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `suppress_output!` | Hide stdout from transcript |
 | `show_output!` | Show stdout in transcript (default) |
 | `clear_specifics!` | Clear hook-specific output |
+| `system_message!(message)` | Set a system message shown to the user (not to Claude) |
+| `clear_system_message!` | Clear the system message |
 
 ## Output Helpers
 
@@ -41,6 +43,7 @@ This object provides helpers to access output data, for merging multiple outputs
 | `output.stop_reason` | Get the stop reason if continue is false |
 | `output.suppress_output?` | Check if output should be suppressed from transcript |
 | `output.hook_specific_output` | Get the hook-specific output data |
+| `output.system_message` | Get the system message if any |
 
 ### Output data merging
 For each hook type, the `output` object provides a **class method** `merge` that will try to intelligently merge multiple hook results, e.g. `ClaudeHooks::Output::UserPromptSubmit.merge(output1, output2, output3)`.

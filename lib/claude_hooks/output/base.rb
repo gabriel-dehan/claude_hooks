@@ -30,6 +30,11 @@ module ClaudeHooks
         @data['suppressOutput'] == true
       end
 
+      # Get the system message (if any)
+      def system_message
+        @data['systemMessage'] || ''
+      end
+
       # Get the hook-specific output data
       def hook_specific_output
         @data['hookSpecificOutput'] || {}
@@ -85,7 +90,8 @@ module ClaudeHooks
         merged_data = {
           'continue' => true,
           'stopReason' => '',
-          'suppressOutput' => false
+          'suppressOutput' => false,
+          'systemMessage' => ''
         }
 
         return compacted_outputs.first if compacted_outputs.length == 1
@@ -98,6 +104,7 @@ module ClaudeHooks
           merged_data['continue'] = false if output_data['continue'] == false
           merged_data['suppressOutput'] = true if output_data['suppressOutput'] == true
           merged_data['stopReason'] = [merged_data['stopReason'], output_data['stopReason']].compact.reject(&:empty?).join('; ')
+          merged_data['systemMessage'] = [merged_data['systemMessage'], output_data['systemMessage']].compact.reject(&:empty?).join('; ')
         end
 
         self.new(merged_data)

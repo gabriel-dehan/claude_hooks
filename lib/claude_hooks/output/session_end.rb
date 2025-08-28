@@ -9,7 +9,7 @@ module ClaudeHooks
       # === EXIT CODE LOGIC ===
 
       def exit_code
-        0
+        default_exit_code
       end
 
       # === MERGE HELPER ===

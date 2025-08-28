@@ -111,6 +111,15 @@ module ClaudeHooks
       @output_data['hookSpecificOutput'] = nil
     end
 
+    # System message shown to the user (not to Claude)
+    def system_message!(message)
+      @output_data['systemMessage'] = message
+    end
+
+    def clear_system_message!
+      @output_data.delete('systemMessage')
+    end
+
     # === CONFIG AND UTILITY METHODS ===
 
     def base_dir

@@ -37,5 +37,13 @@ module ClaudeHooks
       @output_data['decision'] = nil
       @output_data['reason'] = nil
     end
+
+    def add_additional_context!(context)
+      @output_data['hookSpecificOutput'] = {
+        'hookEventName' => hook_event_name,
+        'additionalContext' => context
+      }
+    end
+    alias_method :add_context!, :add_additional_context!
   end
 end
