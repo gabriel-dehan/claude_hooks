@@ -33,9 +33,10 @@ module ClaudeHooks
 
       # === EXIT CODE LOGIC ===
 
-      # For Stop hooks: decision 'block' means force continue (exit 2)
       def exit_code
-        return 1 unless continue?
+        # For Stop hooks: we assume 'continue' means continue to stop
+        return 0 unless continue?
+        # For Stop hooks: decision 'block' means force continue (exit 2)
         return 2 if should_continue?
 
         0

@@ -36,4 +36,4 @@ PreCompact hooks don't have any specific hook state and thus doesn't have any sp
 |-----------|----------|
 | `exit 0` | Operation continues<br/>`STDOUT` shown to user in transcript mode |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
-| `exit 2` | N/A<br/>`STDERR` shown to user only |
+| `exit 2` | N/A<br/>`STDERR` shown to user only|

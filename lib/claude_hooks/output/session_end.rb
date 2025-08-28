@@ -8,8 +8,9 @@ module ClaudeHooks
     class SessionEnd < Base      
       # === EXIT CODE LOGIC ===
 
+      # SessionEnd hooks always return 0 - they're for cleanup only
       def exit_code
-        0  # SessionEnd hooks always return 0 - they're for cleanup only
+        0  
       end
 
       # === MERGE HELPER ===

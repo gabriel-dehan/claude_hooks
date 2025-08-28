@@ -34,18 +34,21 @@ module ClaudeHooks
 
       # Priority: continue false > permission decision
       def exit_code
-        # If continue is explicitly false, exit with error
         return 2 unless continue?
 
-        # Otherwise, use permission decision
         case permission_decision
         when 'deny'
-          2  # Block the tool
+          2 
         when 'ask'
-          0  # Ask for permission
-        else 
-          0  # Allow the tool
+          1 
+        else # allow 
+          0 
         end
+      end
+
+      # STDOUT always works for PreToolUse
+      def output_stream
+        :stdout
       end
 
       # === MERGE HELPER ===

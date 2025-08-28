@@ -141,11 +141,11 @@ module ClaudeHooks
       protected
 
       def default_exit_code
-        continue? ? 0 : 1
+        continue? ? 0 : 2
       end
 
       def default_output_stream
-        exit_code == 0 ? :stdout : :stderr
+        exit_code == 2 ? :stderr : :stdout
       end
     end
   end
