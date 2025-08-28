@@ -23,7 +23,7 @@ begin
   )
 
   # Output result and exit with appropriate code
-  merged_output.exit_and_output
+  merged_output.output_and_exit
 
 rescue StandardError => e
   STDERR.puts JSON.generate({
@@ -31,6 +31,5 @@ rescue StandardError => e
     stopReason: "Hook execution error: #{e.message}",
     suppressOutput: false
   })
-  # Non-blocking error
   exit 2
 end

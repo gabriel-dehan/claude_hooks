@@ -49,8 +49,8 @@ module ClaudeHooks
       JSON.generate(@output_data)
     end
 
-    def exit_and_output
-      @output.exit_and_output
+    def output_and_exit
+      @output.output_and_exit
     end
     
     # === COMMON INPUT DATA ACCESS ===

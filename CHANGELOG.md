@@ -34,7 +34,7 @@ New output handling with intelligent exit code management.
 - - **Enhanced Base Class**: All hook instances now automatically get an `@output` attribute with a `output` accessor. They can still access raw `output_data`
 - **Helper Methods**: Access to hook-specific data via methods like `output.blocked?`, `output.allowed?`, `output.should_ask_permission?`
 - **Automatic Stream Selection**: Output objects automatically route to `STDOUT` or `STDERR` based on exit code and hook type
-- **One-Line Output Execution**: New `exit_and_output` method handles JSON serialization, stream selection, and exit code in one call
+- **One-Line Output Execution**: New `output_and_exit` method handles JSON serialization, stream selection, and exit code in one call
 - **Object-Based Merging**: New `ClaudeHooks::Output::*.merge()` methods for cleaner multi-hook merging
 - **Comprehensive Output Classes**: Full coverage for all 8 hook types:
   - `ClaudeHooks::Output::UserPromptSubmit` - Provides `blocked?`, `reason`, `additional_context`
@@ -91,7 +91,7 @@ begin
   hook.call
   
   # Handles everything automatically!
-  hook.exit_and_output  
+  hook.output_and_exit  
 rescue StandardError => e
   # Error handling...
 end

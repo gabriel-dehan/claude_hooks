@@ -27,7 +27,7 @@ begin
     log_user_prompt.output
   )
 
-  merged_output.exit_and_output
+  merged_output.output_and_exit
 
 rescue StandardError => e
   # Same simple error pattern

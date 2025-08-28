@@ -43,7 +43,7 @@ if __FILE__ == $0
   
   # Handles output and exit code depending on the hook state.
   # In this case, uses exit code 0 (success) and prints output to STDOUT
-  hook.exit_and_output
+  hook.output_and_exit
 end
 ```
 
@@ -388,7 +388,7 @@ if __FILE__ == $0
   
   # Uses exit code 0 (success) and outputs to STDIN if the prompt wasn't blocked
   # Uses exit code 2 (blocking error) and outputs to STDERR if the prompt was blocked
-  hook.exit_and_output
+  hook.output_and_exit
 end
 ```
 
@@ -517,7 +517,7 @@ begin
 
   # You could also call any other handler here and then merge the outputs
 
-  tool_monitor.exit_and_output
+  tool_monitor.output_and_exit
 rescue StandardError => e
   STDERR.puts JSON.generate({
     continue: false,
@@ -614,14 +614,14 @@ begin
   )
 
   # Automatically handles outputting to the right stream (STDOUT or STDERR) and uses the right exit code depending on hook state
-  merged_output.exit_and_output 
+  merged_output.output_and_exit 
 end
 ```
 
 ### 🚪 Hook Exit Codes
 
 > [!NOTE]
-> Hooks and output objects handle exit codes automatically. The information below is for reference and understanding. When using `hook.exit_and_output` or `merged_output.exit_and_output`, you don't need to memorize these rules - the method chooses the correct exit code based on the hook type and the hook's state.
+> Hooks and output objects handle exit codes automatically. The information below is for reference and understanding. When using `hook.output_and_exit` or `merged_output.output_and_exit`, you don't need to memorize these rules - the method chooses the correct exit code based on the hook type and the hook's state.
 
 Claude Code hooks support multiple exit codes with different behaviors depending on the hook type.
 
@@ -676,7 +676,7 @@ exit 2
 ```
 
 > [!WARNING]
-> You don't have to manually do this, just use `exit_and_output` to automatically handle this.
+> You don't have to manually do this, just use `output_and_exit` to automatically handle this.
 
 ## 🚨 Advices
 

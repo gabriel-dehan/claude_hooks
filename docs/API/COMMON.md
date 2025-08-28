@@ -56,7 +56,7 @@ For each hook type, the `output` object provides a **class method** `merge` that
 
 | Method | Description |
 |--------|-------------|
-| `output.exit_and_output` | Automatically output to correct stream and exit with proper code |
+| `output.output_and_exit` | Automatically output to correct stream and exit with proper code |
 | `output.exit_code` | Get the calculated exit code based on hook state |
 | `output.output_stream` | Get the proper output stream (:stdout or :stderr) depending on hook state |
 | `output.to_json` | Generates a JSON string of the output |

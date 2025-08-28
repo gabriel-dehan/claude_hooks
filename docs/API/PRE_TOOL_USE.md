@@ -49,7 +49,7 @@ Output helpers provide access to the hook's output data and helper methods for w
 Outputting to a specific stream has a different effect depending on the exit code.
 
 > [!TIP]
-> The most common and useful cases expressed in the tables below are handled automatically by calling `hook.exit_and_output`. 
+> The most common and useful cases expressed in the tables below are handled automatically by calling `hook.output_and_exit`. 
 > You only need to worry about this when you want very specific behavior.
 
 ### ALLOW
