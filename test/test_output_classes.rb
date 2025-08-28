@@ -50,7 +50,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('deny', output.permission_decision)
     assert(output.denied?)
     assert_equal(2, output.exit_code)
-    assert_equal(:stderr, output.output_stream)
+    assert_equal(:stdout, output.output_stream)
   end
 
   def test_pre_tool_use_output_with_ask_permission
@@ -65,7 +65,7 @@ class TestOutputClasses < Minitest::Test
     output = ClaudeHooks::Output::PreToolUse.new(data)
     
     assert(output.should_ask_permission?)
-    assert_equal(0, output.exit_code)
+    assert_equal(1, output.exit_code)
     assert_equal(:stdout, output.output_stream)
   end
 
@@ -81,7 +81,7 @@ class TestOutputClasses < Minitest::Test
     output = ClaudeHooks::Output::PreToolUse.new(data)
     
     assert_equal(2, output.exit_code) # continue false wins
-    assert_equal(:stderr, output.output_stream)
+    assert_equal(:stdout, output.output_stream)
   end
 
   # Test UserPromptSubmit Output
@@ -395,7 +395,7 @@ class TestOutputClasses < Minitest::Test
     refute(merged.continue?)
     assert(merged.suppress_output?)
     assert_equal('Notification error', merged.stop_reason)
-    assert_equal(1, merged.exit_code)
+    assert_equal(2, merged.exit_code)
   end
 
   # === PRE COMPACT MERGE TESTS ===
@@ -418,7 +418,7 @@ class TestOutputClasses < Minitest::Test
     
     refute(merged.continue?)
     assert_equal('Compaction error', merged.stop_reason)
-    assert_equal(1, merged.exit_code)
+    assert_equal(2, merged.exit_code)
   end
 
   # === EDGE CASE MERGE TESTS ===
@@ -514,7 +514,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('ask', merged.permission_decision) # ask wins over allow
     assert_includes(merged.permission_reason, 'Safe tool')
     assert_includes(merged.permission_reason, 'Needs approval')
-    assert_equal(0, merged.exit_code)
+    assert_equal(1, merged.exit_code)
   end
 
   # === SESSION END TESTS ===

@@ -18,7 +18,7 @@ class AppendRules < ClaudeHooks::UserPromptSubmit
       log "No rule content found", level: :warn
     end
 
-    output_data
+    output
   end
 
   private

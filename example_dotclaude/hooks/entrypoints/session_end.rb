@@ -25,14 +25,6 @@ begin
   # Output result and exit with appropriate code
   merged_output.exit_and_output
 
-rescue JSON::ParserError => e
-  STDERR.puts JSON.generate({
-    continue: false,
-    stopReason: "JSON parsing error: #{e.message}",
-    suppressOutput: false
-  })
-  # Non-blocking error
-  exit 1
 rescue StandardError => e
   STDERR.puts JSON.generate({
     continue: false,
@@ -40,5 +32,5 @@ rescue StandardError => e
     suppressOutput: false
   })
   # Non-blocking error
-  exit 1
+  exit 2
 end

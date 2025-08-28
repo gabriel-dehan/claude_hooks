@@ -15,7 +15,7 @@ class LogUserPrompt < ClaudeHooks::UserPromptSubmit
       Logged user prompt (session: #{session_id})
     TEXT
 
-    nil
+    nil # ignored output
   end
 end
 
