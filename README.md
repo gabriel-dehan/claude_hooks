@@ -29,7 +29,7 @@ class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
   def call
     log "User asked: #{prompt}"
     add_context!("Remember to be extra helpful!")
-    output_data
+    output
   end
 end
 
@@ -42,7 +42,7 @@ if __FILE__ == $0
   hook.call
   
   # Handles output and exit code depending on the hook state.
-  # In this case, uses exit code 0 (success) and prints output to STDIN
+  # In this case, uses exit code 0 (success) and prints output to STDOUT
   hook.exit_and_output
 end
 ```
@@ -193,7 +193,7 @@ class MyHandler < ClaudeHooks::UserPromptSubmit
     user_name = config.get_config_value('USER_NAME', 'userName')
     log "Username: #{user_name}"
 
-    output_data
+    output
   end
 end
 ```
@@ -516,7 +516,6 @@ begin
 
   tool_monitor.exit_and_output
 rescue StandardError => e
-  log "Error in ToolMonitor hook: #{e.message}", level: :error
   STDERR.puts JSON.generate({
     continue: false,
     stopReason: "Hook execution error: #{e.message}",
@@ -575,7 +574,8 @@ This method will return an output object based on the hook's type class (e.g: `C
 ### 🔄 Hook Output Merging
 
 Often, you will want to call multiple hooks from a same entrypoint.
-Each hook type's `output` provides a `merge` method that will try to intelligently merge multiple hook results:
+Each hook type's `output` provides a `merge` method that will try to intelligently merge multiple hook results. 
+Merged outputs always inherit the **most restrictive behavior**.
 
 ```ruby
 
@@ -610,7 +610,7 @@ begin
     hook3.output
   )
 
-  # Automatically handles outputting to the right stream (STDIN or STDERR) and uses the right exit code depending on hook state
+  # Automatically handles outputting to the right stream (STDOUT or STDERR) and uses the right exit code depending on hook state
   merged_output.exit_and_output 
 end
 ```
@@ -645,7 +645,7 @@ Claude Code hooks support multiple exit codes with different behaviors depending
 
 
 #### Manually outputing and exiting example with success
-For the operation to continue for a `UserPromptSubmit` hook, you would `STDIN.puts` structured JSON data followed by `exit 0`:
+For the operation to continue for a `UserPromptSubmit` hook, you would `STDOUT.puts` structured JSON data followed by `exit 0`:
 
 ```ruby
 puts JSON.generate({
@@ -782,7 +782,7 @@ class MyTestHook < ClaudeHooks::UserPromptSubmit
       log "All input keys: #{input_data.keys.join(', ')}"
     end
 
-    output_data
+    output
   end
 end
 

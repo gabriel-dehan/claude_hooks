@@ -79,13 +79,12 @@ module ClaudeHooks
           end
         end
 
-        # Set merged permission data
-        unless permission_reasons.empty?
-          merged_data['hookSpecificOutput'] = {
-            'hookEventName' => 'PreToolUse',
-            'permissionDecision' => permission_decision,
-            'permissionDecisionReason' => permission_reasons.join('; ')
-          }
+        merged_data['hookSpecificOutput'] ||= { 'hookEventName' => 'PreToolUse' }
+        merged_data['hookSpecificOutput']['permissionDecision'] = permission_decision
+        if permission_reasons.any?
+          merged_data['hookSpecificOutput']['permissionDecisionReason'] = permission_reasons.join('; ')
+        else
+          merged_data['hookSpecificOutput']['permissionDecisionReason'] = ''
         end
 
         new(merged_data)

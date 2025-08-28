@@ -141,7 +141,9 @@ module ClaudeHooks
           stopReason: "JSON parsing error: #{e.message}",
           suppressOutput: false
         }
-        puts JSON.generate(error_response)
+        response = JSON.generate(error_response)
+        puts response
+        STDERR.puts response
         exit 1
         
       rescue StandardError => e
@@ -153,7 +155,9 @@ module ClaudeHooks
           stopReason: "Hook execution error: #{e.message}",
           suppressOutput: false
         }
-        puts JSON.generate(error_response)
+        response = JSON.generate(error_response)
+        puts response
+        STDERR.puts response
         exit 1
       end
 
@@ -179,7 +183,9 @@ module ClaudeHooks
           suppressOutput: false
         }
 
-        puts JSON.generate(error_response)
+        response = JSON.generate(error_response)
+        puts response
+        STDERR.puts response
         exit 1
       end
     end

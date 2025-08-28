@@ -245,7 +245,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('block', merged.decision)
     assert_includes(merged.reason, 'First reason')
     assert_includes(merged.reason, 'Second reason')
-    assert_equal(2, merged.exit_code) # PostToolUse uses exit code 1 when blocked
+    assert_equal(2, merged.exit_code) # PostToolUse uses exit code 2 when blocked
   end
 
   # === STOP OUTPUT MERGE TESTS ===
