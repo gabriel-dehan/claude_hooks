@@ -1,0 +1,24 @@
+PATH
+  remote: .
+  specs:
+    claude_hooks (1.0.0)
+      json (~> 2.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (2.13.2)
+    minitest (5.25.5)
+    rake (13.3.0)
+
+PLATFORMS
+  arm64-darwin-24
+  ruby
+
+DEPENDENCIES
+  claude_hooks!
+  minitest (~> 5.0)
+  rake (~> 13.0)
+
+BUNDLED WITH
+   2.7.1
