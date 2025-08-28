@@ -48,9 +48,13 @@ Output helpers provide access to the hook's output data and helper methods for w
 ## Exit code behaviors related to chosen output stream
 Outputting to a specific stream has a different effect depending on the exit code.
 
+> [!TIP]
+> The most common and useful cases expressed in the tables below are handled automatically by calling `hook.exit_and_output`. 
+> You only need to worry about this when you want very specific behavior.
+
 ### ALLOW
 
-#### Claude Code ALLOW behavior depending on combination
+#### Claude Code behavior depending on combination
 
 | Exit Code  | STDERR | STDOUT |
 |------------|--------|--------|
@@ -69,7 +73,7 @@ Outputting to a specific stream has a different effect depending on the exit cod
 
 ### ASK
 
-#### Claude Code ASK behavior depending on combination
+#### Claude Code behavior depending on combination
 
 | Exit Code  | STDERR | STDOUT |
 |------------|--------|--------|
@@ -88,7 +92,7 @@ Outputting to a specific stream has a different effect depending on the exit cod
 
 ### DENY
 
-#### Claude Code DENY behavior depending on combination
+#### Claude Code behavior depending on combination
 
 | Exit Code  | STDERR | STDOUT |
 |------------|--------|--------|
