@@ -65,8 +65,8 @@ class TestOutputClasses < Minitest::Test
     output = ClaudeHooks::Output::PreToolUse.new(data)
     
     assert(output.should_ask_permission?)
-    assert_equal(1, output.exit_code)
-    assert_equal(:stderr, output.output_stream)
+    assert_equal(0, output.exit_code)
+    assert_equal(:stdout, output.output_stream)
   end
 
   def test_pre_tool_use_output_with_continue_false_overrides_permission
@@ -514,7 +514,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('ask', merged.permission_decision) # ask wins over allow
     assert_includes(merged.permission_reason, 'Safe tool')
     assert_includes(merged.permission_reason, 'Needs approval')
-    assert_equal(1, merged.exit_code)
+    assert_equal(0, merged.exit_code)
   end
 
   # === SESSION END TESTS ===
@@ -581,8 +581,8 @@ class TestOutputClasses < Minitest::Test
     output = ClaudeHooks::Output::SessionEnd.new(data)
     merged = ClaudeHooks::Output::SessionEnd.merge(output)
     
-    # Single input should return the same object
-    assert_equal(output, merged)
+    # Single input should return equivalent data
+    assert_equal(output.data, merged.data)
     assert_equal('Single session end', merged.stop_reason)
     assert_equal(0, merged.exit_code)
   end

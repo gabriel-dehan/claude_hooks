@@ -9,7 +9,7 @@ module ClaudeHooks
       # === EXIT CODE LOGIC ===
 
       def exit_code
-        default_exit_code
+        0  # SessionEnd hooks always return 0 - they're for cleanup only
       end
 
       # === MERGE HELPER ===
