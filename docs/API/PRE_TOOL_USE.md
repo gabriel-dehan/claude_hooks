@@ -44,3 +44,63 @@ Output helpers provide access to the hook's output data and helper methods for w
 | `exit 0` | Operation continues<br/>`STDOUT` shown to user in transcript mode |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
 | `exit 2` | **Blocks the tool call**<br/>`STDERR` shown to Claude |
+
+## Exit code behaviors related to chosen output stream
+Outputting to a specific stream has a different effect depending on the exit code.
+
+### ALLOW
+
+#### Claude Code ALLOW behavior depending on combination
+
+| Exit Code  | STDERR | STDOUT |
+|------------|--------|--------|
+| 0          | RUNS   | RUNS   |
+| 1          | RUNS   | RUNS   |
+| 2          | BLOCKS | RUNS   |
+
+#### Output visibility depending on exit code
+
+| Output Visibility / Exit Code | 0     | 1     | 2       |
+|-------------------------------|-------|-------|---------|
+| **STDOUT sent to Claude**     | ✅ YES | ✅ YES | ✅ YES |
+| **STDOUT shown to User**      | ❌ NO  | ❌ NO  | ❌ NO  |
+| **STDERR sent to Claude**     | ❌ NO  | ❌ NO  | ✅ YES |
+| **STDERR shown to User**      | ❌ NO  | ✅ YES | ✅ YES |
+
+### ASK
+
+#### Claude Code ASK behavior depending on combination
+
+| Exit Code  | STDERR | STDOUT |
+|------------|--------|--------|
+| 0          | RUNS   | ASKS   |
+| 1          | RUNS   | ASKS   |
+| 2          | BLOCKS | ASKS   |
+
+#### Output visibility depending on exit code
+
+| Output Visibility / Exit Code | 0     | 1     | 2       |
+|-------------------------------|-------|-------|---------|
+| **STDOUT sent to Claude**     | ✅ YES | ✅ YES | ✅ YES |
+| **STDOUT shown to User**      | ✅ YES | ✅ YES | ✅ YES |
+| **STDERR sent to Claude**     | ❌ NO  | ❌ NO  | ✅ YES |
+| **STDERR shown to User**      | ❌ NO  | ✅ YES | ✅ YES |
+
+### DENY
+
+#### Claude Code DENY behavior depending on combination
+
+| Exit Code  | STDERR | STDOUT |
+|------------|--------|--------|
+| 0          | BLOCKS | BLOCKS |
+| 1          | BLOCKS | BLOCKS |
+| 2          | BLOCKS | BLOCKS |
+
+#### Output visibility depending on exit code
+
+| Output Visibility / Exit Code | 0     | 1     | 2       |
+|-------------------------------|-------|-------|---------|
+| **STDOUT sent to Claude**     | ✅ YES | ✅ YES | ✅ YES |
+| **STDOUT shown to User**      | ✅ YES | ✅ YES | ✅ YES |
+| **STDERR sent to Claude**     | ❌ NO  | ❌ NO  | ✅ YES |
+| **STDERR shown to User**      | ❌ NO  | ✅ YES | ✅ YES |
