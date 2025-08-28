@@ -11,7 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > These changes are not backward compatible (hence the version bump to 1.0.0), the API has changed too much.
 
 ### Changed
-- **🎯 Output Objects System**: New output handling with intelligent exit code management
+
+#### Revamped documentation
+
+- **New documentation structure**:
+  - **API Reference**: Comprehensive API reference for all hook types
+  - **Common Helpers**: Shared helpers for all hook types
+  - **Output Helpers**: Helpers for working with the output state
+  - **Hook Exit Codes**: Exit codes for each hook type
+  - **Hook Types**: Overview of all hook types and their purpose
+
+#### Added support for SessionEnd
+Handles the new `SessionEnd` hook type.
+
+#### Handles new field for PostToolUse
+`additionalContext` field is now available in the `hookSpecificOutput` field.
+
+#### Output Objects System
+New output handling with intelligent exit code management.
+
 - **Automatic Exit Code Selection**: Output objects automatically choose the correct exit code (0, 1, 2) based on hook type and the state of the hook
 - - **Enhanced Base Class**: All hook instances now automatically get an `@output` attribute with a `output` accessor. They can still access raw `output_data`
 - **Helper Methods**: Access to hook-specific data via methods like `output.blocked?`, `output.allowed?`, `output.should_ask_permission?`
@@ -28,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ClaudeHooks::Output::SessionStart` - Provides `additional_context`
   - `ClaudeHooks::Output::PreCompact` - Basic output handling
 
-### Migration Guide
+##### Migration Guide
 
 **Before (Old Pattern):**
 ```ruby
@@ -43,18 +61,18 @@ begin
   # Manual stream and exit code selection
   if result['continue'] != false
     if result.dig('hookSpecificOutput', 'permissionDecision') == 'deny'
-      STDERR.puts JSON.generate(result)
+      STDERR.puts hook.stringify_output
       exit 1
     elsif result.dig('hookSpecificOutput', 'permissionDecision') == 'ask'  
-      STDERR.puts JSON.generate(result)
+      STDERR.puts hook.stringify_output
       exit 2
     else
-      puts JSON.generate(result)
+      puts hook.stringify_output
       exit 0
     end
   else # Continue == false
-    STDERR.puts JSON.generate(result)
-    exit 1
+    STDERR.puts hook.stringify_output
+    exit 2
   end
 rescue StandardError => e
   # Error handling...
