@@ -19,6 +19,7 @@ Notifications are outside facing and do not have any specific state to modify.
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.
+Notifications don't have any specific hook state and thus doesn't have any specific output helpers.
 
 [📚 Shared output helpers](COMMON.md#output-helpers)
 

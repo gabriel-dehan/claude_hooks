@@ -292,6 +292,7 @@ The framework supports the following hook types:
 | **[PostToolUse](docs/API/POST_TOOL_USE.md)** | `ClaudeHooks::PostToolUse` | Hooks that run after a tool is used |
 | **[Stop](docs/API/STOP.md)** | `ClaudeHooks::Stop` | Hooks that run when Claude Code finishes responding |
 | **[SubagentStop](docs/API/SUBAGENT_STOP.md)** | `ClaudeHooks::SubagentStop` | Hooks that run when subagent tasks complete |
+| **[SessionEnd](docs/API/SESSION_END.md)** | `ClaudeHooks::SessionEnd` | Hooks that run when Claude Code sessions end |
 | **[PreCompact](docs/API/PRE_COMPACT.md)** | `ClaudeHooks::PreCompact` | Hooks that run before transcript compaction |
 
 ## 🚀 Claude Hook Flow
@@ -433,6 +434,7 @@ The framework supports all existing hook types with their respective input field
 - [📝 Pre-Compact Hooks](docs/API/PRE_COMPACT.md)
 - [⏹️ Stop Hooks](docs/API/STOP.md)
 - [⏹️ Subagent Stop Hooks](docs/API/SUBAGENT_STOP.md)
+- [🔚 Session End Hooks](docs/API/SESSION_END.md)
 
 ### 📝 Logging
 
