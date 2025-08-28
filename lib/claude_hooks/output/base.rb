@@ -122,6 +122,8 @@ module ClaudeHooks
           Notification.new(data)
         when 'SessionStart'
           SessionStart.new(data)
+        when 'SessionEnd'
+          SessionEnd.new(data)
         when 'PreCompact'
           PreCompact.new(data)
         else

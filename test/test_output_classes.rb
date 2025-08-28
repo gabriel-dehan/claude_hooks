@@ -10,6 +10,7 @@ require_relative '../lib/claude_hooks/output/stop'
 require_relative '../lib/claude_hooks/output/subagent_stop'
 require_relative '../lib/claude_hooks/output/notification'
 require_relative '../lib/claude_hooks/output/session_start'
+require_relative '../lib/claude_hooks/output/session_end'
 require_relative '../lib/claude_hooks/output/pre_compact'
 
 class TestOutputClasses < Minitest::Test
@@ -514,5 +515,75 @@ class TestOutputClasses < Minitest::Test
     assert_includes(merged.permission_reason, 'Safe tool')
     assert_includes(merged.permission_reason, 'Needs approval')
     assert_equal(1, merged.exit_code)
+  end
+
+  # === SESSION END TESTS ===
+
+  def test_session_end_output_basic_behavior
+    data = { 'continue' => true }
+    output = ClaudeHooks::Output::SessionEnd.new(data)
+    
+    assert_equal(0, output.exit_code) # SessionEnd always returns 0
+    assert_equal(:stdout, output.output_stream)
+    assert(output.continue?)
+    refute(output.suppress_output?)
+  end
+
+  def test_session_end_output_with_continue_false
+    data = { 'continue' => false, 'stopReason' => 'Some error' }
+    output = ClaudeHooks::Output::SessionEnd.new(data)
+    
+    assert_equal(0, output.exit_code) # SessionEnd always returns 0 regardless
+    assert_equal(:stdout, output.output_stream)
+    refute(output.continue?)
+    assert_equal('Some error', output.stop_reason)
+  end
+
+  def test_session_end_merge_basic_behavior
+    data1 = {
+      'continue' => true,
+      'suppressOutput' => false
+    }
+    
+    data2 = {
+      'continue' => false,
+      'stopReason' => 'Session error',
+      'suppressOutput' => true
+    }
+    
+    output1 = ClaudeHooks::Output::SessionEnd.new(data1)
+    output2 = ClaudeHooks::Output::SessionEnd.new(data2)
+    
+    merged = ClaudeHooks::Output::SessionEnd.merge(output1, output2)
+    
+    refute(merged.continue?) # Base merge logic applies
+    assert(merged.suppress_output?)
+    assert_equal('Session error', merged.stop_reason)
+    assert_equal(0, merged.exit_code) # SessionEnd always 0
+  end
+
+  def test_session_end_merge_empty_outputs
+    merged = ClaudeHooks::Output::SessionEnd.merge()
+    
+    assert_instance_of(ClaudeHooks::Output::SessionEnd, merged)
+    assert(merged.continue?)
+    refute(merged.suppress_output?)
+    assert_equal('', merged.stop_reason)
+    assert_equal(0, merged.exit_code)
+  end
+
+  def test_session_end_merge_single_output
+    data = {
+      'continue' => true,
+      'stopReason' => 'Single session end'
+    }
+    
+    output = ClaudeHooks::Output::SessionEnd.new(data)
+    merged = ClaudeHooks::Output::SessionEnd.merge(output)
+    
+    # Single input should return the same object
+    assert_equal(output, merged)
+    assert_equal('Single session end', merged.stop_reason)
+    assert_equal(0, merged.exit_code)
   end
 end

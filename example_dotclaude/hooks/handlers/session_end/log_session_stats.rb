@@ -10,18 +10,18 @@ class LogSessionStats < ClaudeHooks::SessionEnd
     stats = gather_session_stats
     
     # Log detailed statistics
-    log do
-      "=== Session Statistics ==="
-      "Session ID: #{session_id}"
-      "End Reason: #{reason}"
-      "Duration: #{stats[:duration]}"
-      "Working Directory: #{cwd}"
-      "Transcript Path: #{transcript_path}"
-      "========================="
-    end
+    log <<~STATS
+      === Session Statistics ===
+      Session ID: #{session_id}
+      End Reason: #{reason}
+      Duration: #{stats[:duration]}
+      Working Directory: #{cwd}
+      Transcript Path: #{transcript_path}
+      ===========================
+    STATS
     
-    # Add session info to output
-    log_session_info!(format_session_summary(stats))
+    # Log session summary
+    log format_session_summary(stats)
     
     output
   end
