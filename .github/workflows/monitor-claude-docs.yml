@@ -1,0 +1,42 @@
+name: Monitor Claude Hooks Documentation
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: monitor-claude-docs
+  cancel-in-progress: false
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      
+      - name: Install Ruby dependencies
+        run: |
+          gem install octokit -v '~> 8.0'
+          gem install diffy -v '~> 3.4'
+      
+      - name: Check for documentation changes
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ruby .github/scripts/check-docs-changes.rb

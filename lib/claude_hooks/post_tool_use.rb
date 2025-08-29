@@ -38,18 +38,12 @@ module ClaudeHooks
       @output_data['reason'] = nil
     end
 
-    # === MERGE HELPER ===
-
-    # Merge multiple PostToolUse hook results intelligently
-    def self.merge_outputs(*outputs_data)
-      merged = super(*outputs_data)
-
-      outputs_data.compact.each do |output|
-        merged['decision'] = 'block' if output['decision'] == 'block'
-        merged['reason'] = [merged['reason'], output['reason']].compact.reject(&:empty?).join('; ')
-      end
-
-      merged
+    def add_additional_context!(context)
+      @output_data['hookSpecificOutput'] = {
+        'hookEventName' => hook_event_name,
+        'additionalContext' => context
+      }
     end
+    alias_method :add_context!, :add_additional_context!
   end
 end

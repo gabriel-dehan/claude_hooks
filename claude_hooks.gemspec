@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "A Ruby DSL framework for creating Claude Code hooks with composable hook scripts that enable teams to easily implement logging, security checks, and workflow automation."
   spec.homepage = "https://github.com/gabriel-dehan/claude_hooks"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.7.0"
+  spec.required_ruby_version = ">= 3.2.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
   spec.metadata["homepage_uri"] = spec.homepage
@@ -35,5 +35,5 @@ Gem::Specification.new do |spec|
 
   # Development dependencies
   spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "minitest", "~> 5.0"
 end

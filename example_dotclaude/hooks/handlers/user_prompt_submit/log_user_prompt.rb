@@ -12,10 +12,10 @@ class LogUserPrompt < ClaudeHooks::UserPromptSubmit
 
     log <<~TEXT
       Prompt: #{current_prompt}
-      Logged user prompt to #{log_file_path}
+      Logged user prompt (session: #{session_id})
     TEXT
 
-    nil
+    nil # ignored output
   end
 end
 

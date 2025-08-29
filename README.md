@@ -2,9 +2,27 @@
 
 A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will hopefully make creating and configuring new hooks way easier.
 
-[**Why use this instead of writing bash, or simple ruby scripts?**](WHY.md)
+[**Why use this instead of writing bash, or simple ruby scripts?**](docs/WHY.md)
 
 > You might also be interested in my other project, a [Claude Code statusline](https://github.com/gabriel-dehan/claude_monitor_statusline) that shows your Claude usage in realtime, inside Claude Code ✨.
+
+## 📖 Table of Contents
+
+- [Ruby DSL for Claude Code hooks](#ruby-dsl-for-claude-code-hooks)
+  - [📖 Table of Contents](#-table-of-contents)
+  - [🚀 Quick Start](#-quick-start)
+  - [📦 Installation](#-installation)
+  - [🏗️ Architecture](#️-architecture)
+  - [🪝 Hook Types](#-hook-types)
+  - [🚀 Claude Hook Flow](#-claude-hook-flow)
+  - [📚 API Reference](#-api-reference)
+  - [📝 Example: Tool usage monitor](#-example-tool-usage-monitor)
+  - [🔄 Hook Output](#-hook-output)
+  - [🚨 Advices](#-advices)
+  - [⚠️ Troubleshooting](#️-troubleshooting)
+  - [🧪 CLI Debugging](#-cli-debugging)
+  - [🐛 Debugging](#-debugging)
+  - [🧪 Development \& Contributing](#-development--contributing)
 
 ## 🚀 Quick Start
 
@@ -29,7 +47,7 @@ class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
   def call
     log "User asked: #{prompt}"
     add_context!("Remember to be extra helpful!")
-    output_data
+    output
   end
 end
 
@@ -39,10 +57,11 @@ if __FILE__ == $0
   input_data = JSON.parse(STDIN.read)
 
   hook = AddContextAfterPrompt.new(input_data)
-  output = hook.call
-
-  puts JSON.generate(output)
-  exit 0
+  hook.call
+  
+  # Handles output and exit code depending on the hook state.
+  # In this case, uses exit code 0 (success) and prints output to STDOUT
+  hook.output_and_exit
 end
 ```
 
@@ -76,16 +95,18 @@ That's it! Your hook will now add context to every user prompt. 🎉
 
 ## 📦 Installation
 
-Install it globally (simpler):
+### Install it globally (simpler):
 
 ```bash
 $ gem install claude_hooks
 ```
 
-**Note:** Claude Code itself will still use the system-installed gem, not the bundled version unless you use `bundle exec` to run it in your `.claude/settings.json`.
+### Using a Gemfile
 
-Or add it to your Gemfile (you can add a Gemfile in your `.claude` directory if needed):
+> [!WARNING]
+> Unless you use `bundle exec` in the command in your `.claude/settings.json`, Claude Code will use the system-installed gem, not the bundled version.
 
+Add it to your Gemfile (you can add a Gemfile in your `.claude` directory if needed):
 
 ```ruby
 # .claude/Gemfile
@@ -99,9 +120,6 @@ And then run:
 ```bash
 $ bundle install
 ```
-
-> [!WARNING]
-> If you use a Gemfile, you need to use `bundle exec` to run your hooks in your `.claude/settings.json`.
 
 ### 🔧 Configuration
 
@@ -121,7 +139,7 @@ You can configure Claude Hooks through environment variables with the `RUBY_CLAU
 
 ```bash
 # Existing configuration options
-export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                  # Default: logs (relative to HOME/.claude)
+export RUBY_CLAUDE_HOOKS_LOG_DIR="logs"                  # Default: logs (relative to $HOME/.claude)
 export RUBY_CLAUDE_HOOKS_CONFIG_MERGE_STRATEGY="project" # Config merge strategy: "project" or "home", default: "project"
 export RUBY_CLAUDE_HOOKS_BASE_DIR="~/.claude"            # DEPRECATED: fallback base directory
 
@@ -193,97 +211,20 @@ class MyHandler < ClaudeHooks::UserPromptSubmit
     user_name = config.get_config_value('USER_NAME', 'userName')
     log "Username: #{user_name}"
 
-    output_data
+    output
   end
 end
 ```
-
-## 📖 Table of Contents
-
-- [Ruby DSL for Claude Code hooks](#ruby-dsl-for-claude-code-hooks)
-  - [🚀 Quick Start](#-quick-start)
-  - [📦 Installation](#-installation)
-    - [🔧 Configuration](#-configuration)
-      - [Environment Variables](#environment-variables)
-      - [Configuration Files](#configuration-files)
-      - [Configuration Merging](#configuration-merging)
-      - [Accessing Configuration Variables](#accessing-configuration-variables)
-  - [📖 Table of Contents](#-table-of-contents)
-  - [🏗️ Architecture](#️-architecture)
-    - [Core Components](#core-components)
-    - [Recommended structure for your .claude/hooks/ directory](#recommended-structure-for-your-claudehooks-directory)
-  - [🪝 Hook Types](#-hook-types)
-  - [🚀 Claude Hook Flow](#-claude-hook-flow)
-    - [A very simplified view of how a hook works in Claude Code](#a-very-simplified-view-of-how-a-hook-works-in-claude-code)
-    - [🔄 Proposal: a more robust Claude Hook execution flow](#-proposal-a-more-robust-claude-hook-execution-flow)
-    - [Basic Hook Handler Structure](#basic-hook-handler-structure)
-    - [Input Fields](#input-fields)
-  - [📚 API Reference](#-api-reference)
-    - [Common API Methods](#common-api-methods)
-      - [Input Methods](#input-methods)
-      - [Output Methods](#output-methods)
-      - [Class Output Methods](#class-output-methods)
-    - [Configuration and Utility Methods](#configuration-and-utility-methods)
-      - [Utility Methods](#utility-methods)
-      - [Configuration Methods](#configuration-methods)
-    - [UserPromptSubmit API](#userpromptsubmit-api)
-      - [Input Methods](#input-methods-1)
-      - [Output Methods](#output-methods-1)
-    - [PreToolUse API](#pretooluse-api)
-      - [Input Methods](#input-methods-2)
-      - [Output Methods](#output-methods-2)
-    - [PostToolUse API](#posttooluse-api)
-      - [Input Methods](#input-methods-3)
-      - [Output Methods](#output-methods-3)
-    - [Notification API](#notification-api)
-      - [Input Methods](#input-methods-4)
-      - [Output Methods](#output-methods-4)
-    - [Stop API](#stop-api)
-      - [Input Methods](#input-methods-5)
-      - [Output Methods](#output-methods-5)
-    - [SubagentStop API](#subagentstop-api)
-      - [Input Methods](#input-methods-6)
-      - [Output Methods](#output-methods-6)
-    - [PreCompact API](#precompact-api)
-      - [Input Methods](#input-methods-7)
-      - [Output Methods](#output-methods-7)
-      - [Utility Methods](#utility-methods-1)
-    - [SessionStart API](#sessionstart-api)
-      - [Input Methods](#input-methods-8)
-      - [Output Methods](#output-methods-8)
-    - [📝 Logging](#-logging)
-      - [Log File Location](#log-file-location)
-      - [Log Output Format](#log-output-format)
-  - [📝 Example: Tool usage monitor](#-example-tool-usage-monitor)
-  - [🔄 Hook Output](#-hook-output)
-    - [🔄 Hook Output Merging](#-hook-output-merging)
-    - [🚪 Hook Exit Codes](#-hook-exit-codes)
-    - [Pattern 1: Simple Exit Codes](#pattern-1-simple-exit-codes)
-    - [Example: Success](#example-success)
-    - [Example: Error](#example-error)
-  - [🚨 Advices](#-advices)
-  - [⚠️ Troubleshooting](#️-troubleshooting)
-    - [Make your entrypoint scripts executable](#make-your-entrypoint-scripts-executable)
-  - [🧪 CLI Debugging](#-cli-debugging)
-    - [Basic Usage](#basic-usage)
-    - [Customization with Blocks](#customization-with-blocks)
-    - [Testing Methods](#testing-methods)
-      - [1. Test with STDIN (default)](#1-test-with-stdin-default)
-      - [2. Test with default sample data instead of STDIN](#2-test-with-default-sample-data-instead-of-stdin)
-      - [3. Test with Sample Data + Customization](#3-test-with-sample-data--customization)
-    - [Example Hook with CLI Testing](#example-hook-with-cli-testing)
-  - [🐛 Debugging](#-debugging)
-    - [Test an individual entrypoint](#test-an-individual-entrypoint)
-
 
 ## 🏗️ Architecture
 
 ### Core Components
 
 1. **`ClaudeHooks::Base`** - Base class with common functionality (logging, config, validation)
-2. **Hook Handler Classes** - Self-contained classes (`ClaudeHooks::UserPromptSubmit`, `ClaudeHooks::PreToolUse`, `ClaudeHooks::PostToolUse`, etc.)
-3. **Logger** - Dedicated logging class with multiline block support
+2. **Hook Handler Classes** - Self-contained classes (`ClaudeHooks::UserPromptSubmit`, `ClaudeHooks::PreToolUse`, etc.)
+3. **Output Classes** - `ClaudeHooks::Output::UserPromptSubmit`, etc... are output objects that handle intelligent merging of multiple outputs, as well as using the right exit codes and outputting to the proper stream (`STDIN` or `STDERR`) depending on the the hook state.
 4. **Configuration** - Shared configuration management via `ClaudeHooks::Configuration`
+5. **Logger** - Dedicated logging class with multiline block support
 
 ### Recommended structure for your .claude/hooks/ directory
 
@@ -303,6 +244,7 @@ end
     │   ├── append_rules.rb
     │   └── log_user_prompt.rb
     ├── pre_tool_use/
+    │   ├── github_guard.rb
     │   └── tool_monitor.rb
     └── ...
 ```
@@ -313,23 +255,34 @@ The framework supports the following hook types:
 
 | Hook Type | Class | Description |
 |-----------|-------|-------------|
-| **SessionStart** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session or resumes |
-| **UserPromptSubmit** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
-| **Notification** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
-| **PreToolUse** | `ClaudeHooks::PreToolUse` | Hooks that run before a tool is used |
-| **PostToolUse** | `ClaudeHooks::PostToolUse` | Hooks that run after a tool is used |
-| **Stop** | `ClaudeHooks::Stop` | Hooks that run when Claude Code finishes responding |
-| **SubagentStop** | `ClaudeHooks::SubagentStop` | Hooks that run when subagent tasks complete |
-| **PreCompact** | `ClaudeHooks::PreCompact` | Hooks that run before transcript compaction |
+| **[SessionStart](docs/API/SESSION_START.md)** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session or resumes |
+| **[UserPromptSubmit](docs/API/USER_PROMPT_SUBMIT.md)** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
+| **[Notification](docs/API/NOTIFICATION.md)** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
+| **[PreToolUse](docs/API/PRE_TOOL_USE.md)** | `ClaudeHooks::PreToolUse` | Hooks that run before a tool is used |
+| **[PostToolUse](docs/API/POST_TOOL_USE.md)** | `ClaudeHooks::PostToolUse` | Hooks that run after a tool is used |
+| **[Stop](docs/API/STOP.md)** | `ClaudeHooks::Stop` | Hooks that run when Claude Code finishes responding |
+| **[SubagentStop](docs/API/SUBAGENT_STOP.md)** | `ClaudeHooks::SubagentStop` | Hooks that run when subagent tasks complete |
+| **[SessionEnd](docs/API/SESSION_END.md)** | `ClaudeHooks::SessionEnd` | Hooks that run when Claude Code sessions end |
+| **[PreCompact](docs/API/PRE_COMPACT.md)** | `ClaudeHooks::PreCompact` | Hooks that run before transcript compaction |
 
 ## 🚀 Claude Hook Flow
 
 ### A very simplified view of how a hook works in Claude Code
 
+Claude Code hooks in essence work in a very simple way: 
+- Claude Code passes data to the hook script through `STDIN`
+- The hook uses the data to do its thing
+- The hook outputs data to `STDOUT` or `STDERR` and then `exit`s with the proper code:
+  - `exit 0` for success
+  - `exit 1` for a non-blocking error
+  - `exit 2` for a blocking error (prevent Claude from continuing)
+
 ```mermaid
 graph LR
-  A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR] --> E[Yields back to Claude Code] --> A
+  A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR<br />Exit Code] --> E[Yields back to Claude Code] --> A
 ```
+
+The main issue is that there are many different types of hooks and they each have different expectations regarding the data outputted to `STDIN` or `STDERR` and Claude Code will react differently for each specific exit code used depending on the hook type.
 
 ### 🔄 Proposal: a more robust Claude Hook execution flow
 
@@ -338,7 +291,7 @@ graph LR
 3. The entrypoint script reads STDIN and coordinates multiple **hook handlers**
 4. Each **hook handler** executes and returns its output data
 5. The entrypoint script combines/processes outputs from multiple **hook handlers**
-6. And then returns final JSON response to Claude Code
+6. And then returns final response to Claude Code with the correct exit code
 
 ```mermaid
 graph TD
@@ -348,13 +301,13 @@ graph TD
   C --> D[📋 Entrypoint<br />Parses JSON from STDIN]
   D --> E[📋 Entrypoint<br />Calls hook handlers]
 
-  E --> F[📝 Handler<br />AppendContextRules.call<br/><em>Returns output_data</em>]
-  E --> G[📝 Handler<br />PromptGuard.call<br/><em>Returns output_data</em>]
+  E --> F[📝 Handler<br />AppendContextRules.call<br/><em>Returns output</em>]
+  E --> G[📝 Handler<br />PromptGuard.call<br/><em>Returns output</em>]
 
-  F --> J[📋 Entrypoint<br />Calls _ClaudeHooks::UserPromptSubmit.merge_outputs_ to 🔀 merge outputs]
+  F --> J[📋 Entrypoint<br />Calls _ClaudeHooks::Output::UserPromptSubmit.merge_ to 🔀 merge outputs]
   G --> J
 
-  J --> K[📋 Entrypoint<br />Outputs JSON to STDOUT or STDERR]
+  J --> K[📋 Entrypoint<br />- Writes output to STDOUT or STDERR<br />- Uses correct exit code]
   K --> L[🤖 Yields back to Claude Code]
   L --> B
 ```
@@ -380,19 +333,47 @@ class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
 
     log "Full conversation transcript: #{read_transcript}"
 
+    # Use a Hook state method to modify what's sent back to Claude Code
     add_additional_context!("Some custom context")
 
-    # Block the prompt
+    # Control execution, for instance: block the prompt
     if current_prompt.include?("bad word")
       block_prompt!("Hmm no no no!")
       log "Prompt blocked: #{current_prompt} because of bad word"
     end
 
-    # Return output data
-    output_data
+    # Return output if you need it 
+    output
   end
 end
+
+# Use your handler (usually from an entrypoint file, but this is an example)
+if __FILE__ == $0
+  # Read Claude Code's input data from STDIN
+  input_data = JSON.parse(STDIN.read)
+
+  hook = AddContextAfterPrompt.new(input_data)
+  # Call the hook
+  hook.call
+  
+  # Uses exit code 0 (success) and outputs to STDIN if the prompt wasn't blocked
+  # Uses exit code 2 (blocking error) and outputs to STDERR if the prompt was blocked
+  hook.output_and_exit
+end
 ```
+
+## 📚 API Reference
+
+The goal of those APIs is to simplify reading from `STDIN` and writing to `STDOUT` or `STDERR` as well as exiting with the right exit codes: the way Claude Code expects you to.
+
+Each hook provides the following capabilities:
+
+| Category | Description |
+|----------|-------------|
+| Configuration & Utility | Access config, logging, and file path helpers |
+| Input Helpers | Access data parsed from STDIN (`session_id`, `transcript_path`, etc.) |
+| Hook State Helpers | Modify the hook's internal state (adding additional context, blocking a tool call, etc...) before yielding back to Claude Code |
+| Output Helpers | Access output data, merge results, and yield back to Claude with the proper exit codes |
 
 ### Input Fields
 
@@ -409,209 +390,26 @@ The framework supports all existing hook types with their respective input field
 | **SubagentStop**  | `stop_hook_active` |
 | **PreCompact**  | `trigger`, `custom_instructions` |
 | **SessionStart**  | `source` |
+| **SessionEnd**  | `reason` |
 
-## 📚 API Reference
+### Hooks API
 
-The whole purpose of those APIs is to simplify reading from STDIN and writing to STDOUT the way Claude Code expects you to.
+**All hook types** inherit from `ClaudeHooks::Base` and share a common API, as well as hook specific APIs.
 
-### Common API Methods
-
-Those methods are available in **all hook types** and are inherited from `ClaudeHooks::Base`:
-
-#### Input Methods
-Input methods are helpers to access data parsed from STDIN.
-
-| Method | Description |
-|--------|-------------|
-| `input_data` | Input data reader |
-| `session_id` | Get the current session ID |
-| `transcript_path` | Get path to the transcript file |
-| `cwd` | Get current working directory |
-| `hook_event_name` | Get the hook event name |
-| `read_transcript` | Read the transcript file |
-| `transcript` | Alias for `read_transcript` |
-
-#### Output Methods
-Output methods are helpers to modify `output_data`.
-
-| Method | Description |
-|--------|-------------|
-| `output_data` | Output data accessor |
-| `stringify_output` | Generates a JSON string from `output_data` |
-| `allow_continue!` | Allow Claude to continue (default) |
-| `prevent_continue!(reason)` | Stop Claude with reason |
-| `suppress_output!` | Hide stdout from transcript |
-| `show_output!` | Show stdout in transcript (default) |
-| `clear_specifics!` | Clear hook-specific output |
-
-#### Class Output Methods
-
-Each hook type provides a **class method** `merge_outputs` that will try to intelligently merge multiple hook results, e.g. `ClaudeHooks::UserPromptSubmit.merge_outputs(output1, output2, output3)`.
-
-| Method | Description |
-|--------|-------------|
-| `merge_outputs(*outputs_data)` | Intelligently merge multiple outputs into a single output |
-
-### Configuration and Utility Methods
-
-Available in all hooks via the base `ClaudeHooks::Base` class:
-
-#### Utility Methods
-| Method | Description |
-|--------|-------------|
-| `log(message, level: :info)` | Log to session-specific file (levels: :info, :warn, :error) |
-
-#### Configuration Methods
-| Method | Description |
-|--------|-------------|
-| `home_claude_dir` | Get the home Claude directory (`$HOME/.claude`) |
-| `project_claude_dir` | Get the project Claude directory (`$CLAUDE_PROJECT_DIR/.claude`, or `nil`) |
-| `home_path_for(relative_path)` | Get absolute path relative to home Claude directory |
-| `project_path_for(relative_path)` | Get absolute path relative to project Claude directory (or `nil`) |
-| `base_dir` | Get the base Claude directory (**deprecated**) |
-| `path_for(relative_path, base_dir=nil)` | Get absolute path relative to specified or default base dir (**deprecated**) |
-| `config` | Access the merged configuration object |
-| `config.get_config_value(env_key, config_file_key, default)` | Get any config value with fallback |
-| `config.logs_directory` | Get logs directory path (always under home directory) |
-| `config.your_custom_key` | Access any custom config via method_missing |
-
-
-### UserPromptSubmit API
-
-Available when inheriting from `ClaudeHooks::UserPromptSubmit`:
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `prompt` | Get the user's prompt text |
-| `user_prompt` | Alias for `prompt` |
-| `current_prompt` | Alias for `prompt` |
-
-#### Output Methods
-| Method | Description |
-|--------|-------------|
-| `add_additional_context!(context)` | Add context to the prompt |
-| `add_context!(context)` | Alias for `add_additional_context!` |
-| `empty_additional_context!` | Remove additional context |
-| `block_prompt!(reason)` | Block the prompt from processing |
-| `unblock_prompt!` | Unblock a previously blocked prompt |
-
-### PreToolUse API
-
-Available when inheriting from `ClaudeHooks::PreToolUse`:
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `tool_name` | Get the name of the tool being used |
-| `tool_input` | Get the input data for the tool |
-
-#### Output Methods
-| Method | Description |
-|--------|-------------|
-| `approve_tool!(reason)` | Explicitly approve tool usage |
-| `block_tool!(reason)` | Block tool usage with feedback |
-| `ask_for_permission!(reason)` | Request user permission |
-
-### PostToolUse API
-
-Available when inheriting from `ClaudeHooks::PostToolUse`:
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `tool_name` | Get the name of the tool that was used |
-| `tool_input` | Get the input that was passed to the tool |
-| `tool_response` | Get the tool's response/output |
-
-#### Output Methods
-| Method | Description |
-|--------|-------------|
-| `block_tool!(reason)` | Block the tool result from being used |
-| `approve_tool!(reason)` | Clear any previous block decision (allows tool result) |
-
-### Notification API
-
-Available when inheriting from `ClaudeHooks::Notification`:
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `message` | Get the notification message content |
-| `notification_message` | Alias for `message` |
-
-#### Output Methods
-Notifications are outside facing and do not have any specific output methods.
-
-### Stop API
-
-Available when inheriting from `ClaudeHooks::Stop`:
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `stop_hook_active` | Check if Claude Code is already continuing as a result of a stop hook |
-
-#### Output Methods
-| Method | Description |
-|--------|-------------|
-| `continue_with_instructions!(instructions)` | Block Claude from stopping and provide instructions to continue |
-| `block!(instructions)` | Alias for `continue_with_instructions!` |
-| `ensure_stopping!` | Allow Claude to stop normally (default behavior) |
-
-### SubagentStop API
-
-Available when inheriting from `ClaudeHooks::SubagentStop` (inherits from `ClaudeHooks::Stop`):
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `stop_hook_active` | Check if Claude Code is already continuing as a result of a stop hook |
-
-#### Output Methods
-| Method | Description |
-|--------|-------------|
-| `continue_with_instructions!(instructions)` | Block Claude from stopping and provide instructions to continue |
-| `block!(instructions)` | Alias for `continue_with_instructions!` |
-| `ensure_stopping!` | Allow Claude to stop normally (default behavior) |
-
-### PreCompact API
-
-Available when inheriting from `ClaudeHooks::PreCompact`:
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `trigger` | Get the compaction trigger: `'manual'` or `'auto'` |
-| `custom_instructions` | Get custom instructions (only available for manual trigger) |
-
-#### Output Methods
-No specific output methods are available to alter compaction behavior.
-
-#### Utility Methods
-| Method | Description |
-|--------|-------------|
-| `backup_transcript!(backup_file_path)` | Create a backup of the transcript at the specified path |
-
-### SessionStart API
-
-Available when inheriting from `ClaudeHooks::SessionStart`:
-
-#### Input Methods
-| Method | Description |
-|--------|-------------|
-| `source` | Get the session start source: `'startup'`, `'resume'`, or `'clear'` |
-
-#### Output Methods
-| Method | Description |
-|--------|-------------|
-| `add_additional_context!(context)` | Add contextual information for Claude's session |
-| `add_context!(context)` | Alias for `add_additional_context!` |
-| `empty_additional_context!` | Clear additional context |
+- [📚 Common API Methods](docs/API/COMMON.md)
+- [🔔 Notification Hooks](docs/API/NOTIFICATION.md)
+- [🚀 Session Start Hooks](docs/API/SESSION_START.md)
+- [🖋️ User Prompt Submit Hooks](docs/API/USER_PROMPT_SUBMIT.md)
+- [🛠️ Pre-Tool Use Hooks](docs/API/PRE_TOOL_USE.md)
+- [🔧 Post-Tool Use Hooks](docs/API/POST_TOOL_USE.md)
+- [📝 Pre-Compact Hooks](docs/API/PRE_COMPACT.md)
+- [⏹️ Stop Hooks](docs/API/STOP.md)
+- [⏹️ Subagent Stop Hooks](docs/API/SUBAGENT_STOP.md)
+- [🔚 Session End Hooks](docs/API/SESSION_END.md)
 
 ### 📝 Logging
 
-`ClaudeHooks::Base` provides a **session logger** that will write logs to session-specific files.
+`ClaudeHooks::Base` provides a **session logger** to all its subclasses that you can use to write logs to session-specific files.
 
 ```ruby
 log "Simple message"
@@ -629,7 +427,8 @@ You can also use the logger from an entrypoint script:
 ```ruby
 require 'claude_hooks'
 
-logger = ClaudeHooks::Logger.new("TEST-SESSION-01", 'entrypoint')
+input_data = JSON.parse(STDIN.read)
+logger = ClaudeHooks::Logger.new(input_data["session_id"], 'entrypoint')
 logger.log "Simple message"
 ```
 
@@ -642,6 +441,7 @@ Logs are written to session-specific files in the configured log directory:
 ```
 [2025-08-16 03:45:28] [INFO] [MyHookHandler] Starting execution
 [2025-08-16 03:45:28] [ERROR] [MyHookHandler] Connection timeout
+...
 ```
 
 ## 📝 Example: Tool usage monitor
@@ -666,7 +466,7 @@ First, register an entrypoint in `~/.claude/settings.json`:
 }
 ```
 
-Then, create your main entrypoint script and don't forget to make it executable:
+Then, create your main entrypoint script and _don't forget to make it executable_:
 ```bash
 touch ~/.claude/hooks/entrypoints/pre_tool_use.rb
 chmod +x ~/.claude/hooks/entrypoints/pre_tool_use.rb
@@ -683,28 +483,19 @@ begin
   input_data = JSON.parse(STDIN.read)
 
   tool_monitor = ToolMonitor.new(input_data)
-  output = tool_monitor.call
+  tool_monitor.call
 
-  # Any other hook scripts can be chained here
+  # You could also call any other handler here and then merge the outputs
 
-  puts JSON.generate(output)
-
-rescue JSON::ParserError => e
-  log "Error parsing JSON: #{e.message}", level: :error
-  puts JSON.generate({
-    continue: false,
-    stopReason: "JSON parsing error: #{e.message}",
-    suppressOutput: false
-  })
-  exit 0
+  tool_monitor.output_and_exit
 rescue StandardError => e
-  log "Error in ToolMonitor hook: #{e.message}", level: :error
-  puts JSON.generate({
+  STDERR.puts JSON.generate({
     continue: false,
     stopReason: "Hook execution error: #{e.message}",
     suppressOutput: false
   })
-  exit 0
+  # Non-blocking error
+  exit 1
 end
 ```
 
@@ -727,51 +518,107 @@ class ToolMonitor < ClaudeHooks::PreToolUse
 
     if DANGEROUS_TOOLS.include?(tool_name)
       log "Dangerous tool detected: #{tool_name}", level: :warn
+      # Use one of the ClaudeHooks::PreToolUse methods to modify the hook state and block the tool
       ask_for_permission!("The tool '#{tool_name}' can impact your system. Allow?")
     else
+      # Use one of the ClaudeHooks::PreToolUse methods to modify the hook state and allow the tool
       approve_tool!("Safe tool usage")
     end
 
-    output_data
+    # Accessor provided by ClaudeHooks::PreToolUse
+    output
   end
 end
 ```
 
 ## 🔄 Hook Output
 
+Hooks provide access to their output (which acts as the "state" of a hook) through the `output` method.
+
+This method will return an output object based on the hook's type class (e.g: `ClaudeHooks::Output::UserPromptSubmit`) that provides helper methods: 
+- to access output data
+- for merging multiple outputs 
+- for sending the right exit codes and output data back to Claude Code through the proper stream.
+
+> [!TIP]
+> You can also always access the raw output data hash instead of the output object using `hook.output_data`.
+
+
 ### 🔄 Hook Output Merging
 
-Each hook script type provides a merging method `merge_outputs` that will try to intelligently merge multiple hook results:
+Often, you will want to call multiple hooks from a same entrypoint.
+Each hook type's `output` provides a `merge` method that will try to intelligently merge multiple hook results. 
+Merged outputs always inherit the **most restrictive behavior**.
 
 ```ruby
-# Merge results from multiple UserPromptSubmit hooks
-merged_result = ClaudeHooks::UserPromptSubmit.merge_outputs(output1, output2, output3)
 
-# ClaudeHooks::UserPromptSubmit.merge_outputs follows the following merge logic:
-# - continue: false wins (any hook script can stop execution)
-# - suppressOutput: true wins (any hook script can suppress output)
-# - decision: "block" wins (any hook script can block)
-# - stopReason/reason: concatenated
-# - additionalContext: joined
+require 'json'
+require_relative '../handlers/user_prompt_submit/hook1'
+require_relative '../handlers/user_prompt_submit/hook2'
+require_relative '../handlers/user_prompt_submit/hook3'
+
+begin
+# Read input from stdin
+  input_data = JSON.parse(STDIN.read)
+
+  hook1 = Hook1.new(input_data)
+  hook2 = Hook1.new(input_data)
+  hook3 = Hook1.new(input_data)
+
+  # Execute the multiple hooks
+  hook1.call
+  hook2.call
+  hook3.call
+
+  # Merge the outputs
+  # In this case, ClaudeHooks::Output::UserPromptSubmit.merge follows the following merge logic:
+  # - continue: false wins (any hook script can stop execution)
+  # - suppressOutput: true wins (any hook script can suppress output)
+  # - decision: "block" wins (any hook script can block)
+  # - stopReason/reason: concatenated
+  # - additionalContext: concatenated
+  merged_output = ClaudeHooks::Output::UserPromptSubmit.merge(
+    hook1.output,
+    hook2.output, 
+    hook3.output
+  )
+
+  # Automatically handles outputting to the right stream (STDOUT or STDERR) and uses the right exit code depending on hook state
+  merged_output.output_and_exit 
+end
 ```
 
 ### 🚪 Hook Exit Codes
 
-Claude Code hooks support multiple exit codes:
+> [!NOTE]
+> Hooks and output objects handle exit codes automatically. The information below is for reference and understanding. When using `hook.output_and_exit` or `merged_output.output_and_exit`, you don't need to memorize these rules - the method chooses the correct exit code based on the hook type and the hook's state.
 
-### Pattern 1: Simple Exit Codes
-- **`exit 0`**: Success, allow the operation to continue
-- **`exit 1`**: Non-blocking error, `STDERR` will be fed back to the user
-- **`exit 2`**: Blocking error, `STDERR` will be fed back to Claude
+Claude Code hooks support multiple exit codes with different behaviors depending on the hook type.
 
-**Hook-specific meanings:**
-- **UserPromptSubmit**: `exit 1` blocks the prompt from being processed
-- **PreToolUse**: `exit 1` blocks the tool, `exit 2` asks for permission
-- **PostToolUse**: `exit 1` blocks the tool result from being used
+- **`exit 0`**: Success, allows the operation to continue, for most hooks, `STDOUT` will be fed back to the user.
+  - Claude Code does not see stdout if the exit code is 0, except for hooks where `STDOUT` is injected as context.
+- **`exit 1`**: Non-blocking error, `STDERR` will be fed back to the user.
+- **`exit 2`**: Blocking error, in most cases `STDERR` will be fed back to Claude.
+- **Other exit codes**: Treated as non-blocking errors - `STDERR` fed back to the user, execution continues.
+
+> [!WARNING]
+> Some exit codes have different meanings depending on the hook type, here is a table to help summarize this.
+
+| Hook Event       | Exit 0 (Success)                                      | Exit 1 (Non-blocking Error) | Exit Code 2 (Blocking Error)                                   |
+|------------------|------------------------------------------------------------|-------------------------------------------------------|----------------------------------------------------------------|
+| UserPromptSubmit | Operation continues<br/><br />**`STDOUT` added as context to Claude**       | Non-blocking error<br/><br />`STDERR` shown to user                | **Blocks prompt processing**<br/>**Erases prompt**<br/><br />`STDERR` shown to user only |
+| PreToolUse       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | **Blocks the tool call**<br/><br />`STDERR` shown to Claude                     |
+| PostToolUse      | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to Claude *(tool already ran)*                   |
+| Notification     | Operation continues<br/><br />Logged to debug only (`--debug`) | Non-blocking error<br/><br />Logged to debug only (`--debug`)                | N/A<br/><br />Logged to debug only (`--debug`)                                   |
+| Stop             | Agent will stop<br/><br />`STDOUT` shown to user in transcript mode | Agent will stop<br/><br />`STDERR` shown to user                | **Blocks stoppage**<br/><br />`STDERR` shown to Claude                          |
+| SubagentStop     | Subagent will stop<br/><br />`STDOUT` shown to user in transcript mode | Subagent will stop<br/><br />`STDERR` shown to user                | **Blocks stoppage**<br/><br />`STDERR` shown to Claude subagent                 |
+| PreCompact       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+| SessionStart     | Operation continues<br/><br />**`STDOUT` added as context to Claude**       | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
+| SessionEnd       | Operation continues<br/><br />Logged to debug only (`--debug`) | Non-blocking error<br/><br />Logged to debug only (`--debug`)                | N/A<br/><br />Logged to debug only (`--debug`)                                   |
 
 
-### Example: Success
-For the operation to continue for a UserPromptSubmit hook, you would return structured JSON data followed by `exit 0`:
+#### Manually outputing and exiting example with success
+For the operation to continue for a `UserPromptSubmit` hook, you would `STDOUT.puts` structured JSON data followed by `exit 0`:
 
 ```ruby
 puts JSON.generate({
@@ -786,9 +633,8 @@ puts JSON.generate({
 exit 0
 ```
 
-### Example: Error
-
-For the operation to stop for a UserPromptSubmit hook, you would return structured JSON data followed by `exit 1`:
+#### Manually outputing and exiting example with error
+For the operation to stop for a `UserPromptSubmit` hook, you would `STDERR.puts` structured JSON data followed by `exit 2`:
 
 ```ruby
 STDERR.puts JSON.generate({
@@ -796,19 +642,17 @@ STDERR.puts JSON.generate({
   stopReason: "JSON parsing error: #{e.message}",
   suppressOutput: false
 })
-exit 1
+exit 2
 ```
 
 > [!WARNING]
-> Don't forget to use `STDERR.puts` to output the JSON to STDERR.
-
+> You don't have to manually do this, just use `output_and_exit` to automatically handle this.
 
 ## 🚨 Advices
 
-1. **Logging**: Use `log()` method instead of `puts` to avoid interfering with JSON output
+1. **Logging**: Use `log()` method instead of `puts` to avoid interfering with Claude Code's expected output.
 2. **Error Handling**: Hooks should handle their own errors and use the `log` method for debugging. For errors, don't forget to exit with the right exit code (1, 2) and output the JSON indicating the error to STDERR using `STDERR.puts`.
-3. **Output Format**: Always return `output_data` or `nil` from your `call` method
-4. **Path Management**: Use `path_for()` for all file operations relative to the Claude base directory
+3. **Path Management**: Use `path_for()` for all file operations relative to the Claude base directory.
 
 ## ⚠️ Troubleshooting
 
@@ -911,7 +755,7 @@ class MyTestHook < ClaudeHooks::UserPromptSubmit
       log "All input keys: #{input_data.keys.join(', ')}"
     end
 
-    output_data
+    output
   end
 end
 
@@ -929,5 +773,19 @@ end
 
 ```bash
 # Test with sample data
-echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | ruby ~/.claude/hooks/entrypoints/user_prompt_submit.rb
+echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | CLAUDE_PROJECT_DIR=$(pwd) ruby ~/.claude/hooks/entrypoints/user_prompt_submit.rb
+```
+
+## 🧪 Development & Contributing
+
+### Running Tests
+
+This project uses Minitest for testing. To run the complete test suite:
+
+```bash
+# Run all tests
+ruby test/run_all_tests.rb
+
+# Run a specific test file
+ruby test/test_output_classes.rb
 ```

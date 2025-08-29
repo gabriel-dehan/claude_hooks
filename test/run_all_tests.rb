@@ -7,7 +7,15 @@ puts "=" * 50
 
 test_files = [
   'test_config.rb',
-  'test_config_merge.rb'
+  'test_config_merge.rb',
+  'test_integration.rb',
+  'test_output_classes.rb',
+  'test_hook_classes.rb',
+  'test_base.rb',
+  'test_cli_simple.rb',  
+  'test_full_integration.rb',
+  'test_logger.rb',
+  'test_error_handling_simple.rb'
 ]
 
 test_files.each do |test_file|

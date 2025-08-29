@@ -1,7 +1,13 @@
 #!/usr/bin/env ruby
 
+# Example of the NEW simplified entrypoint pattern using output objects
+# Compare this to the existing user_prompt_submit.rb to see the difference!
+
 require 'claude_hooks'
 require 'json'
+# Require the output classes
+require_relative '../../../lib/claude_hooks/output/base'
+require_relative '../../../lib/claude_hooks/output/user_prompt_submit'
 require_relative '../handlers/user_prompt_submit/append_rules'
 require_relative '../handlers/user_prompt_submit/log_user_prompt'
 
@@ -11,25 +17,24 @@ begin
 
   # Execute all hook scripts
   append_rules = AppendRules.new(input_data)
-  appended_rules_result = append_rules.call
+  append_rules.call
 
   log_user_prompt = LogUserPrompt.new(input_data)
-  log_user_prompt_result = log_user_prompt.call
+  log_user_prompt.call
 
-  # Merge all hook results intelligently using the UserPromptSubmit class method
-  hook_output = ClaudeHooks::UserPromptSubmit.merge_outputs(appended_rules_result, log_user_prompt_result)
+  merged_output = ClaudeHooks::Output::UserPromptSubmit.merge(
+    append_rules.output,
+    log_user_prompt.output
+  )
 
-  # Output final merged result to Claude Code
-  puts JSON.generate(hook_output)
+  merged_output.output_and_exit
 
-  exit 0 # Don't forget to exit with the right exit code (0, 1, 2)
 rescue StandardError => e
-  STDERR.puts "Error in UserPromptSubmit hook: #{e.message} #{e.backtrace.join("\n")}"
-
-  puts JSON.generate({
+  # Same simple error pattern
+  STDERR.puts JSON.generate({
     continue: false,
     stopReason: "Hook execution error: #{e.message} #{e.backtrace.join("\n")}",
     suppressOutput: false
   })
-  exit 1
+  exit 2
 end

@@ -5,7 +5,6 @@ require_relative 'configuration'
 
 module ClaudeHooks
   # Session-based logger for Claude Code hooks
-  # Provides both single-line and multiline block-based logging
   class Logger
     def initialize(session_id, source)
       @session_id = session_id

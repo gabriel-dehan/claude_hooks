@@ -1,0 +1,52 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['3.2', '3.3']
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby ${{ matrix.ruby-version }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+
+    - name: Install dependencies
+      run: bundle install
+
+    - name: Run tests
+      run: |
+        echo "🧪 Running test suite..."
+        ruby test/run_all_tests.rb
+        
+    - name: Verify individual test files
+      run: |
+        echo "🔍 Verifying individual test files can run independently..."
+        for test_file in test/test_*.rb; do
+          echo "Running $(basename "$test_file")..."
+          if ruby "$test_file" > /dev/null 2>&1; then
+            echo "✅ $(basename "$test_file") passed"
+          else
+            echo "❌ $(basename "$test_file") failed"
+            exit 1
+          fi
+        done
+        
+    - name: Test summary
+      if: success()
+      run: |
+        echo "🎉 All tests passed successfully on Ruby ${{ matrix.ruby-version }}!"
+        echo "Test files verified:"
+        ls -1 test/test_*.rb | wc -l | xargs echo "Total test files:"
