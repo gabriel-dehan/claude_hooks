@@ -1,13 +1,15 @@
 # Ruby DSL for Claude Code hooks
 
+> [!IMPORTANT]
+> v1.0.0 just released and is introducing breaking changes. Please read the [CHANGELOG](CHANGELOG.md) for more information.
+
+
 A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will hopefully make creating and configuring new hooks way easier.
 
 [**Why use this instead of writing bash, or simple ruby scripts?**](docs/WHY.md)
 
 > You might also be interested in my other project, a [Claude Code statusline](https://github.com/gabriel-dehan/claude_monitor_statusline) that shows your Claude usage in realtime, inside Claude Code ✨.
 
-> [!IMPORTANT]
-> v1.0.0 just released and is introducing breaking changes. Please read the [CHANGELOG](CHANGELOG.md) for more information.
 
 ## 📖 Table of Contents
 
@@ -792,3 +794,4 @@ ruby test/run_all_tests.rb
 # Run a specific test file
 ruby test/test_output_classes.rb
 ```
+
