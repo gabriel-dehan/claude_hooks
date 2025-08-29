@@ -2,7 +2,8 @@
 
 require 'claude_hooks'
 
-# Hook script that appends rules to user prompt
+# Hook script that appends rules to user prompt as additional context.
+# A great way to make sure specific context is added with each user prompt.
 class AppendRules < ClaudeHooks::UserPromptSubmit
 
   def call
