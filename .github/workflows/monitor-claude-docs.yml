@@ -23,6 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.DOCS_BOT_TOKEN }}
           fetch-depth: 0
       
       - name: Set up Ruby
@@ -38,5 +39,7 @@ jobs:
       - name: Check for documentation changes
         env:
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DOCS_BOT_TOKEN }}
+          GIT_AUTHOR_NAME: ${{ secrets.DOCS_AUTHOR_NAME }}
+          GIT_AUTHOR_EMAIL: ${{ secrets.DOCS_AUTHOR_EMAIL }}
         run: ruby .github/scripts/check-docs-changes.rb

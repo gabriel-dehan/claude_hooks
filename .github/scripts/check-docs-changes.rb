@@ -133,8 +133,10 @@ class DocMonitor
   def commit_changes
     puts "💾 Committing changes..."
     
-    system('git', 'config', 'user.name', 'github-actions[bot]')
-    system('git', 'config', 'user.email', 'github-actions[bot]@users.noreply.github.com')
+    author_name = ENV['GIT_AUTHOR_NAME'] || 'github-actions[bot]'
+    author_email = ENV['GIT_AUTHOR_EMAIL'] || 'github-actions[bot]@users.noreply.github.com'
+    system('git', 'config', 'user.name', author_name)
+    system('git', 'config', 'user.email', author_email)
     system('git', 'add', DOC_PATH)
     
     commit_message = "🤖 Update Claude Hooks documentation - #{Time.now.strftime('%Y-%m-%d')}"
