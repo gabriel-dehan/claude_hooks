@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > [!WARNING]
 > These changes are not backward compatible (hence the version bump to 1.0.0), the API has changed too much.
 
+Follow the [migration guide](docs/1.0.0_MIGRATION_GUIDE.md) to migrate to the new API.
+
 ### Changed
 
 #### Revamped documentation
