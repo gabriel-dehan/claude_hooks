@@ -6,6 +6,24 @@ A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will 
 
 > You might also be interested in my other project, a [Claude Code statusline](https://github.com/gabriel-dehan/claude_monitor_statusline) that shows your Claude usage in realtime, inside Claude Code ✨.
 
+## 📖 Table of Contents
+
+- [Ruby DSL for Claude Code hooks](#ruby-dsl-for-claude-code-hooks)
+  - [📖 Table of Contents](#-table-of-contents)
+  - [🚀 Quick Start](#-quick-start)
+  - [📦 Installation](#-installation)
+  - [🏗️ Architecture](#️-architecture)
+  - [🪝 Hook Types](#-hook-types)
+  - [🚀 Claude Hook Flow](#-claude-hook-flow)
+  - [📚 API Reference](#-api-reference)
+  - [📝 Example: Tool usage monitor](#-example-tool-usage-monitor)
+  - [🔄 Hook Output](#-hook-output)
+  - [🚨 Advices](#-advices)
+  - [⚠️ Troubleshooting](#️-troubleshooting)
+  - [🧪 CLI Debugging](#-cli-debugging)
+  - [🐛 Debugging](#-debugging)
+  - [🧪 Development \& Contributing](#-development--contributing)
+
 ## 🚀 Quick Start
 
 > [!TIP]
@@ -197,56 +215,6 @@ class MyHandler < ClaudeHooks::UserPromptSubmit
   end
 end
 ```
-
-## 📖 Table of Contents
-
-- [Ruby DSL for Claude Code hooks](#ruby-dsl-for-claude-code-hooks)
-  - [🚀 Quick Start](#-quick-start)
-  - [📦 Installation](#-installation)
-    - [Install it globally (simpler):](#install-it-globally-simpler)
-    - [Using a Gemfile](#using-a-gemfile)
-    - [🔧 Configuration](#-configuration)
-      - [Environment Variables](#environment-variables)
-      - [Configuration Files](#configuration-files)
-      - [Configuration Merging](#configuration-merging)
-      - [Accessing Configuration Variables](#accessing-configuration-variables)
-  - [📖 Table of Contents](#-table-of-contents)
-  - [🏗️ Architecture](#️-architecture)
-    - [Core Components](#core-components)
-    - [Recommended structure for your .claude/hooks/ directory](#recommended-structure-for-your-claudehooks-directory)
-  - [🪝 Hook Types](#-hook-types)
-  - [🚀 Claude Hook Flow](#-claude-hook-flow)
-    - [A very simplified view of how a hook works in Claude Code](#a-very-simplified-view-of-how-a-hook-works-in-claude-code)
-    - [🔄 Proposal: a more robust Claude Hook execution flow](#-proposal-a-more-robust-claude-hook-execution-flow)
-    - [Basic Hook Handler Structure](#basic-hook-handler-structure)
-  - [📚 API Reference](#-api-reference)
-    - [Input Fields](#input-fields)
-    - [Hooks API](#hooks-api)
-    - [📝 Logging](#-logging)
-      - [Log File Location](#log-file-location)
-      - [Log Output Format](#log-output-format)
-  - [📝 Example: Tool usage monitor](#-example-tool-usage-monitor)
-  - [🔄 Hook Output](#-hook-output)
-    - [🔄 Hook Output Merging](#-hook-output-merging)
-    - [🚪 Hook Exit Codes](#-hook-exit-codes)
-      - [Manually outputing and exiting example with success](#manually-outputing-and-exiting-example-with-success)
-      - [Manually outputing and exiting example with error](#manually-outputing-and-exiting-example-with-error)
-  - [🚨 Advices](#-advices)
-  - [⚠️ Troubleshooting](#️-troubleshooting)
-    - [Make your entrypoint scripts executable](#make-your-entrypoint-scripts-executable)
-  - [🧪 CLI Debugging](#-cli-debugging)
-    - [Basic Usage](#basic-usage)
-    - [Customization with Blocks](#customization-with-blocks)
-    - [Testing Methods](#testing-methods)
-      - [1. Test with STDIN (default)](#1-test-with-stdin-default)
-      - [2. Test with default sample data instead of STDIN](#2-test-with-default-sample-data-instead-of-stdin)
-      - [3. Test with Sample Data + Customization](#3-test-with-sample-data--customization)
-    - [Example Hook with CLI Testing](#example-hook-with-cli-testing)
-  - [🐛 Debugging](#-debugging)
-    - [Test an individual entrypoint](#test-an-individual-entrypoint)
-  - [🧪 Development \& Contributing](#-development--contributing)
-    - [Running Tests](#running-tests)
-
 
 ## 🏗️ Architecture
 
