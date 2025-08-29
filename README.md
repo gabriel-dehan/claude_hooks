@@ -244,6 +244,8 @@ end
     - [Example Hook with CLI Testing](#example-hook-with-cli-testing)
   - [🐛 Debugging](#-debugging)
     - [Test an individual entrypoint](#test-an-individual-entrypoint)
+  - [🧪 Development \& Contributing](#-development--contributing)
+    - [Running Tests](#running-tests)
 
 
 ## 🏗️ Architecture
@@ -803,5 +805,19 @@ end
 
 ```bash
 # Test with sample data
-echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | ruby ~/.claude/hooks/entrypoints/user_prompt_submit.rb
+echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | CLAUDE_PROJECT_DIR=$(pwd) ruby ~/.claude/hooks/entrypoints/user_prompt_submit.rb
+```
+
+## 🧪 Development & Contributing
+
+### Running Tests
+
+This project uses Minitest for testing. To run the complete test suite:
+
+```bash
+# Run all tests
+ruby test/run_all_tests.rb
+
+# Run a specific test file
+ruby test/test_output_classes.rb
 ```
