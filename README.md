@@ -32,7 +32,7 @@ A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will 
 ## 🚀 Quick Start
 
 > [!TIP]
-> An example is available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/)
+> Examples are available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/). The GithubGuard in particular is a good example of a solid hook.
 
 Here's how to create a simple hook:
 
