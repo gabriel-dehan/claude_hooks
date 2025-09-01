@@ -164,18 +164,6 @@ the stoppage occurred due to a user interrupt.
 
 Runs when a Claude Code subagent (Task tool call) has finished responding.
 
-### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#sessionend)  SessionEnd
-
-Runs when a Claude Code session ends. Useful for cleanup tasks, logging session
-statistics, or saving session state.
-
-The `reason` field in the hook input will be one of:
-
-- `clear` \- Session cleared with /clear command
-- `logout` \- User logged out
-- `prompt_input_exit` \- User exited while prompt input was visible
-- `other` \- Other exit reasons
-
 ### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#precompact)  PreCompact
 
 Runs before Claude Code is about to run a compact operation.
@@ -196,6 +184,19 @@ development context like existing issues or recent changes to your codebase.
 - `startup` \- Invoked from startup
 - `resume` \- Invoked from `--resume`, `--continue`, or `/resume`
 - `clear` \- Invoked from `/clear`
+- `compact` \- Invoked from auto or manual compact.
+
+### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#sessionend)  SessionEnd
+
+Runs when a Claude Code session ends. Useful for cleanup tasks, logging session
+statistics, or saving session state.
+
+The `reason` field in the hook input will be one of:
+
+- `clear` \- Session cleared with /clear command
+- `logout` \- User logged out
+- `prompt_input_exit` \- User exited while prompt input was visible
+- `other` \- Other exit reasons
 
 ## [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#hook-input)  Hook Input
 
@@ -880,9 +881,9 @@ On this page
 - [UserPromptSubmit](https://docs.anthropic.com/en/docs/claude-code/hooks#userpromptsubmit)
 - [Stop](https://docs.anthropic.com/en/docs/claude-code/hooks#stop)
 - [SubagentStop](https://docs.anthropic.com/en/docs/claude-code/hooks#subagentstop)
-- [SessionEnd](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend)
 - [PreCompact](https://docs.anthropic.com/en/docs/claude-code/hooks#precompact)
 - [SessionStart](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionstart)
+- [SessionEnd](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend)
 - [Hook Input](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-input)
 - [PreToolUse Input](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse-input)
 - [PostToolUse Input](https://docs.anthropic.com/en/docs/claude-code/hooks#posttooluse-input)
