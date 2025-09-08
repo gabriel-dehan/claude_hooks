@@ -1,4 +1,4 @@
-[Anthropic home page![light logo](https://mintcdn.com/anthropic/PF_69UDRSEsLpN9D/logo/light.svg?maxW=143&auto=format&n=PF_69UDRSEsLpN9D&q=85&s=ce64069b841133111e8607800b983754)![dark logo](https://mintcdn.com/anthropic/PF_69UDRSEsLpN9D/logo/dark.svg?maxW=143&auto=format&n=PF_69UDRSEsLpN9D&q=85&s=989a7daec9c66857ab4f6127a3cdec09)](https://docs.anthropic.com/)
+[Anthropic home page![light logo](https://mintcdn.com/anthropic/PF_69UDRSEsLpN9D/logo/light.svg?fit=max&auto=format&n=PF_69UDRSEsLpN9D&q=85&s=963e6ff7a6fa0b7e91190b91eda1bcc9)![dark logo](https://mintcdn.com/anthropic/PF_69UDRSEsLpN9D/logo/dark.svg?fit=max&auto=format&n=PF_69UDRSEsLpN9D&q=85&s=976deddf2f26a84dd69133bd9ab074ad)](https://docs.anthropic.com/)
 
 English
 
@@ -920,3 +920,6 @@ On this page
 - [Basic Troubleshooting](https://docs.anthropic.com/en/docs/claude-code/hooks#basic-troubleshooting)
 - [Advanced Debugging](https://docs.anthropic.com/en/docs/claude-code/hooks#advanced-debugging)
 - [Debug Output Example](https://docs.anthropic.com/en/docs/claude-code/hooks#debug-output-example)
+
+Ask AI
+AI Avatar
