@@ -1,5 +1,7 @@
 [Anthropic home page![light logo](https://mintcdn.com/anthropic/PF_69UDRSEsLpN9D/logo/light.svg?fit=max&auto=format&n=PF_69UDRSEsLpN9D&q=85&s=963e6ff7a6fa0b7e91190b91eda1bcc9)![dark logo](https://mintcdn.com/anthropic/PF_69UDRSEsLpN9D/logo/dark.svg?fit=max&auto=format&n=PF_69UDRSEsLpN9D&q=85&s=976deddf2f26a84dd69133bd9ab074ad)](https://docs.anthropic.com/)
 
+![US](https://d3gk2c5xim1je2.cloudfront.net/flags/US.svg)
+
 English
 
 Search...
@@ -15,6 +17,58 @@ Reference
 Hooks reference
 
 [Welcome](https://docs.anthropic.com/en/home) [Developer Platform](https://docs.anthropic.com/en/docs/intro) [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) [Model Context Protocol (MCP)](https://docs.anthropic.com/en/docs/mcp) [API Reference](https://docs.anthropic.com/en/api/messages) [Resources](https://docs.anthropic.com/en/resources/overview) [Release Notes](https://docs.anthropic.com/en/release-notes/overview)
+
+On this page
+
+- [Configuration](https://docs.anthropic.com/en/docs/claude-code/hooks#configuration)
+- [Structure](https://docs.anthropic.com/en/docs/claude-code/hooks#structure)
+- [Project-Specific Hook Scripts](https://docs.anthropic.com/en/docs/claude-code/hooks#project-specific-hook-scripts)
+- [Hook Events](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-events)
+- [PreToolUse](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse)
+- [PostToolUse](https://docs.anthropic.com/en/docs/claude-code/hooks#posttooluse)
+- [Notification](https://docs.anthropic.com/en/docs/claude-code/hooks#notification)
+- [UserPromptSubmit](https://docs.anthropic.com/en/docs/claude-code/hooks#userpromptsubmit)
+- [Stop](https://docs.anthropic.com/en/docs/claude-code/hooks#stop)
+- [SubagentStop](https://docs.anthropic.com/en/docs/claude-code/hooks#subagentstop)
+- [PreCompact](https://docs.anthropic.com/en/docs/claude-code/hooks#precompact)
+- [SessionStart](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionstart)
+- [SessionEnd](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend)
+- [Hook Input](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-input)
+- [PreToolUse Input](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse-input)
+- [PostToolUse Input](https://docs.anthropic.com/en/docs/claude-code/hooks#posttooluse-input)
+- [Notification Input](https://docs.anthropic.com/en/docs/claude-code/hooks#notification-input)
+- [UserPromptSubmit Input](https://docs.anthropic.com/en/docs/claude-code/hooks#userpromptsubmit-input)
+- [Stop and SubagentStop Input](https://docs.anthropic.com/en/docs/claude-code/hooks#stop-and-subagentstop-input)
+- [PreCompact Input](https://docs.anthropic.com/en/docs/claude-code/hooks#precompact-input)
+- [SessionStart Input](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionstart-input)
+- [SessionEnd Input](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend-input)
+- [Hook Output](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-output)
+- [Simple: Exit Code](https://docs.anthropic.com/en/docs/claude-code/hooks#simple%3A-exit-code)
+- [Exit Code 2 Behavior](https://docs.anthropic.com/en/docs/claude-code/hooks#exit-code-2-behavior)
+- [Advanced: JSON Output](https://docs.anthropic.com/en/docs/claude-code/hooks#advanced%3A-json-output)
+- [Common JSON Fields](https://docs.anthropic.com/en/docs/claude-code/hooks#common-json-fields)
+- [PreToolUse Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse-decision-control)
+- [PostToolUse Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#posttooluse-decision-control)
+- [UserPromptSubmit Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#userpromptsubmit-decision-control)
+- [Stop/SubagentStop Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#stop%2Fsubagentstop-decision-control)
+- [SessionStart Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionstart-decision-control)
+- [SessionEnd Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend-decision-control)
+- [Exit Code Example: Bash Command Validation](https://docs.anthropic.com/en/docs/claude-code/hooks#exit-code-example%3A-bash-command-validation)
+- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://docs.anthropic.com/en/docs/claude-code/hooks#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)
+- [JSON Output Example: PreToolUse with Approval](https://docs.anthropic.com/en/docs/claude-code/hooks#json-output-example%3A-pretooluse-with-approval)
+- [Working with MCP Tools](https://docs.anthropic.com/en/docs/claude-code/hooks#working-with-mcp-tools)
+- [MCP Tool Naming](https://docs.anthropic.com/en/docs/claude-code/hooks#mcp-tool-naming)
+- [Configuring Hooks for MCP Tools](https://docs.anthropic.com/en/docs/claude-code/hooks#configuring-hooks-for-mcp-tools)
+- [Examples](https://docs.anthropic.com/en/docs/claude-code/hooks#examples)
+- [Security Considerations](https://docs.anthropic.com/en/docs/claude-code/hooks#security-considerations)
+- [Disclaimer](https://docs.anthropic.com/en/docs/claude-code/hooks#disclaimer)
+- [Security Best Practices](https://docs.anthropic.com/en/docs/claude-code/hooks#security-best-practices)
+- [Configuration Safety](https://docs.anthropic.com/en/docs/claude-code/hooks#configuration-safety)
+- [Hook Execution Details](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-execution-details)
+- [Debugging](https://docs.anthropic.com/en/docs/claude-code/hooks#debugging)
+- [Basic Troubleshooting](https://docs.anthropic.com/en/docs/claude-code/hooks#basic-troubleshooting)
+- [Advanced Debugging](https://docs.anthropic.com/en/docs/claude-code/hooks#advanced-debugging)
+- [Debug Output Example](https://docs.anthropic.com/en/docs/claude-code/hooks#debug-output-example)
 
 For a quickstart guide with examples, see [Get started with Claude Code hooks](https://docs.anthropic.com/en/docs/claude-code/hooks-guide).
 
@@ -33,7 +87,7 @@ Hooks are organized by matchers, where each matcher can have multiple hooks:
 
 Copy
 
-```json
+```
 {
   "hooks": {
     "EventName": [\
@@ -72,7 +126,7 @@ that don’t use matchers, you can omit the matcher field:
 
 Copy
 
-```json
+```
 {
   "hooks": {
     "UserPromptSubmit": [\
@@ -98,7 +152,7 @@ ensuring they work regardless of Claude’s current directory:
 
 Copy
 
-```json
+```
 {
   "hooks": {
     "PostToolUse": [\
@@ -121,9 +175,7 @@ Copy
 
 ### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#pretooluse)  PreToolUse
 
-Runs after Claude creates tool parameters and before processing the tool call.
-
-**Common matchers:**
+Runs after Claude creates tool parameters and before processing the tool call.**Common matchers:**
 
 - `Task` \- Subagent tasks (see [subagents documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents))
 - `Bash` \- Shell commands
@@ -136,9 +188,7 @@ Runs after Claude creates tool parameters and before processing the tool call.
 
 ### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#posttooluse)  PostToolUse
 
-Runs immediately after a tool completes successfully.
-
-Recognizes the same matcher values as PreToolUse.
+Runs immediately after a tool completes successfully.Recognizes the same matcher values as PreToolUse.
 
 ### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#notification)  Notification
 
@@ -166,9 +216,7 @@ Runs when a Claude Code subagent (Task tool call) has finished responding.
 
 ### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#precompact)  PreCompact
 
-Runs before Claude Code is about to run a compact operation.
-
-**Matchers:**
+Runs before Claude Code is about to run a compact operation.**Matchers:**
 
 - `manual` \- Invoked from `/compact`
 - `auto` \- Invoked from auto-compact (due to full context window)
@@ -177,9 +225,7 @@ Runs before Claude Code is about to run a compact operation.
 
 Runs when Claude Code starts a new session or resumes an existing session (which
 currently does start a new session under the hood). Useful for loading in
-development context like existing issues or recent changes to your codebase.
-
-**Matchers:**
+development context like existing issues or recent changes to your codebase.**Matchers:**
 
 - `startup` \- Invoked from startup
 - `resume` \- Invoked from `--resume`, `--continue`, or `/resume`
@@ -189,9 +235,7 @@ development context like existing issues or recent changes to your codebase.
 ### [​](https://docs.anthropic.com/en/docs/claude-code/hooks\#sessionend)  SessionEnd
 
 Runs when a Claude Code session ends. Useful for cleanup tasks, logging session
-statistics, or saving session state.
-
-The `reason` field in the hook input will be one of:
+statistics, or saving session state.The `reason` field in the hook input will be one of:
 
 - `clear` \- Session cleared with /clear command
 - `logout` \- User logged out
@@ -205,7 +249,7 @@ event-specific data:
 
 Copy
 
-```typescript
+```
 {
   // Common fields
   session_id: string
@@ -225,7 +269,7 @@ The exact schema for `tool_input` depends on the tool.
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -246,7 +290,7 @@ The exact schema for `tool_input` and `tool_response` depends on the tool.
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -269,7 +313,7 @@ Copy
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -284,7 +328,7 @@ Copy
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -303,7 +347,7 @@ from running indefinitely.
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -320,7 +364,7 @@ For `manual`, `custom_instructions` comes from what the user passes into
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -335,7 +379,7 @@ Copy
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -349,7 +393,7 @@ Copy
 
 Copy
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
@@ -405,7 +449,7 @@ All hook types can include these optional fields:
 
 Copy
 
-```json
+```
 {
   "continue": true, // Whether Claude should continue after hook execution (default: true)
   "stopReason": "string", // Message shown when continue is false
@@ -444,7 +488,7 @@ shown to Claude.
 
 Copy
 
-```json
+```
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
@@ -470,7 +514,7 @@ Use `hookSpecificOutput.permissionDecision` and
 
 Copy
 
-```json
+```
 {
   "decision": "block" | undefined,
   "reason": "Explanation for decision",
@@ -494,7 +538,7 @@ blocked.
 
 Copy
 
-```json
+```
 {
   "decision": "block" | undefined,
   "reason": "Explanation for decision",
@@ -516,7 +560,7 @@ to know how to proceed.
 
 Copy
 
-```json
+```
 {
   "decision": "block" | undefined,
   "reason": "Must be provided when Claude is blocked from stopping"
@@ -533,7 +577,7 @@ Copy
 
 Copy
 
-```json
+```
 {
   "hookSpecificOutput": {
     "hookEventName": "SessionStart",
@@ -552,7 +596,7 @@ but can perform cleanup tasks.
 
 Copy
 
-```python
+```
 #!/usr/bin/env python3
 import json
 import re
@@ -610,7 +654,7 @@ For `UserPromptSubmit` hooks, you can inject context using either method:
 
 Copy
 
-```python
+```
 #!/usr/bin/env python3
 import json
 import sys
@@ -664,7 +708,7 @@ sys.exit(0)
 
 Copy
 
-```python
+```
 #!/usr/bin/env python3
 import json
 import sys
@@ -718,7 +762,7 @@ You can target specific MCP tools or entire MCP servers:
 
 Copy
 
-```json
+```
 {
   "hooks": {
     "PreToolUse": [\
@@ -869,57 +913,9 @@ YesNo
 
 [Slash commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands) [Legal and compliance](https://docs.anthropic.com/en/docs/claude-code/legal-and-compliance)
 
-On this page
+Assistant
 
-- [Configuration](https://docs.anthropic.com/en/docs/claude-code/hooks#configuration)
-- [Structure](https://docs.anthropic.com/en/docs/claude-code/hooks#structure)
-- [Project-Specific Hook Scripts](https://docs.anthropic.com/en/docs/claude-code/hooks#project-specific-hook-scripts)
-- [Hook Events](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-events)
-- [PreToolUse](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse)
-- [PostToolUse](https://docs.anthropic.com/en/docs/claude-code/hooks#posttooluse)
-- [Notification](https://docs.anthropic.com/en/docs/claude-code/hooks#notification)
-- [UserPromptSubmit](https://docs.anthropic.com/en/docs/claude-code/hooks#userpromptsubmit)
-- [Stop](https://docs.anthropic.com/en/docs/claude-code/hooks#stop)
-- [SubagentStop](https://docs.anthropic.com/en/docs/claude-code/hooks#subagentstop)
-- [PreCompact](https://docs.anthropic.com/en/docs/claude-code/hooks#precompact)
-- [SessionStart](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionstart)
-- [SessionEnd](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend)
-- [Hook Input](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-input)
-- [PreToolUse Input](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse-input)
-- [PostToolUse Input](https://docs.anthropic.com/en/docs/claude-code/hooks#posttooluse-input)
-- [Notification Input](https://docs.anthropic.com/en/docs/claude-code/hooks#notification-input)
-- [UserPromptSubmit Input](https://docs.anthropic.com/en/docs/claude-code/hooks#userpromptsubmit-input)
-- [Stop and SubagentStop Input](https://docs.anthropic.com/en/docs/claude-code/hooks#stop-and-subagentstop-input)
-- [PreCompact Input](https://docs.anthropic.com/en/docs/claude-code/hooks#precompact-input)
-- [SessionStart Input](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionstart-input)
-- [SessionEnd Input](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend-input)
-- [Hook Output](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-output)
-- [Simple: Exit Code](https://docs.anthropic.com/en/docs/claude-code/hooks#simple%3A-exit-code)
-- [Exit Code 2 Behavior](https://docs.anthropic.com/en/docs/claude-code/hooks#exit-code-2-behavior)
-- [Advanced: JSON Output](https://docs.anthropic.com/en/docs/claude-code/hooks#advanced%3A-json-output)
-- [Common JSON Fields](https://docs.anthropic.com/en/docs/claude-code/hooks#common-json-fields)
-- [PreToolUse Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#pretooluse-decision-control)
-- [PostToolUse Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#posttooluse-decision-control)
-- [UserPromptSubmit Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#userpromptsubmit-decision-control)
-- [Stop/SubagentStop Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#stop%2Fsubagentstop-decision-control)
-- [SessionStart Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionstart-decision-control)
-- [SessionEnd Decision Control](https://docs.anthropic.com/en/docs/claude-code/hooks#sessionend-decision-control)
-- [Exit Code Example: Bash Command Validation](https://docs.anthropic.com/en/docs/claude-code/hooks#exit-code-example%3A-bash-command-validation)
-- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://docs.anthropic.com/en/docs/claude-code/hooks#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)
-- [JSON Output Example: PreToolUse with Approval](https://docs.anthropic.com/en/docs/claude-code/hooks#json-output-example%3A-pretooluse-with-approval)
-- [Working with MCP Tools](https://docs.anthropic.com/en/docs/claude-code/hooks#working-with-mcp-tools)
-- [MCP Tool Naming](https://docs.anthropic.com/en/docs/claude-code/hooks#mcp-tool-naming)
-- [Configuring Hooks for MCP Tools](https://docs.anthropic.com/en/docs/claude-code/hooks#configuring-hooks-for-mcp-tools)
-- [Examples](https://docs.anthropic.com/en/docs/claude-code/hooks#examples)
-- [Security Considerations](https://docs.anthropic.com/en/docs/claude-code/hooks#security-considerations)
-- [Disclaimer](https://docs.anthropic.com/en/docs/claude-code/hooks#disclaimer)
-- [Security Best Practices](https://docs.anthropic.com/en/docs/claude-code/hooks#security-best-practices)
-- [Configuration Safety](https://docs.anthropic.com/en/docs/claude-code/hooks#configuration-safety)
-- [Hook Execution Details](https://docs.anthropic.com/en/docs/claude-code/hooks#hook-execution-details)
-- [Debugging](https://docs.anthropic.com/en/docs/claude-code/hooks#debugging)
-- [Basic Troubleshooting](https://docs.anthropic.com/en/docs/claude-code/hooks#basic-troubleshooting)
-- [Advanced Debugging](https://docs.anthropic.com/en/docs/claude-code/hooks#advanced-debugging)
-- [Debug Output Example](https://docs.anthropic.com/en/docs/claude-code/hooks#debug-output-example)
+Responses are generated using AI and may contain mistakes.
 
 Ask AI
 AI Avatar
