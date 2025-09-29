@@ -6,7 +6,7 @@ English
 
 Search...
 
-⌘K
+Ctrl K
 
 Search...
 
@@ -108,11 +108,13 @@ Copy
 
 - **matcher**: Pattern to match tool names, case-sensitive (only applicable for
 `PreToolUse` and `PostToolUse`)
+
   - Simple strings match exactly: `Write` matches only the Write tool
   - Supports regex: `Edit|Write` or `Notebook.*`
   - Use `*` to match all tools. You can also use empty string ( `""`) or leave
     `matcher` blank.
 - **hooks**: Array of commands to execute when the pattern matches
+
   - `type`: Currently only `"command"` is supported
   - `command`: The bash command to execute (can use `$CLAUDE_PROJECT_DIR`
     environment variable)
@@ -159,7 +161,7 @@ Copy
         "hooks": [\
           {\
             "type": "command",\
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-style.sh"\
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-style.sh"\
           }\
         ]\
       }\
@@ -817,7 +819,7 @@ Here are some key practices for writing more secure hooks:
 2. **Always quote shell variables** \- Use `"$VAR"` not `$VAR`
 3. **Block path traversal** \- Check for `..` in file paths
 4. **Use absolute paths** \- Specify full paths for scripts (use
-`$CLAUDE_PROJECT_DIR` for the project path)
+“$CLAUDE\_PROJECT\_DIR” for the project path)
 5. **Skip sensitive files** \- Avoid `.env`, `.git/`, keys, etc.
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#configuration-safety)  Configuration Safety
@@ -835,14 +837,17 @@ This prevents malicious hook modifications from affecting your current session.
 ## [​](https://docs.claude.com/en/docs/claude-code/hooks\#hook-execution-details)  Hook Execution Details
 
 - **Timeout**: 60-second execution limit by default, configurable per command.
+
   - A timeout for an individual command does not affect the other commands.
 - **Parallelization**: All matching hooks run in parallel
 - **Deduplication**: Multiple identical hook commands are deduplicated automatically
 - **Environment**: Runs in current directory with Claude Code’s environment
+
   - The `CLAUDE_PROJECT_DIR` environment variable is available and contains the
     absolute path to the project root directory (where Claude Code was started)
 - **Input**: JSON via stdin
 - **Output**:
+
   - PreToolUse/PostToolUse/Stop/SubagentStop: Progress shown in transcript (Ctrl-R)
   - Notification/SessionEnd: Logged to debug only ( `--debug`)
   - UserPromptSubmit/SessionStart: stdout added as context for Claude
@@ -911,3 +916,6 @@ YesNo
 Assistant
 
 Responses are generated using AI and may contain mistakes.
+
+Ask Docs
+AI Avatar
