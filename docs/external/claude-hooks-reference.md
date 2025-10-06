@@ -911,7 +911,7 @@ Was this page helpful?
 
 YesNo
 
-[Slash commands](https://docs.claude.com/en/docs/claude-code/slash-commands) [Legal and compliance](https://docs.claude.com/en/docs/claude-code/legal-and-compliance)
+[Checkpointing](https://docs.claude.com/en/docs/claude-code/checkpointing) [Legal and compliance](https://docs.claude.com/en/docs/claude-code/legal-and-compliance)
 
 Assistant
 
