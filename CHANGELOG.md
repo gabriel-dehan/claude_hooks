@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-10-13
+
+### Documentation
+
+- **Added comprehensive plugin hooks documentation** - Full guide on using the Claude Hooks DSL with Claude Code plugins
+  - New "Plugin Hooks Support" section in README with working examples
+  - Created `example_dotclaude/plugins/README.md` with complete plugin development guide
+  - Example plugin formatter implementation using the DSL
+  - Environment variables documentation for plugin development
+  - Best practices and testing instructions for plugin hooks
+- **Updated SessionStart hook documentation** - Added the new `compact` matcher introduced in official Claude Hooks documentation
+  - Updated `docs/API/SESSION_START.md` to include `'compact'` as a valid source value
+  - Updated SessionStart hook type description to mention compact functionality
+- **Synchronized with official documentation** - All documentation now matches the official Claude Hooks reference as of 2025-10-13
+  - Plugin hooks feature (Issue #9)
+  - SessionStart `compact` matcher (Issue #2)
+
+### Notes
+
+- No code changes required - the implementation already supports all documented features
+- The DSL's dynamic implementation handles the new `compact` source automatically
+- Plugin environment variables (`CLAUDE_PLUGIN_ROOT`) work seamlessly with existing configuration system
+
 ## [1.0.0] - 2025-08-27
 
 > [!WARNING]
@@ -59,13 +82,13 @@ begin
   input_data = JSON.parse(STDIN.read)
   hook = MyHook.new(input_data)
   result = hook.call
-  
+
   # Manual stream and exit code selection
   if result['continue'] != false
     if result.dig('hookSpecificOutput', 'permissionDecision') == 'deny'
       STDERR.puts hook.stringify_output
       exit 1
-    elsif result.dig('hookSpecificOutput', 'permissionDecision') == 'ask'  
+    elsif result.dig('hookSpecificOutput', 'permissionDecision') == 'ask'
       STDERR.puts hook.stringify_output
       exit 2
     else
@@ -91,9 +114,9 @@ begin
   input_data = JSON.parse(STDIN.read)
   hook = MyHook.new(input_data)
   hook.call
-  
+
   # Handles everything automatically!
-  hook.output_and_exit  
+  hook.output_and_exit
 rescue StandardError => e
   # Error handling...
 end

@@ -9,7 +9,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 
 | Method | Description |
 |--------|-------------|
-| `source` | Get the session start source: `'startup'`, `'resume'`, or `'clear'` |
+| `source` | Get the session start source: `'startup'`, `'resume'`, `'clear'`, or `'compact'` |
 
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.

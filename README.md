@@ -23,6 +23,7 @@ A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will 
   - [📚 API Reference](#-api-reference)
   - [📝 Example: Tool usage monitor](#-example-tool-usage-monitor)
   - [🔄 Hook Output](#-hook-output)
+  - [🔌 Plugin Hooks Support](#-plugin-hooks-support)
   - [🚨 Advices](#-advices)
   - [⚠️ Troubleshooting](#️-troubleshooting)
   - [🧪 CLI Debugging](#-cli-debugging)
@@ -32,7 +33,7 @@ A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will 
 ## 🚀 Quick Start
 
 > [!TIP]
-> Examples are available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/). The GithubGuard in particular is a good example of a solid hook.
+> Examples are available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/). The GithubGuard in particular is a good example of a solid hook. You can also check [Kyle's hooks for some great examples](https://github.com/kylesnowschwartz/dotfiles/blob/main/claude/hooks)
 
 Here's how to create a simple hook:
 
@@ -63,7 +64,7 @@ if __FILE__ == $0
 
   hook = AddContextAfterPrompt.new(input_data)
   hook.call
-  
+
   # Handles output and exit code depending on the hook state.
   # In this case, uses exit code 0 (success) and prints output to STDOUT
   hook.output_and_exit
@@ -260,7 +261,7 @@ The framework supports the following hook types:
 
 | Hook Type | Class | Description |
 |-----------|-------|-------------|
-| **[SessionStart](docs/API/SESSION_START.md)** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session or resumes |
+| **[SessionStart](docs/API/SESSION_START.md)** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session, resumes, or compacts |
 | **[UserPromptSubmit](docs/API/USER_PROMPT_SUBMIT.md)** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
 | **[Notification](docs/API/NOTIFICATION.md)** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
 | **[PreToolUse](docs/API/PRE_TOOL_USE.md)** | `ClaudeHooks::PreToolUse` | Hooks that run before a tool is used |
@@ -274,7 +275,7 @@ The framework supports the following hook types:
 
 ### A very simplified view of how a hook works in Claude Code
 
-Claude Code hooks in essence work in a very simple way: 
+Claude Code hooks in essence work in a very simple way:
 - Claude Code passes data to the hook script through `STDIN`
 - The hook uses the data to do its thing
 - The hook outputs data to `STDOUT` or `STDERR` and then `exit`s with the proper code:
@@ -347,7 +348,7 @@ class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
       log "Prompt blocked: #{current_prompt} because of bad word"
     end
 
-    # Return output if you need it 
+    # Return output if you need it
     output
   end
 end
@@ -360,7 +361,7 @@ if __FILE__ == $0
   hook = AddContextAfterPrompt.new(input_data)
   # Call the hook
   hook.call
-  
+
   # Uses exit code 0 (success) and outputs to STDIN if the prompt wasn't blocked
   # Uses exit code 2 (blocking error) and outputs to STDERR if the prompt was blocked
   hook.output_and_exit
@@ -540,9 +541,9 @@ end
 
 Hooks provide access to their output (which acts as the "state" of a hook) through the `output` method.
 
-This method will return an output object based on the hook's type class (e.g: `ClaudeHooks::Output::UserPromptSubmit`) that provides helper methods: 
+This method will return an output object based on the hook's type class (e.g: `ClaudeHooks::Output::UserPromptSubmit`) that provides helper methods:
 - to access output data
-- for merging multiple outputs 
+- for merging multiple outputs
 - for sending the right exit codes and output data back to Claude Code through the proper stream.
 
 > [!TIP]
@@ -552,7 +553,7 @@ This method will return an output object based on the hook's type class (e.g: `C
 ### 🔄 Hook Output Merging
 
 Often, you will want to call multiple hooks from a same entrypoint.
-Each hook type's `output` provides a `merge` method that will try to intelligently merge multiple hook results. 
+Each hook type's `output` provides a `merge` method that will try to intelligently merge multiple hook results.
 Merged outputs always inherit the **most restrictive behavior**.
 
 ```ruby
@@ -584,12 +585,12 @@ begin
   # - additionalContext: concatenated
   merged_output = ClaudeHooks::Output::UserPromptSubmit.merge(
     hook1.output,
-    hook2.output, 
+    hook2.output,
     hook3.output
   )
 
   # Automatically handles outputting to the right stream (STDOUT or STDERR) and uses the right exit code depending on hook state
-  merged_output.output_and_exit 
+  merged_output.output_and_exit
 end
 ```
 
@@ -652,6 +653,73 @@ exit 2
 
 > [!WARNING]
 > You don't have to manually do this, just use `output_and_exit` to automatically handle this.
+
+## 🔌 Plugin Hooks Support
+
+This DSL works seamlessly with [Claude Code plugins](https://docs.claude.com/en/docs/claude-code/plugins)! When creating plugin hooks, you can use the exact same Ruby DSL and enjoy all the same benefits.
+
+**How plugin hooks work:**
+- Plugin hooks are defined in the plugin's `hooks/hooks.json` file
+- They use the `${CLAUDE_PLUGIN_ROOT}` environment variable to reference plugin files
+- Plugin hooks are automatically merged with user and project hooks when plugins are enabled
+- Multiple hooks from different sources can respond to the same event
+
+**Example plugin hook configuration (`hooks/hooks.json`):**
+```json
+{
+  "description": "Automatic code formatting",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/formatter.rb",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Using this DSL in your plugin hooks (`hooks/scripts/formatter.rb`):**
+```ruby
+#!/usr/bin/env ruby
+require 'claude_hooks'
+
+class PluginFormatter < ClaudeHooks::PostToolUse
+  def call
+    log "Plugin executing from: #{ENV['CLAUDE_PLUGIN_ROOT']}"
+
+    if tool_name.match?(/Write|Edit/)
+      file_path = tool_input['file_path']
+      log "Formatting file: #{file_path}"
+
+      # Your formatting logic here
+      # Can use all the DSL helper methods!
+    end
+
+    output
+  end
+end
+
+if __FILE__ == $0
+  input_data = JSON.parse(STDIN.read)
+  hook = PluginFormatter.new(input_data)
+  hook.call
+  hook.output_and_exit
+end
+```
+
+**Environment variables available in plugins:**
+- `${CLAUDE_PLUGIN_ROOT}`: Absolute path to the plugin directory
+- `${CLAUDE_PROJECT_DIR}`: Project root directory (same as for project hooks)
+- All standard environment variables and configuration options work the same way
+
+See the [plugin components reference](https://docs.claude.com/en/docs/claude-code/plugins-reference#hooks) for more details on creating plugin hooks.
 
 ## 🚨 Advices
 
@@ -794,4 +862,3 @@ ruby test/run_all_tests.rb
 # Run a specific test file
 ruby test/test_output_classes.rb
 ```
-
