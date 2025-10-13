@@ -23,6 +23,7 @@ On this page
 - [Configuration](https://docs.claude.com/en/docs/claude-code/hooks#configuration)
 - [Structure](https://docs.claude.com/en/docs/claude-code/hooks#structure)
 - [Project-Specific Hook Scripts](https://docs.claude.com/en/docs/claude-code/hooks#project-specific-hook-scripts)
+- [Plugin hooks](https://docs.claude.com/en/docs/claude-code/hooks#plugin-hooks)
 - [Hook Events](https://docs.claude.com/en/docs/claude-code/hooks#hook-events)
 - [PreToolUse](https://docs.claude.com/en/docs/claude-code/hooks#pretooluse)
 - [PostToolUse](https://docs.claude.com/en/docs/claude-code/hooks#posttooluse)
@@ -170,6 +171,52 @@ Copy
 }
 
 ```
+
+### [​](https://docs.claude.com/en/docs/claude-code/hooks\#plugin-hooks)  Plugin hooks
+
+[Plugins](https://docs.claude.com/en/docs/claude-code/plugins) can provide hooks that integrate seamlessly with your user and project hooks. Plugin hooks are automatically merged with your configuration when plugins are enabled.**How plugin hooks work**:
+
+- Plugin hooks are defined in the plugin’s `hooks/hooks.json` file or in a file given by a custom path to the `hooks` field.
+- When a plugin is enabled, its hooks are merged with user and project hooks
+- Multiple hooks from different sources can respond to the same event
+- Plugin hooks use the `${CLAUDE_PLUGIN_ROOT}` environment variable to reference plugin files
+
+**Example plugin hook configuration**:
+
+Copy
+
+```
+{
+  "description": "Automatic code formatting",
+  "hooks": {
+    "PostToolUse": [\
+      {\
+        "matcher": "Write|Edit",\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/format.sh",\
+            "timeout": 30\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+
+```
+
+Plugin hooks use the same format as regular hooks with an optional `description` field to explain the hook’s purpose.
+
+Plugin hooks run alongside your custom hooks. If multiple hooks match an event, they all execute in parallel.
+
+**Environment variables for plugins**:
+
+- `${CLAUDE_PLUGIN_ROOT}`: Absolute path to the plugin directory
+- `${CLAUDE_PROJECT_DIR}`: Project root directory (same as for project hooks)
+- All standard environment variables are available
+
+See the [plugin components reference](https://docs.claude.com/en/docs/claude-code/plugins-reference#hooks) for details on creating plugin hooks.
 
 ## [​](https://docs.claude.com/en/docs/claude-code/hooks\#hook-events)  Hook Events
 
@@ -911,7 +958,7 @@ Was this page helpful?
 
 YesNo
 
-[Checkpointing](https://docs.claude.com/en/docs/claude-code/checkpointing) [Legal and compliance](https://docs.claude.com/en/docs/claude-code/legal-and-compliance)
+[Checkpointing](https://docs.claude.com/en/docs/claude-code/checkpointing) [Plugins reference](https://docs.claude.com/en/docs/claude-code/plugins-reference)
 
 Assistant
 
