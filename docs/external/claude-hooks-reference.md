@@ -229,7 +229,7 @@ Runs after Claude creates tool parameters and before processing the tool call.**
 - `Glob` \- File pattern matching
 - `Grep` \- Content search
 - `Read` \- File reading
-- `Edit`, `MultiEdit` \- File editing
+- `Edit` \- File editing
 - `Write` \- File writing
 - `WebFetch`, `WebSearch` \- Web operations
 
