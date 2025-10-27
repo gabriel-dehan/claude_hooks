@@ -1,3 +1,5 @@
+Agent Skills are now available! [Learn more about extending Claude's capabilities with Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview).
+
 [Claude Docs home page![light logo](https://mintcdn.com/anthropic-claude-docs/DcI2Ybid7ZEnFaf0/logo/light.svg?fit=max&auto=format&n=DcI2Ybid7ZEnFaf0&q=85&s=c877c45432515ee69194cb19e9f983a2)![dark logo](https://mintcdn.com/anthropic-claude-docs/DcI2Ybid7ZEnFaf0/logo/dark.svg?fit=max&auto=format&n=DcI2Ybid7ZEnFaf0&q=85&s=f5bb877be0cb3cba86cf6d7c88185216)](https://docs.claude.com/)
 
 ![US](https://d3gk2c5xim1je2.cloudfront.net/flags/US.svg)
@@ -16,7 +18,7 @@ Reference
 
 Hooks reference
 
-[Welcome](https://docs.claude.com/en/home) [Claude Developer Platform](https://docs.claude.com/en/docs/intro) [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) [Model Context Protocol (MCP)](https://docs.claude.com/en/docs/mcp) [API Reference](https://docs.claude.com/en/api/messages) [Resources](https://docs.claude.com/en/resources/overview) [Release Notes](https://docs.claude.com/en/release-notes/overview)
+[Home](https://docs.claude.com/en/home) [Developer Guide](https://docs.claude.com/en/docs/intro) [API Reference](https://docs.claude.com/en/api/overview) [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) [Model Context Protocol (MCP)](https://docs.claude.com/en/docs/mcp) [Resources](https://docs.claude.com/en/resources/overview) [Release Notes](https://docs.claude.com/en/release-notes/overview)
 
 On this page
 
@@ -33,6 +35,7 @@ On this page
 - [SubagentStop](https://docs.claude.com/en/docs/claude-code/hooks#subagentstop)
 - [PreCompact](https://docs.claude.com/en/docs/claude-code/hooks#precompact)
 - [SessionStart](https://docs.claude.com/en/docs/claude-code/hooks#sessionstart)
+- [Persisting environment variables](https://docs.claude.com/en/docs/claude-code/hooks#persisting-environment-variables)
 - [SessionEnd](https://docs.claude.com/en/docs/claude-code/hooks#sessionend)
 - [Hook Input](https://docs.claude.com/en/docs/claude-code/hooks#hook-input)
 - [PreToolUse Input](https://docs.claude.com/en/docs/claude-code/hooks#pretooluse-input)
@@ -272,12 +275,57 @@ Runs before Claude Code is about to run a compact operation.**Matchers:**
 
 Runs when Claude Code starts a new session or resumes an existing session (which
 currently does start a new session under the hood). Useful for loading in
-development context like existing issues or recent changes to your codebase.**Matchers:**
+development context like existing issues or recent changes to your codebase, installing dependencies, or setting up environment variables.**Matchers:**
 
 - `startup` \- Invoked from startup
 - `resume` \- Invoked from `--resume`, `--continue`, or `/resume`
 - `clear` \- Invoked from `/clear`
 - `compact` \- Invoked from auto or manual compact.
+
+#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#persisting-environment-variables)  Persisting environment variables
+
+SessionStart hooks have access to the `CLAUDE_ENV_FILE` environment variable, which provides a file path where you can persist environment variables for subsequent bash commands.**Example: Setting individual environment variables**
+
+Copy
+
+```
+#!/bin/bash
+
+if [ -n "$CLAUDE_ENV_FILE" ]; then
+  echo 'export NODE_ENV=production' >> "$CLAUDE_ENV_FILE"
+  echo 'export API_KEY=your-api-key' >> "$CLAUDE_ENV_FILE"
+  echo 'export PATH="$PATH:./node_modules/.bin"' >> "$CLAUDE_ENV_FILE"
+fi
+
+exit 0
+
+```
+
+**Example: Persisting all environment changes from the hook**When your setup modifies the environment (e.g., `nvm use`), capture and persist all changes by diffing the environment:
+
+Copy
+
+```
+#!/bin/bash
+
+ENV_BEFORE=$(export -p | sort)
+
+# Run your setup commands that modify the environment
+source ~/.nvm/nvm.sh
+nvm use 20
+
+if [ -n "$CLAUDE_ENV_FILE" ]; then
+  ENV_AFTER=$(export -p | sort)
+  comm -13 <(echo "$ENV_BEFORE") <(echo "$ENV_AFTER") >> "$CLAUDE_ENV_FILE"
+fi
+
+exit 0
+
+```
+
+Any variables written to this file will be available in all subsequent bash commands that Claude Code executes during the session.
+
+`CLAUDE_ENV_FILE` is only available for SessionStart hooks. Other hook types do not have access to this variable.
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionend)  SessionEnd
 
@@ -302,6 +350,7 @@ Copy
   session_id: string
   transcript_path: string  // Path to conversation JSON
   cwd: string              // The current working directory when the hook is invoked
+  permission_mode: string  // Current permission mode: "default", "plan", "acceptEdits", or "bypassPermissions"
 
   // Event-specific fields
   hook_event_name: string
@@ -321,6 +370,7 @@ Copy
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
+  "permission_mode": "default",
   "hook_event_name": "PreToolUse",
   "tool_name": "Write",
   "tool_input": {
@@ -342,6 +392,7 @@ Copy
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
+  "permission_mode": "default",
   "hook_event_name": "PostToolUse",
   "tool_name": "Write",
   "tool_input": {
@@ -365,6 +416,7 @@ Copy
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
+  "permission_mode": "default",
   "hook_event_name": "Notification",
   "message": "Task completed successfully"
 }
@@ -380,6 +432,7 @@ Copy
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
+  "permission_mode": "default",
   "hook_event_name": "UserPromptSubmit",
   "prompt": "Write a function to calculate the factorial of a number"
 }
@@ -398,6 +451,7 @@ Copy
 {
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "permission_mode": "default",
   "hook_event_name": "Stop",
   "stop_hook_active": true
 }
@@ -415,6 +469,7 @@ Copy
 {
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "permission_mode": "default",
   "hook_event_name": "PreCompact",
   "trigger": "manual",
   "custom_instructions": ""
@@ -430,6 +485,7 @@ Copy
 {
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "permission_mode": "default",
   "hook_event_name": "SessionStart",
   "source": "startup"
 }
@@ -445,6 +501,7 @@ Copy
   "session_id": "abc123",
   "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
+  "permission_mode": "default",
   "hook_event_name": "SessionEnd",
   "reason": "exit"
 }
@@ -892,6 +949,7 @@ This prevents malicious hook modifications from affecting your current session.
 
   - The `CLAUDE_PROJECT_DIR` environment variable is available and contains the
     absolute path to the project root directory (where Claude Code was started)
+  - The `CLAUDE_CODE_REMOTE` environment variable indicates whether the hook is running in a remote (web) environment ( `"true"`) or local CLI environment (not set or empty). Use this to run different logic based on execution context.
 - **Input**: JSON via stdin
 - **Output**:
 
