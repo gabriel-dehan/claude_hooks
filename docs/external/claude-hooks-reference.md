@@ -107,7 +107,6 @@ Copy
     ]
   }
 }
-
 ```
 
 - **matcher**: Pattern to match tool names, case-sensitive (only applicable for
@@ -115,7 +114,7 @@ Copy
 
   - Simple strings match exactly: `Write` matches only the Write tool
   - Supports regex: `Edit|Write` or `Notebook.*`
-  - Use `*` to match all tools. You can also use empty string ( `""`) or leave
+  - Use `*` to match all tools. You can also use empty string (`""`) or leave
     `matcher` blank.
 - **hooks**: Array of commands to execute when the pattern matches
 
@@ -145,7 +144,6 @@ Copy
     ]
   }
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#project-specific-hook-scripts)  Project-Specific Hook Scripts
@@ -172,7 +170,6 @@ Copy
     ]
   }
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#plugin-hooks)  Plugin hooks
@@ -206,7 +203,6 @@ Copy
     ]
   }
 }
-
 ```
 
 Plugin hooks use the same format as regular hooks with an optional `description` field to explain the hook’s purpose.
@@ -298,7 +294,6 @@ if [ -n "$CLAUDE_ENV_FILE" ]; then
 fi
 
 exit 0
-
 ```
 
 **Example: Persisting all environment changes from the hook**When your setup modifies the environment (e.g., `nvm use`), capture and persist all changes by diffing the environment:
@@ -320,7 +315,6 @@ if [ -n "$CLAUDE_ENV_FILE" ]; then
 fi
 
 exit 0
-
 ```
 
 Any variables written to this file will be available in all subsequent bash commands that Claude Code executes during the session.
@@ -356,7 +350,6 @@ Copy
   hook_event_name: string
   ...
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#pretooluse-input)  PreToolUse Input
@@ -378,7 +371,6 @@ Copy
     "content": "file content"
   }
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#posttooluse-input)  PostToolUse Input
@@ -404,7 +396,6 @@ Copy
     "success": true
   }
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#notification-input)  Notification Input
@@ -420,7 +411,6 @@ Copy
   "hook_event_name": "Notification",
   "message": "Task completed successfully"
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#userpromptsubmit-input)  UserPromptSubmit Input
@@ -436,7 +426,6 @@ Copy
   "hook_event_name": "UserPromptSubmit",
   "prompt": "Write a function to calculate the factorial of a number"
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#stop-and-subagentstop-input)  Stop and SubagentStop Input
@@ -455,7 +444,6 @@ Copy
   "hook_event_name": "Stop",
   "stop_hook_active": true
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#precompact-input)  PreCompact Input
@@ -474,7 +462,6 @@ Copy
   "trigger": "manual",
   "custom_instructions": ""
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionstart-input)  SessionStart Input
@@ -489,7 +476,6 @@ Copy
   "hook_event_name": "SessionStart",
   "source": "startup"
 }
-
 ```
 
 ### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionend-input)  SessionEnd Input
@@ -505,7 +491,6 @@ Copy
   "hook_event_name": "SessionEnd",
   "reason": "exit"
 }
-
 ```
 
 ## [​](https://docs.claude.com/en/docs/claude-code/hooks\#hook-output)  Hook Output
@@ -561,7 +546,6 @@ Copy
   "suppressOutput": true, // Hide stdout from transcript mode (default: false)
   "systemMessage": "string" // Optional warning message shown to the user
 }
-
 ```
 
 If `continue` is false, Claude stops processing after the hooks run.
@@ -590,17 +574,24 @@ shown to Claude.
 - `"ask"` asks the user to confirm the tool call in the UI.
 `permissionDecisionReason` is shown to the user but not to Claude.
 
+Additionally, hooks can modify tool inputs before execution using `updatedInput`:
+
+- `updatedInput` allows you to modify the tool’s input parameters before the tool executes. This is a `Record<string, unknown>` object containing the fields you want to change or add.
+- This is most useful with `"permissionDecision": "allow"` to modify and approve tool calls.
+
 Copy
 
 ```
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
-    "permissionDecision": "allow" | "deny" | "ask",
-    "permissionDecisionReason": "My reason here"
+    "permissionDecision": "allow"
+    "permissionDecisionReason": "My reason here",
+    "updatedInput": {
+      "field_to_modify": "new value"
+    }
   }
 }
-
 ```
 
 The `decision` and `reason` fields are deprecated for PreToolUse hooks.
@@ -627,7 +618,6 @@ Copy
     "additionalContext": "Additional information for Claude"
   }
 }
-
 ```
 
 #### [​](https://docs.claude.com/en/docs/claude-code/hooks\#userpromptsubmit-decision-control)  `UserPromptSubmit` Decision Control
@@ -651,10 +641,9 @@ Copy
     "additionalContext": "My additional context here"
   }
 }
-
 ```
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#stop%2Fsubagentstop-decision-control)  `Stop`/ `SubagentStop` Decision Control
+#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#stop%2Fsubagentstop-decision-control)  `Stop`/`SubagentStop` Decision Control
 
 `Stop` and `SubagentStop` hooks can control whether Claude must continue.
 
@@ -669,7 +658,6 @@ Copy
   "decision": "block" | undefined,
   "reason": "Must be provided when Claude is blocked from stopping"
 }
-
 ```
 
 #### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionstart-decision-control)  `SessionStart` Decision Control
@@ -688,7 +676,6 @@ Copy
     "additionalContext": "My additional context here"
   }
 }
-
 ```
 
 #### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionend-decision-control)  `SessionEnd` Decision Control
@@ -746,7 +733,6 @@ if issues:
         print(f"• {message}", file=sys.stderr)
     # Exit code 2 blocks tool call and shows stderr to Claude
     sys.exit(2)
-
 ```
 
 #### [​](https://docs.claude.com/en/docs/claude-code/hooks\#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)  JSON Output Example: UserPromptSubmit to Add Context and Validation
@@ -805,7 +791,6 @@ print(json.dumps({
 
 # Allow the prompt to proceed with the additional context
 sys.exit(0)
-
 ```
 
 #### [​](https://docs.claude.com/en/docs/claude-code/hooks\#json-output-example%3A-pretooluse-with-approval)  JSON Output Example: PreToolUse with Approval
@@ -842,7 +827,6 @@ if tool_name == "Read":
 
 # For other cases, let the normal permission flow proceed
 sys.exit(0)
-
 ```
 
 ## [​](https://docs.claude.com/en/docs/claude-code/hooks\#working-with-mcp-tools)  Working with MCP Tools
@@ -891,7 +875,6 @@ Copy
     ]
   }
 }
-
 ```
 
 ## [​](https://docs.claude.com/en/docs/claude-code/hooks\#examples)  Examples
@@ -949,12 +932,12 @@ This prevents malicious hook modifications from affecting your current session.
 
   - The `CLAUDE_PROJECT_DIR` environment variable is available and contains the
     absolute path to the project root directory (where Claude Code was started)
-  - The `CLAUDE_CODE_REMOTE` environment variable indicates whether the hook is running in a remote (web) environment ( `"true"`) or local CLI environment (not set or empty). Use this to run different logic based on execution context.
+  - The `CLAUDE_CODE_REMOTE` environment variable indicates whether the hook is running in a remote (web) environment (`"true"`) or local CLI environment (not set or empty). Use this to run different logic based on execution context.
 - **Input**: JSON via stdin
 - **Output**:
 
   - PreToolUse/PostToolUse/Stop/SubagentStop: Progress shown in transcript (Ctrl-R)
-  - Notification/SessionEnd: Logged to debug only ( `--debug`)
+  - Notification/SessionEnd: Logged to debug only (`--debug`)
   - UserPromptSubmit/SessionStart: stdout added as context for Claude
 
 ## [​](https://docs.claude.com/en/docs/claude-code/hooks\#debugging)  Debugging
@@ -1002,7 +985,6 @@ Copy
 [DEBUG] Found 1 hook commands to execute
 [DEBUG] Executing hook command: <Your command> with timeout 60000ms
 [DEBUG] Hook command completed with status 0: <Your stdout>
-
 ```
 
 Progress messages appear in transcript mode (Ctrl-R) showing:
