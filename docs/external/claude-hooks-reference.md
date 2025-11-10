@@ -1,6 +1,6 @@
-Agent Skills are now available! [Learn more about extending Claude's capabilities with Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview).
+[Skip to main content](https://code.claude.com/docs/en/hooks#content-area)
 
-[Claude Docs home page![light logo](https://mintcdn.com/anthropic-claude-docs/DcI2Ybid7ZEnFaf0/logo/light.svg?fit=max&auto=format&n=DcI2Ybid7ZEnFaf0&q=85&s=c877c45432515ee69194cb19e9f983a2)![dark logo](https://mintcdn.com/anthropic-claude-docs/DcI2Ybid7ZEnFaf0/logo/dark.svg?fit=max&auto=format&n=DcI2Ybid7ZEnFaf0&q=85&s=f5bb877be0cb3cba86cf6d7c88185216)](https://docs.claude.com/)
+[Claude Code Docs home page![light logo](https://mintcdn.com/claude-code/o69F7a6qoW9vboof/logo/light.svg?fit=max&auto=format&n=o69F7a6qoW9vboof&q=85&s=536eade682636e84231afce2577f9509)![dark logo](https://mintcdn.com/claude-code/o69F7a6qoW9vboof/logo/dark.svg?fit=max&auto=format&n=o69F7a6qoW9vboof&q=85&s=0766b3221061e80143e9f300733e640b)](https://code.claude.com/docs)
 
 ![US](https://d3gk2c5xim1je2.cloudfront.net/flags/US.svg)
 
@@ -18,78 +18,89 @@ Reference
 
 Hooks reference
 
-[Home](https://docs.claude.com/en/home) [Developer Guide](https://docs.claude.com/en/docs/intro) [API Reference](https://docs.claude.com/en/api/overview) [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) [Model Context Protocol (MCP)](https://docs.claude.com/en/docs/mcp) [Resources](https://docs.claude.com/en/resources/overview) [Release Notes](https://docs.claude.com/en/release-notes/overview)
+[Getting started](https://code.claude.com/docs/en/overview) [Build with Claude Code](https://code.claude.com/docs/en/sub-agents) [Deployment](https://code.claude.com/docs/en/third-party-integrations) [Administration](https://code.claude.com/docs/en/setup) [Configuration](https://code.claude.com/docs/en/settings) [Reference](https://code.claude.com/docs/en/cli-reference) [Resources](https://code.claude.com/docs/en/legal-and-compliance)
 
 On this page
 
-- [Configuration](https://docs.claude.com/en/docs/claude-code/hooks#configuration)
-- [Structure](https://docs.claude.com/en/docs/claude-code/hooks#structure)
-- [Project-Specific Hook Scripts](https://docs.claude.com/en/docs/claude-code/hooks#project-specific-hook-scripts)
-- [Plugin hooks](https://docs.claude.com/en/docs/claude-code/hooks#plugin-hooks)
-- [Hook Events](https://docs.claude.com/en/docs/claude-code/hooks#hook-events)
-- [PreToolUse](https://docs.claude.com/en/docs/claude-code/hooks#pretooluse)
-- [PostToolUse](https://docs.claude.com/en/docs/claude-code/hooks#posttooluse)
-- [Notification](https://docs.claude.com/en/docs/claude-code/hooks#notification)
-- [UserPromptSubmit](https://docs.claude.com/en/docs/claude-code/hooks#userpromptsubmit)
-- [Stop](https://docs.claude.com/en/docs/claude-code/hooks#stop)
-- [SubagentStop](https://docs.claude.com/en/docs/claude-code/hooks#subagentstop)
-- [PreCompact](https://docs.claude.com/en/docs/claude-code/hooks#precompact)
-- [SessionStart](https://docs.claude.com/en/docs/claude-code/hooks#sessionstart)
-- [Persisting environment variables](https://docs.claude.com/en/docs/claude-code/hooks#persisting-environment-variables)
-- [SessionEnd](https://docs.claude.com/en/docs/claude-code/hooks#sessionend)
-- [Hook Input](https://docs.claude.com/en/docs/claude-code/hooks#hook-input)
-- [PreToolUse Input](https://docs.claude.com/en/docs/claude-code/hooks#pretooluse-input)
-- [PostToolUse Input](https://docs.claude.com/en/docs/claude-code/hooks#posttooluse-input)
-- [Notification Input](https://docs.claude.com/en/docs/claude-code/hooks#notification-input)
-- [UserPromptSubmit Input](https://docs.claude.com/en/docs/claude-code/hooks#userpromptsubmit-input)
-- [Stop and SubagentStop Input](https://docs.claude.com/en/docs/claude-code/hooks#stop-and-subagentstop-input)
-- [PreCompact Input](https://docs.claude.com/en/docs/claude-code/hooks#precompact-input)
-- [SessionStart Input](https://docs.claude.com/en/docs/claude-code/hooks#sessionstart-input)
-- [SessionEnd Input](https://docs.claude.com/en/docs/claude-code/hooks#sessionend-input)
-- [Hook Output](https://docs.claude.com/en/docs/claude-code/hooks#hook-output)
-- [Simple: Exit Code](https://docs.claude.com/en/docs/claude-code/hooks#simple%3A-exit-code)
-- [Exit Code 2 Behavior](https://docs.claude.com/en/docs/claude-code/hooks#exit-code-2-behavior)
-- [Advanced: JSON Output](https://docs.claude.com/en/docs/claude-code/hooks#advanced%3A-json-output)
-- [Common JSON Fields](https://docs.claude.com/en/docs/claude-code/hooks#common-json-fields)
-- [PreToolUse Decision Control](https://docs.claude.com/en/docs/claude-code/hooks#pretooluse-decision-control)
-- [PostToolUse Decision Control](https://docs.claude.com/en/docs/claude-code/hooks#posttooluse-decision-control)
-- [UserPromptSubmit Decision Control](https://docs.claude.com/en/docs/claude-code/hooks#userpromptsubmit-decision-control)
-- [Stop/SubagentStop Decision Control](https://docs.claude.com/en/docs/claude-code/hooks#stop%2Fsubagentstop-decision-control)
-- [SessionStart Decision Control](https://docs.claude.com/en/docs/claude-code/hooks#sessionstart-decision-control)
-- [SessionEnd Decision Control](https://docs.claude.com/en/docs/claude-code/hooks#sessionend-decision-control)
-- [Exit Code Example: Bash Command Validation](https://docs.claude.com/en/docs/claude-code/hooks#exit-code-example%3A-bash-command-validation)
-- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://docs.claude.com/en/docs/claude-code/hooks#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)
-- [JSON Output Example: PreToolUse with Approval](https://docs.claude.com/en/docs/claude-code/hooks#json-output-example%3A-pretooluse-with-approval)
-- [Working with MCP Tools](https://docs.claude.com/en/docs/claude-code/hooks#working-with-mcp-tools)
-- [MCP Tool Naming](https://docs.claude.com/en/docs/claude-code/hooks#mcp-tool-naming)
-- [Configuring Hooks for MCP Tools](https://docs.claude.com/en/docs/claude-code/hooks#configuring-hooks-for-mcp-tools)
-- [Examples](https://docs.claude.com/en/docs/claude-code/hooks#examples)
-- [Security Considerations](https://docs.claude.com/en/docs/claude-code/hooks#security-considerations)
-- [Disclaimer](https://docs.claude.com/en/docs/claude-code/hooks#disclaimer)
-- [Security Best Practices](https://docs.claude.com/en/docs/claude-code/hooks#security-best-practices)
-- [Configuration Safety](https://docs.claude.com/en/docs/claude-code/hooks#configuration-safety)
-- [Hook Execution Details](https://docs.claude.com/en/docs/claude-code/hooks#hook-execution-details)
-- [Debugging](https://docs.claude.com/en/docs/claude-code/hooks#debugging)
-- [Basic Troubleshooting](https://docs.claude.com/en/docs/claude-code/hooks#basic-troubleshooting)
-- [Advanced Debugging](https://docs.claude.com/en/docs/claude-code/hooks#advanced-debugging)
-- [Debug Output Example](https://docs.claude.com/en/docs/claude-code/hooks#debug-output-example)
+- [Configuration](https://code.claude.com/docs/en/hooks#configuration)
+- [Structure](https://code.claude.com/docs/en/hooks#structure)
+- [Project-Specific Hook Scripts](https://code.claude.com/docs/en/hooks#project-specific-hook-scripts)
+- [Plugin hooks](https://code.claude.com/docs/en/hooks#plugin-hooks)
+- [Prompt-Based Hooks](https://code.claude.com/docs/en/hooks#prompt-based-hooks)
+- [How prompt-based hooks work](https://code.claude.com/docs/en/hooks#how-prompt-based-hooks-work)
+- [Configuration](https://code.claude.com/docs/en/hooks#configuration-2)
+- [Response schema](https://code.claude.com/docs/en/hooks#response-schema)
+- [Supported hook events](https://code.claude.com/docs/en/hooks#supported-hook-events)
+- [Example: Intelligent Stop hook](https://code.claude.com/docs/en/hooks#example%3A-intelligent-stop-hook)
+- [Example: SubagentStop with custom logic](https://code.claude.com/docs/en/hooks#example%3A-subagentstop-with-custom-logic)
+- [Comparison with bash command hooks](https://code.claude.com/docs/en/hooks#comparison-with-bash-command-hooks)
+- [Best practices](https://code.claude.com/docs/en/hooks#best-practices)
+- [Hook Events](https://code.claude.com/docs/en/hooks#hook-events)
+- [PreToolUse](https://code.claude.com/docs/en/hooks#pretooluse)
+- [PostToolUse](https://code.claude.com/docs/en/hooks#posttooluse)
+- [Notification](https://code.claude.com/docs/en/hooks#notification)
+- [UserPromptSubmit](https://code.claude.com/docs/en/hooks#userpromptsubmit)
+- [Stop](https://code.claude.com/docs/en/hooks#stop)
+- [SubagentStop](https://code.claude.com/docs/en/hooks#subagentstop)
+- [PreCompact](https://code.claude.com/docs/en/hooks#precompact)
+- [SessionStart](https://code.claude.com/docs/en/hooks#sessionstart)
+- [Persisting environment variables](https://code.claude.com/docs/en/hooks#persisting-environment-variables)
+- [SessionEnd](https://code.claude.com/docs/en/hooks#sessionend)
+- [Hook Input](https://code.claude.com/docs/en/hooks#hook-input)
+- [PreToolUse Input](https://code.claude.com/docs/en/hooks#pretooluse-input)
+- [PostToolUse Input](https://code.claude.com/docs/en/hooks#posttooluse-input)
+- [Notification Input](https://code.claude.com/docs/en/hooks#notification-input)
+- [UserPromptSubmit Input](https://code.claude.com/docs/en/hooks#userpromptsubmit-input)
+- [Stop and SubagentStop Input](https://code.claude.com/docs/en/hooks#stop-and-subagentstop-input)
+- [PreCompact Input](https://code.claude.com/docs/en/hooks#precompact-input)
+- [SessionStart Input](https://code.claude.com/docs/en/hooks#sessionstart-input)
+- [SessionEnd Input](https://code.claude.com/docs/en/hooks#sessionend-input)
+- [Hook Output](https://code.claude.com/docs/en/hooks#hook-output)
+- [Simple: Exit Code](https://code.claude.com/docs/en/hooks#simple%3A-exit-code)
+- [Exit Code 2 Behavior](https://code.claude.com/docs/en/hooks#exit-code-2-behavior)
+- [Advanced: JSON Output](https://code.claude.com/docs/en/hooks#advanced%3A-json-output)
+- [Common JSON Fields](https://code.claude.com/docs/en/hooks#common-json-fields)
+- [PreToolUse Decision Control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control)
+- [PostToolUse Decision Control](https://code.claude.com/docs/en/hooks#posttooluse-decision-control)
+- [UserPromptSubmit Decision Control](https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control)
+- [Stop/SubagentStop Decision Control](https://code.claude.com/docs/en/hooks#stop%2Fsubagentstop-decision-control)
+- [SessionStart Decision Control](https://code.claude.com/docs/en/hooks#sessionstart-decision-control)
+- [SessionEnd Decision Control](https://code.claude.com/docs/en/hooks#sessionend-decision-control)
+- [Exit Code Example: Bash Command Validation](https://code.claude.com/docs/en/hooks#exit-code-example%3A-bash-command-validation)
+- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://code.claude.com/docs/en/hooks#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)
+- [JSON Output Example: PreToolUse with Approval](https://code.claude.com/docs/en/hooks#json-output-example%3A-pretooluse-with-approval)
+- [Working with MCP Tools](https://code.claude.com/docs/en/hooks#working-with-mcp-tools)
+- [MCP Tool Naming](https://code.claude.com/docs/en/hooks#mcp-tool-naming)
+- [Configuring Hooks for MCP Tools](https://code.claude.com/docs/en/hooks#configuring-hooks-for-mcp-tools)
+- [Examples](https://code.claude.com/docs/en/hooks#examples)
+- [Security Considerations](https://code.claude.com/docs/en/hooks#security-considerations)
+- [Disclaimer](https://code.claude.com/docs/en/hooks#disclaimer)
+- [Security Best Practices](https://code.claude.com/docs/en/hooks#security-best-practices)
+- [Configuration Safety](https://code.claude.com/docs/en/hooks#configuration-safety)
+- [Hook Execution Details](https://code.claude.com/docs/en/hooks#hook-execution-details)
+- [Debugging](https://code.claude.com/docs/en/hooks#debugging)
+- [Basic Troubleshooting](https://code.claude.com/docs/en/hooks#basic-troubleshooting)
+- [Advanced Debugging](https://code.claude.com/docs/en/hooks#advanced-debugging)
+- [Debug Output Example](https://code.claude.com/docs/en/hooks#debug-output-example)
 
-For a quickstart guide with examples, see [Get started with Claude Code hooks](https://docs.claude.com/en/docs/claude-code/hooks-guide).
+For a quickstart guide with examples, see [Get started with Claude Code hooks](https://code.claude.com/docs/en/hooks-guide).
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#configuration)  Configuration
+## [​](https://code.claude.com/docs/en/hooks\#configuration)  Configuration
 
-Claude Code hooks are configured in your [settings files](https://docs.claude.com/en/docs/claude-code/settings):
+Claude Code hooks are configured in your [settings files](https://code.claude.com/docs/en/settings):
 
 - `~/.claude/settings.json` \- User settings
 - `.claude/settings.json` \- Project settings
 - `.claude/settings.local.json` \- Local project settings (not committed)
 - Enterprise managed policy settings
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#structure)  Structure
+### [​](https://code.claude.com/docs/en/hooks\#structure)  Structure
 
 Hooks are organized by matchers, where each matcher can have multiple hooks:
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -116,18 +127,19 @@ Copy
   - Supports regex: `Edit|Write` or `Notebook.*`
   - Use `*` to match all tools. You can also use empty string (`""`) or leave
     `matcher` blank.
-- **hooks**: Array of commands to execute when the pattern matches
+- **hooks**: Array of hooks to execute when the pattern matches
 
-  - `type`: Currently only `"command"` is supported
-  - `command`: The bash command to execute (can use `$CLAUDE_PROJECT_DIR`
-    environment variable)
-  - `timeout`: (Optional) How long a command should run, in seconds, before
-    canceling that specific command.
+  - `type`: Hook execution type - `"command"` for bash commands or `"prompt"` for LLM-based evaluation
+  - `command`: (For `type: "command"`) The bash command to execute (can use `$CLAUDE_PROJECT_DIR` environment variable)
+  - `prompt`: (For `type: "prompt"`) The prompt to send to the LLM for evaluation
+  - `timeout`: (Optional) How long a hook should run, in seconds, before canceling that specific hook
 
 For events like `UserPromptSubmit`, `Notification`, `Stop`, and `SubagentStop`
 that don’t use matchers, you can omit the matcher field:
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -146,13 +158,15 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#project-specific-hook-scripts)  Project-Specific Hook Scripts
+### [​](https://code.claude.com/docs/en/hooks\#project-specific-hook-scripts)  Project-Specific Hook Scripts
 
 You can use the environment variable `CLAUDE_PROJECT_DIR` (only available when
 Claude Code spawns the hook command) to reference scripts stored in your project,
 ensuring they work regardless of Claude’s current directory:
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -172,9 +186,9 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#plugin-hooks)  Plugin hooks
+### [​](https://code.claude.com/docs/en/hooks\#plugin-hooks)  Plugin hooks
 
-[Plugins](https://docs.claude.com/en/docs/claude-code/plugins) can provide hooks that integrate seamlessly with your user and project hooks. Plugin hooks are automatically merged with your configuration when plugins are enabled.**How plugin hooks work**:
+[Plugins](https://code.claude.com/docs/en/plugins) can provide hooks that integrate seamlessly with your user and project hooks. Plugin hooks are automatically merged with your configuration when plugins are enabled.**How plugin hooks work**:
 
 - Plugin hooks are defined in the plugin’s `hooks/hooks.json` file or in a file given by a custom path to the `hooks` field.
 - When a plugin is enabled, its hooks are merged with user and project hooks
@@ -184,6 +198,8 @@ Copy
 **Example plugin hook configuration**:
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -215,15 +231,162 @@ Plugin hooks run alongside your custom hooks. If multiple hooks match an event, 
 - `${CLAUDE_PROJECT_DIR}`: Project root directory (same as for project hooks)
 - All standard environment variables are available
 
-See the [plugin components reference](https://docs.claude.com/en/docs/claude-code/plugins-reference#hooks) for details on creating plugin hooks.
+See the [plugin components reference](https://code.claude.com/docs/en/plugins-reference#hooks) for details on creating plugin hooks.
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#hook-events)  Hook Events
+## [​](https://code.claude.com/docs/en/hooks\#prompt-based-hooks)  Prompt-Based Hooks
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#pretooluse)  PreToolUse
+In addition to bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action. Prompt-based hooks are currently only supported for `Stop` and `SubagentStop` hooks, where they enable intelligent, context-aware decisions.
+
+### [​](https://code.claude.com/docs/en/hooks\#how-prompt-based-hooks-work)  How prompt-based hooks work
+
+Instead of executing a bash command, prompt-based hooks:
+
+1. Send the hook input and your prompt to a fast LLM (Haiku)
+2. The LLM responds with structured JSON containing a decision
+3. Claude Code processes the decision automatically
+
+### [​](https://code.claude.com/docs/en/hooks\#configuration-2)  Configuration
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "Stop": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "prompt",\
+            "prompt": "Evaluate if Claude should stop: $ARGUMENTS. Check if all tasks are complete."\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+**Fields:**
+
+- `type`: Must be `"prompt"`
+- `prompt`: The prompt text to send to the LLM
+
+  - Use `$ARGUMENTS` as a placeholder for the hook input JSON
+  - If `$ARGUMENTS` is not present, input JSON is appended to the prompt
+- `timeout`: (Optional) Timeout in seconds (default: 30 seconds)
+
+### [​](https://code.claude.com/docs/en/hooks\#response-schema)  Response schema
+
+The LLM must respond with JSON containing:
+
+Copy
+
+Ask AI
+
+```
+{
+  "decision": "approve" | "block",
+  "reason": "Explanation for the decision",
+  "continue": false,  // Optional: stops Claude entirely
+  "stopReason": "Message shown to user",  // Optional: custom stop message
+  "systemMessage": "Warning or context"  // Optional: shown to user
+}
+```
+
+**Response fields:**
+
+- `decision`: `"approve"` allows the action, `"block"` prevents it
+- `reason`: Explanation shown to Claude when decision is `"block"`
+- `continue`: (Optional) If `false`, stops Claude’s execution entirely
+- `stopReason`: (Optional) Message shown when `continue` is false
+- `systemMessage`: (Optional) Additional message shown to the user
+
+### [​](https://code.claude.com/docs/en/hooks\#supported-hook-events)  Supported hook events
+
+Prompt-based hooks work with any hook event, but are most useful for:
+
+- **Stop**: Intelligently decide if Claude should continue working
+- **SubagentStop**: Evaluate if a subagent has completed its task
+- **UserPromptSubmit**: Validate user prompts with LLM assistance
+- **PreToolUse**: Make context-aware permission decisions
+
+### [​](https://code.claude.com/docs/en/hooks\#example%3A-intelligent-stop-hook)  Example: Intelligent Stop hook
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "Stop": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "prompt",\
+            "prompt": "You are evaluating whether Claude should stop working. Context: $ARGUMENTS\n\nAnalyze the conversation and determine if:\n1. All user-requested tasks are complete\n2. Any errors need to be addressed\n3. Follow-up work is needed\n\nRespond with JSON: {\"decision\": \"approve\" or \"block\", \"reason\": \"your explanation\"}",\
+            "timeout": 30\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+### [​](https://code.claude.com/docs/en/hooks\#example%3A-subagentstop-with-custom-logic)  Example: SubagentStop with custom logic
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "SubagentStop": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "prompt",\
+            "prompt": "Evaluate if this subagent should stop. Input: $ARGUMENTS\n\nCheck if:\n- The subagent completed its assigned task\n- Any errors occurred that need fixing\n- Additional context gathering is needed\n\nReturn: {\"decision\": \"approve\" or \"block\", \"reason\": \"explanation\"}"\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+### [​](https://code.claude.com/docs/en/hooks\#comparison-with-bash-command-hooks)  Comparison with bash command hooks
+
+| Feature | Bash Command Hooks | Prompt-Based Hooks |
+| --- | --- | --- |
+| **Execution** | Runs bash script | Queries LLM |
+| **Decision logic** | You implement in code | LLM evaluates context |
+| **Setup complexity** | Requires script file | Just configure prompt |
+| **Context awareness** | Limited to script logic | Natural language understanding |
+| **Performance** | Fast (local execution) | Slower (API call) |
+| **Use case** | Deterministic rules | Context-aware decisions |
+
+### [​](https://code.claude.com/docs/en/hooks\#best-practices)  Best practices
+
+- **Be specific in prompts**: Clearly state what you want the LLM to evaluate
+- **Include decision criteria**: List the factors the LLM should consider
+- **Test your prompts**: Verify the LLM makes correct decisions for your use cases
+- **Set appropriate timeouts**: Default is 30 seconds, adjust if needed
+- **Use for complex decisions**: Bash hooks are better for simple, deterministic rules
+
+See the [plugin components reference](https://code.claude.com/docs/en/plugins-reference#hooks) for details on creating plugin hooks.
+
+## [​](https://code.claude.com/docs/en/hooks\#hook-events)  Hook Events
+
+### [​](https://code.claude.com/docs/en/hooks\#pretooluse)  PreToolUse
 
 Runs after Claude creates tool parameters and before processing the tool call.**Common matchers:**
 
-- `Task` \- Subagent tasks (see [subagents documentation](https://docs.claude.com/en/docs/claude-code/sub-agents))
+- `Task` \- Subagent tasks (see [subagents documentation](https://code.claude.com/docs/en/sub-agents))
 - `Bash` \- Shell commands
 - `Glob` \- File pattern matching
 - `Grep` \- Content search
@@ -232,11 +395,11 @@ Runs after Claude creates tool parameters and before processing the tool call.**
 - `Write` \- File writing
 - `WebFetch`, `WebSearch` \- Web operations
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#posttooluse)  PostToolUse
+### [​](https://code.claude.com/docs/en/hooks\#posttooluse)  PostToolUse
 
 Runs immediately after a tool completes successfully.Recognizes the same matcher values as PreToolUse.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#notification)  Notification
+### [​](https://code.claude.com/docs/en/hooks\#notification)  Notification
 
 Runs when Claude Code sends notifications. Notifications are sent when:
 
@@ -245,29 +408,29 @@ permission to use Bash”
 2. The prompt input has been idle for at least 60 seconds. “Claude is waiting
 for your input”
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#userpromptsubmit)  UserPromptSubmit
+### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit)  UserPromptSubmit
 
 Runs when the user submits a prompt, before Claude processes it. This allows you
 to add additional context based on the prompt/conversation, validate prompts, or
 block certain types of prompts.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#stop)  Stop
+### [​](https://code.claude.com/docs/en/hooks\#stop)  Stop
 
 Runs when the main Claude Code agent has finished responding. Does not run if
 the stoppage occurred due to a user interrupt.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#subagentstop)  SubagentStop
+### [​](https://code.claude.com/docs/en/hooks\#subagentstop)  SubagentStop
 
 Runs when a Claude Code subagent (Task tool call) has finished responding.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#precompact)  PreCompact
+### [​](https://code.claude.com/docs/en/hooks\#precompact)  PreCompact
 
 Runs before Claude Code is about to run a compact operation.**Matchers:**
 
 - `manual` \- Invoked from `/compact`
 - `auto` \- Invoked from auto-compact (due to full context window)
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionstart)  SessionStart
+### [​](https://code.claude.com/docs/en/hooks\#sessionstart)  SessionStart
 
 Runs when Claude Code starts a new session or resumes an existing session (which
 currently does start a new session under the hood). Useful for loading in
@@ -278,11 +441,13 @@ development context like existing issues or recent changes to your codebase, ins
 - `clear` \- Invoked from `/clear`
 - `compact` \- Invoked from auto or manual compact.
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#persisting-environment-variables)  Persisting environment variables
+#### [​](https://code.claude.com/docs/en/hooks\#persisting-environment-variables)  Persisting environment variables
 
 SessionStart hooks have access to the `CLAUDE_ENV_FILE` environment variable, which provides a file path where you can persist environment variables for subsequent bash commands.**Example: Setting individual environment variables**
 
 Copy
+
+Ask AI
 
 ```
 #!/bin/bash
@@ -299,6 +464,8 @@ exit 0
 **Example: Persisting all environment changes from the hook**When your setup modifies the environment (e.g., `nvm use`), capture and persist all changes by diffing the environment:
 
 Copy
+
+Ask AI
 
 ```
 #!/bin/bash
@@ -321,7 +488,7 @@ Any variables written to this file will be available in all subsequent bash comm
 
 `CLAUDE_ENV_FILE` is only available for SessionStart hooks. Other hook types do not have access to this variable.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionend)  SessionEnd
+### [​](https://code.claude.com/docs/en/hooks\#sessionend)  SessionEnd
 
 Runs when a Claude Code session ends. Useful for cleanup tasks, logging session
 statistics, or saving session state.The `reason` field in the hook input will be one of:
@@ -331,12 +498,14 @@ statistics, or saving session state.The `reason` field in the hook input will be
 - `prompt_input_exit` \- User exited while prompt input was visible
 - `other` \- Other exit reasons
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#hook-input)  Hook Input
+## [​](https://code.claude.com/docs/en/hooks\#hook-input)  Hook Input
 
 Hooks receive JSON data via stdin containing session information and
 event-specific data:
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -352,11 +521,13 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#pretooluse-input)  PreToolUse Input
+### [​](https://code.claude.com/docs/en/hooks\#pretooluse-input)  PreToolUse Input
 
 The exact schema for `tool_input` depends on the tool.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -373,11 +544,13 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#posttooluse-input)  PostToolUse Input
+### [​](https://code.claude.com/docs/en/hooks\#posttooluse-input)  PostToolUse Input
 
 The exact schema for `tool_input` and `tool_response` depends on the tool.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -398,9 +571,11 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#notification-input)  Notification Input
+### [​](https://code.claude.com/docs/en/hooks\#notification-input)  Notification Input
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -413,9 +588,11 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#userpromptsubmit-input)  UserPromptSubmit Input
+### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit-input)  UserPromptSubmit Input
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -428,13 +605,15 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#stop-and-subagentstop-input)  Stop and SubagentStop Input
+### [​](https://code.claude.com/docs/en/hooks\#stop-and-subagentstop-input)  Stop and SubagentStop Input
 
 `stop_hook_active` is true when Claude Code is already continuing as a result of
 a stop hook. Check this value or process the transcript to prevent Claude Code
 from running indefinitely.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -446,12 +625,14 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#precompact-input)  PreCompact Input
+### [​](https://code.claude.com/docs/en/hooks\#precompact-input)  PreCompact Input
 
 For `manual`, `custom_instructions` comes from what the user passes into
 `/compact`. For `auto`, `custom_instructions` is empty.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -464,9 +645,11 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionstart-input)  SessionStart Input
+### [​](https://code.claude.com/docs/en/hooks\#sessionstart-input)  SessionStart Input
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -478,9 +661,11 @@ Copy
 }
 ```
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionend-input)  SessionEnd Input
+### [​](https://code.claude.com/docs/en/hooks\#sessionend-input)  SessionEnd Input
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -493,13 +678,13 @@ Copy
 }
 ```
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#hook-output)  Hook Output
+## [​](https://code.claude.com/docs/en/hooks\#hook-output)  Hook Output
 
 There are two ways for hooks to return output back to Claude Code. The output
 communicates whether to block and any feedback that should be shown to Claude
 and the user.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#simple%3A-exit-code)  Simple: Exit Code
+### [​](https://code.claude.com/docs/en/hooks\#simple%3A-exit-code)  Simple: Exit Code
 
 Hooks communicate status through exit codes, stdout, and stderr:
 
@@ -514,7 +699,7 @@ execution continues.
 Reminder: Claude Code does not see stdout if the exit code is 0, except for
 the `UserPromptSubmit` hook where stdout is injected as context.
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#exit-code-2-behavior)  Exit Code 2 Behavior
+#### [​](https://code.claude.com/docs/en/hooks\#exit-code-2-behavior)  Exit Code 2 Behavior
 
 | Hook Event | Behavior |
 | --- | --- |
@@ -528,15 +713,17 @@ the `UserPromptSubmit` hook where stdout is injected as context.
 | `SessionStart` | N/A, shows stderr to user only |
 | `SessionEnd` | N/A, shows stderr to user only |
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#advanced%3A-json-output)  Advanced: JSON Output
+### [​](https://code.claude.com/docs/en/hooks\#advanced%3A-json-output)  Advanced: JSON Output
 
 Hooks can return structured JSON in `stdout` for more sophisticated control:
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#common-json-fields)  Common JSON Fields
+#### [​](https://code.claude.com/docs/en/hooks\#common-json-fields)  Common JSON Fields
 
 All hook types can include these optional fields:
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -563,7 +750,7 @@ provides automated feedback to Claude.
 `stopReason` accompanies `continue` with a reason shown to the user, not shown
 to Claude.
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#pretooluse-decision-control)  `PreToolUse` Decision Control
+#### [​](https://code.claude.com/docs/en/hooks\#pretooluse-decision-control)  `PreToolUse` Decision Control
 
 `PreToolUse` hooks can control whether a tool call proceeds.
 
@@ -580,6 +767,8 @@ Additionally, hooks can modify tool inputs before execution using `updatedInput`
 - This is most useful with `"permissionDecision": "allow"` to modify and approve tool calls.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -599,7 +788,7 @@ Use `hookSpecificOutput.permissionDecision` and
 `hookSpecificOutput.permissionDecisionReason` instead. The deprecated fields
 `"approve"` and `"block"` map to `"allow"` and `"deny"` respectively.
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#posttooluse-decision-control)  `PostToolUse` Decision Control
+#### [​](https://code.claude.com/docs/en/hooks\#posttooluse-decision-control)  `PostToolUse` Decision Control
 
 `PostToolUse` hooks can provide feedback to Claude after tool execution.
 
@@ -608,6 +797,8 @@ Use `hookSpecificOutput.permissionDecision` and
 - `"hookSpecificOutput.additionalContext"` adds context for Claude to consider.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -620,7 +811,7 @@ Copy
 }
 ```
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#userpromptsubmit-decision-control)  `UserPromptSubmit` Decision Control
+#### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit-decision-control)  `UserPromptSubmit` Decision Control
 
 `UserPromptSubmit` hooks can control whether a user prompt is processed.
 
@@ -631,6 +822,8 @@ erased from context. `"reason"` is shown to the user but not added to context.
 blocked.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -643,7 +836,7 @@ Copy
 }
 ```
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#stop%2Fsubagentstop-decision-control)  `Stop`/`SubagentStop` Decision Control
+#### [​](https://code.claude.com/docs/en/hooks\#stop%2Fsubagentstop-decision-control)  `Stop`/`SubagentStop` Decision Control
 
 `Stop` and `SubagentStop` hooks can control whether Claude must continue.
 
@@ -653,6 +846,8 @@ to know how to proceed.
 
 Copy
 
+Ask AI
+
 ```
 {
   "decision": "block" | undefined,
@@ -660,7 +855,7 @@ Copy
 }
 ```
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionstart-decision-control)  `SessionStart` Decision Control
+#### [​](https://code.claude.com/docs/en/hooks\#sessionstart-decision-control)  `SessionStart` Decision Control
 
 `SessionStart` hooks allow you to load in context at the start of a session.
 
@@ -668,6 +863,8 @@ Copy
 - Multiple hooks’ `additionalContext` values are concatenated.
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -678,14 +875,16 @@ Copy
 }
 ```
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#sessionend-decision-control)  `SessionEnd` Decision Control
+#### [​](https://code.claude.com/docs/en/hooks\#sessionend-decision-control)  `SessionEnd` Decision Control
 
 `SessionEnd` hooks run when a session ends. They cannot block session termination
 but can perform cleanup tasks.
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#exit-code-example%3A-bash-command-validation)  Exit Code Example: Bash Command Validation
+#### [​](https://code.claude.com/docs/en/hooks\#exit-code-example%3A-bash-command-validation)  Exit Code Example: Bash Command Validation
 
 Copy
+
+Ask AI
 
 ```
 #!/usr/bin/env python3
@@ -735,7 +934,7 @@ if issues:
     sys.exit(2)
 ```
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)  JSON Output Example: UserPromptSubmit to Add Context and Validation
+#### [​](https://code.claude.com/docs/en/hooks\#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)  JSON Output Example: UserPromptSubmit to Add Context and Validation
 
 For `UserPromptSubmit` hooks, you can inject context using either method:
 
@@ -743,6 +942,8 @@ For `UserPromptSubmit` hooks, you can inject context using either method:
 - JSON output: Provides more control over the behavior
 
 Copy
+
+Ask AI
 
 ```
 #!/usr/bin/env python3
@@ -793,9 +994,11 @@ print(json.dumps({
 sys.exit(0)
 ```
 
-#### [​](https://docs.claude.com/en/docs/claude-code/hooks\#json-output-example%3A-pretooluse-with-approval)  JSON Output Example: PreToolUse with Approval
+#### [​](https://code.claude.com/docs/en/hooks\#json-output-example%3A-pretooluse-with-approval)  JSON Output Example: PreToolUse with Approval
 
 Copy
+
+Ask AI
 
 ```
 #!/usr/bin/env python3
@@ -829,14 +1032,14 @@ if tool_name == "Read":
 sys.exit(0)
 ```
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#working-with-mcp-tools)  Working with MCP Tools
+## [​](https://code.claude.com/docs/en/hooks\#working-with-mcp-tools)  Working with MCP Tools
 
 Claude Code hooks work seamlessly with
-[Model Context Protocol (MCP) tools](https://docs.claude.com/en/docs/claude-code/mcp). When MCP servers
+[Model Context Protocol (MCP) tools](https://code.claude.com/docs/en/mcp). When MCP servers
 provide tools, they appear with a special naming pattern that you can match in
 your hooks.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#mcp-tool-naming)  MCP Tool Naming
+### [​](https://code.claude.com/docs/en/hooks\#mcp-tool-naming)  MCP Tool Naming
 
 MCP tools follow the pattern `mcp__<server>__<tool>`, for example:
 
@@ -844,11 +1047,13 @@ MCP tools follow the pattern `mcp__<server>__<tool>`, for example:
 - `mcp__filesystem__read_file` \- Filesystem server’s read file tool
 - `mcp__github__search_repositories` \- GitHub server’s search tool
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#configuring-hooks-for-mcp-tools)  Configuring Hooks for MCP Tools
+### [​](https://code.claude.com/docs/en/hooks\#configuring-hooks-for-mcp-tools)  Configuring Hooks for MCP Tools
 
 You can target specific MCP tools or entire MCP servers:
 
 Copy
+
+Ask AI
 
 ```
 {
@@ -877,13 +1082,13 @@ Copy
 }
 ```
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#examples)  Examples
+## [​](https://code.claude.com/docs/en/hooks\#examples)  Examples
 
-For practical examples including code formatting, notifications, and file protection, see [More Examples](https://docs.claude.com/en/docs/claude-code/hooks-guide#more-examples) in the get started guide.
+For practical examples including code formatting, notifications, and file protection, see [More Examples](https://code.claude.com/docs/en/hooks-guide#more-examples) in the get started guide.
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#security-considerations)  Security Considerations
+## [​](https://code.claude.com/docs/en/hooks\#security-considerations)  Security Considerations
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#disclaimer)  Disclaimer
+### [​](https://code.claude.com/docs/en/hooks\#disclaimer)  Disclaimer
 
 **USE AT YOUR OWN RISK**: Claude Code hooks execute arbitrary shell commands on
 your system automatically. By using hooks, you acknowledge that:
@@ -898,7 +1103,7 @@ resulting from hook usage
 Always review and understand any hook commands before adding them to your
 configuration.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#security-best-practices)  Security Best Practices
+### [​](https://code.claude.com/docs/en/hooks\#security-best-practices)  Security Best Practices
 
 Here are some key practices for writing more secure hooks:
 
@@ -909,7 +1114,7 @@ Here are some key practices for writing more secure hooks:
 “$CLAUDE\_PROJECT\_DIR” for the project path)
 5. **Skip sensitive files** \- Avoid `.env`, `.git/`, keys, etc.
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#configuration-safety)  Configuration Safety
+### [​](https://code.claude.com/docs/en/hooks\#configuration-safety)  Configuration Safety
 
 Direct edits to hooks in settings files don’t take effect immediately. Claude
 Code:
@@ -921,7 +1126,7 @@ Code:
 
 This prevents malicious hook modifications from affecting your current session.
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#hook-execution-details)  Hook Execution Details
+## [​](https://code.claude.com/docs/en/hooks\#hook-execution-details)  Hook Execution Details
 
 - **Timeout**: 60-second execution limit by default, configurable per command.
 
@@ -940,9 +1145,9 @@ This prevents malicious hook modifications from affecting your current session.
   - Notification/SessionEnd: Logged to debug only (`--debug`)
   - UserPromptSubmit/SessionStart: stdout added as context for Claude
 
-## [​](https://docs.claude.com/en/docs/claude-code/hooks\#debugging)  Debugging
+## [​](https://code.claude.com/docs/en/hooks\#debugging)  Debugging
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#basic-troubleshooting)  Basic Troubleshooting
+### [​](https://code.claude.com/docs/en/hooks\#basic-troubleshooting)  Basic Troubleshooting
 
 If your hooks aren’t working:
 
@@ -958,7 +1163,7 @@ Common issues:
 - **Wrong matcher** \- Check tool names match exactly (case-sensitive)
 - **Command not found** \- Use full paths for scripts
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#advanced-debugging)  Advanced Debugging
+### [​](https://code.claude.com/docs/en/hooks\#advanced-debugging)  Advanced Debugging
 
 For complex hook issues:
 
@@ -971,11 +1176,13 @@ execution
 execution
 6. **Use structured logging** \- Implement logging in your hook scripts
 
-### [​](https://docs.claude.com/en/docs/claude-code/hooks\#debug-output-example)  Debug Output Example
+### [​](https://code.claude.com/docs/en/hooks\#debug-output-example)  Debug Output Example
 
 Use `claude --debug` to see hook execution details:
 
 Copy
+
+Ask AI
 
 ```
 [DEBUG] Executing hooks for PostToolUse:Write
@@ -994,15 +1201,10 @@ Progress messages appear in transcript mode (Ctrl-R) showing:
 - Success/failure status
 - Output or error messages
 
-Was this page helpful?
+[Checkpointing](https://code.claude.com/docs/en/checkpointing) [Plugins reference](https://code.claude.com/docs/en/plugins-reference)
 
-YesNo
-
-[Checkpointing](https://docs.claude.com/en/docs/claude-code/checkpointing) [Plugins reference](https://docs.claude.com/en/docs/claude-code/plugins-reference)
+Ctrl+I
 
 Assistant
 
 Responses are generated using AI and may contain mistakes.
-
-Ask Docs
-AI Avatar
