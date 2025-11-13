@@ -32,14 +32,21 @@ module ClaudeHooks
       end
 
       # === EXIT CODE LOGIC ===
-
+      #
+      # Stop hooks use the advanced JSON API with exit code 0.
+      # Per Anthropic guidance: when using structured JSON with decision/reason fields,
+      # always output to stdout with exit 0 (not stderr with exit 2).
+      # Reference: https://github.com/anthropics/claude-code/issues/10875
       def exit_code
-        # For Stop hooks: we assume 'continue' means continue to stop
-        return 0 unless continue?
-        # For Stop hooks: decision 'block' means force continue (exit 2)
-        return 2 if should_continue?
-
         0
+      end
+
+      # === OUTPUT STREAM LOGIC ===
+      #
+      # Stop hooks always output to stdout when using the JSON API.
+      # This follows the same pattern as PreToolUse hooks.
+      def output_stream
+        :stdout
       end
 
       # === MERGE HELPER ===
