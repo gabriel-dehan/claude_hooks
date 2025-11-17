@@ -145,8 +145,8 @@ class TestOutputClasses < Minitest::Test
     assert_equal('Continue with more tasks', output.continue_instructions)
     assert(output.should_continue?)
     refute(output.should_stop?)
-    assert_equal(2, output.exit_code) # Force continue
-    assert_equal(:stderr, output.output_stream)
+    assert_equal(0, output.exit_code) # JSON API uses exit 0
+    assert_equal(:stdout, output.output_stream)
   end
 
   # Test simple outputs
@@ -273,7 +273,7 @@ class TestOutputClasses < Minitest::Test
     assert_includes(merged.reason, 'Continue with task A')
     assert_includes(merged.reason, 'Continue with task B')
     assert(merged.should_continue?)
-    assert_equal(2, merged.exit_code)
+    assert_equal(0, merged.exit_code) # JSON API uses exit 0
   end
 
   def test_stop_merge_normal_with_block_decision
@@ -295,7 +295,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('block', merged.decision)
     assert_equal('Force continue', merged.reason)
     assert(merged.should_continue?)
-    assert_equal(2, merged.exit_code)
+    assert_equal(0, merged.exit_code) # JSON API uses exit 0
   end
 
   # === SUBAGENT STOP MERGE TESTS ===
@@ -322,7 +322,7 @@ class TestOutputClasses < Minitest::Test
     assert_equal('block', merged.decision)
     assert_includes(merged.reason, 'Subagent continue instruction')
     assert_includes(merged.reason, 'Another instruction')
-    assert_equal(2, merged.exit_code)
+    assert_equal(0, merged.exit_code) # JSON API uses exit 0
   end
 
   # === SESSION START MERGE TESTS ===
