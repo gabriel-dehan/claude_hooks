@@ -31,12 +31,13 @@ On this page
 - [Configuration](https://code.claude.com/docs/en/hooks#configuration-2)
 - [Response schema](https://code.claude.com/docs/en/hooks#response-schema)
 - [Supported hook events](https://code.claude.com/docs/en/hooks#supported-hook-events)
-- [Example: Intelligent Stop hook](https://code.claude.com/docs/en/hooks#example%3A-intelligent-stop-hook)
-- [Example: SubagentStop with custom logic](https://code.claude.com/docs/en/hooks#example%3A-subagentstop-with-custom-logic)
+- [Example: Intelligent Stop hook](https://code.claude.com/docs/en/hooks#example:-intelligent-stop-hook)
+- [Example: SubagentStop with custom logic](https://code.claude.com/docs/en/hooks#example:-subagentstop-with-custom-logic)
 - [Comparison with bash command hooks](https://code.claude.com/docs/en/hooks#comparison-with-bash-command-hooks)
 - [Best practices](https://code.claude.com/docs/en/hooks#best-practices)
 - [Hook Events](https://code.claude.com/docs/en/hooks#hook-events)
 - [PreToolUse](https://code.claude.com/docs/en/hooks#pretooluse)
+- [PermissionRequest](https://code.claude.com/docs/en/hooks#permissionrequest)
 - [PostToolUse](https://code.claude.com/docs/en/hooks#posttooluse)
 - [Notification](https://code.claude.com/docs/en/hooks#notification)
 - [UserPromptSubmit](https://code.claude.com/docs/en/hooks#userpromptsubmit)
@@ -56,19 +57,20 @@ On this page
 - [SessionStart Input](https://code.claude.com/docs/en/hooks#sessionstart-input)
 - [SessionEnd Input](https://code.claude.com/docs/en/hooks#sessionend-input)
 - [Hook Output](https://code.claude.com/docs/en/hooks#hook-output)
-- [Simple: Exit Code](https://code.claude.com/docs/en/hooks#simple%3A-exit-code)
+- [Simple: Exit Code](https://code.claude.com/docs/en/hooks#simple:-exit-code)
 - [Exit Code 2 Behavior](https://code.claude.com/docs/en/hooks#exit-code-2-behavior)
-- [Advanced: JSON Output](https://code.claude.com/docs/en/hooks#advanced%3A-json-output)
+- [Advanced: JSON Output](https://code.claude.com/docs/en/hooks#advanced:-json-output)
 - [Common JSON Fields](https://code.claude.com/docs/en/hooks#common-json-fields)
 - [PreToolUse Decision Control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control)
+- [PermissionRequest Decision Control](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control)
 - [PostToolUse Decision Control](https://code.claude.com/docs/en/hooks#posttooluse-decision-control)
 - [UserPromptSubmit Decision Control](https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control)
-- [Stop/SubagentStop Decision Control](https://code.claude.com/docs/en/hooks#stop%2Fsubagentstop-decision-control)
+- [Stop/SubagentStop Decision Control](https://code.claude.com/docs/en/hooks#stop/subagentstop-decision-control)
 - [SessionStart Decision Control](https://code.claude.com/docs/en/hooks#sessionstart-decision-control)
 - [SessionEnd Decision Control](https://code.claude.com/docs/en/hooks#sessionend-decision-control)
-- [Exit Code Example: Bash Command Validation](https://code.claude.com/docs/en/hooks#exit-code-example%3A-bash-command-validation)
-- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://code.claude.com/docs/en/hooks#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)
-- [JSON Output Example: PreToolUse with Approval](https://code.claude.com/docs/en/hooks#json-output-example%3A-pretooluse-with-approval)
+- [Exit Code Example: Bash Command Validation](https://code.claude.com/docs/en/hooks#exit-code-example:-bash-command-validation)
+- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://code.claude.com/docs/en/hooks#json-output-example:-userpromptsubmit-to-add-context-and-validation)
+- [JSON Output Example: PreToolUse with Approval](https://code.claude.com/docs/en/hooks#json-output-example:-pretooluse-with-approval)
 - [Working with MCP Tools](https://code.claude.com/docs/en/hooks#working-with-mcp-tools)
 - [MCP Tool Naming](https://code.claude.com/docs/en/hooks#mcp-tool-naming)
 - [Configuring Hooks for MCP Tools](https://code.claude.com/docs/en/hooks#configuring-hooks-for-mcp-tools)
@@ -134,7 +136,7 @@ Ask AI
   - `prompt`: (For `type: "prompt"`) The prompt to send to the LLM for evaluation
   - `timeout`: (Optional) How long a hook should run, in seconds, before canceling that specific hook
 
-For events like `UserPromptSubmit`, `Notification`, `Stop`, and `SubagentStop`
+For events like `UserPromptSubmit`, `Stop`, and `SubagentStop`
 that don’t use matchers, you can omit the matcher field:
 
 Copy
@@ -312,7 +314,7 @@ Prompt-based hooks work with any hook event, but are most useful for:
 - **UserPromptSubmit**: Validate user prompts with LLM assistance
 - **PreToolUse**: Make context-aware permission decisions
 
-### [​](https://code.claude.com/docs/en/hooks\#example%3A-intelligent-stop-hook)  Example: Intelligent Stop hook
+### [​](https://code.claude.com/docs/en/hooks\#example:-intelligent-stop-hook)  Example: Intelligent Stop hook
 
 Copy
 
@@ -336,7 +338,7 @@ Ask AI
 }
 ```
 
-### [​](https://code.claude.com/docs/en/hooks\#example%3A-subagentstop-with-custom-logic)  Example: SubagentStop with custom logic
+### [​](https://code.claude.com/docs/en/hooks\#example:-subagentstop-with-custom-logic)  Example: SubagentStop with custom logic
 
 Copy
 
@@ -395,18 +397,58 @@ Runs after Claude creates tool parameters and before processing the tool call.**
 - `Write` \- File writing
 - `WebFetch`, `WebSearch` \- Web operations
 
+Use [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.
+
+### [​](https://code.claude.com/docs/en/hooks\#permissionrequest)  PermissionRequest
+
+Runs when the user is shown a permission dialog.
+Use [PermissionRequest decision control](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control) to allow or deny on behalf of the user.Recognizes the same matcher values as PreToolUse.
+
 ### [​](https://code.claude.com/docs/en/hooks\#posttooluse)  PostToolUse
 
 Runs immediately after a tool completes successfully.Recognizes the same matcher values as PreToolUse.
 
 ### [​](https://code.claude.com/docs/en/hooks\#notification)  Notification
 
-Runs when Claude Code sends notifications. Notifications are sent when:
+Runs when Claude Code sends notifications. Supports matchers to filter by notification type.**Common matchers:**
 
-1. Claude needs your permission to use a tool. Example: “Claude needs your
-permission to use Bash”
-2. The prompt input has been idle for at least 60 seconds. “Claude is waiting
-for your input”
+- `permission_prompt` \- Permission requests from Claude Code
+- `idle_prompt` \- When Claude is waiting for user input (after 60+ seconds of idle time)
+- `auth_success` \- Authentication success notifications
+- `elicitation_dialog` \- When Claude Code needs input for MCP tool elicitation
+
+You can use matchers to run different hooks for different notification types, or omit the matcher to run hooks for all notifications.**Example: Different notifications for different types**
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "Notification": [\
+      {\
+        "matcher": "permission_prompt",\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "/path/to/permission-alert.sh"\
+          }\
+        ]\
+      },\
+      {\
+        "matcher": "idle_prompt",\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "/path/to/idle-notification.sh"\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
 
 ### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit)  UserPromptSubmit
 
@@ -584,7 +626,8 @@ Ask AI
   "cwd": "/Users/...",
   "permission_mode": "default",
   "hook_event_name": "Notification",
-  "message": "Task completed successfully"
+  "message": "Claude needs your permission to use Bash",
+  "notification_type": "permission_prompt"
 }
 ```
 
@@ -684,7 +727,7 @@ There are two ways for hooks to return output back to Claude Code. The output
 communicates whether to block and any feedback that should be shown to Claude
 and the user.
 
-### [​](https://code.claude.com/docs/en/hooks\#simple%3A-exit-code)  Simple: Exit Code
+### [​](https://code.claude.com/docs/en/hooks\#simple:-exit-code)  Simple: Exit Code
 
 Hooks communicate status through exit codes, stdout, and stderr:
 
@@ -713,7 +756,7 @@ the `UserPromptSubmit` hook where stdout is injected as context.
 | `SessionStart` | N/A, shows stderr to user only |
 | `SessionEnd` | N/A, shows stderr to user only |
 
-### [​](https://code.claude.com/docs/en/hooks\#advanced%3A-json-output)  Advanced: JSON Output
+### [​](https://code.claude.com/docs/en/hooks\#advanced:-json-output)  Advanced: JSON Output
 
 Hooks can return structured JSON in `stdout` for more sophisticated control:
 
@@ -763,7 +806,7 @@ shown to Claude.
 
 Additionally, hooks can modify tool inputs before execution using `updatedInput`:
 
-- `updatedInput` allows you to modify the tool’s input parameters before the tool executes. This is a `Record<string, unknown>` object containing the fields you want to change or add.
+- `updatedInput` allows you to modify the tool’s input parameters before the tool executes.
 - This is most useful with `"permissionDecision": "allow"` to modify and approve tool calls.
 
 Copy
@@ -787,6 +830,31 @@ The `decision` and `reason` fields are deprecated for PreToolUse hooks.
 Use `hookSpecificOutput.permissionDecision` and
 `hookSpecificOutput.permissionDecisionReason` instead. The deprecated fields
 `"approve"` and `"block"` map to `"allow"` and `"deny"` respectively.
+
+#### [​](https://code.claude.com/docs/en/hooks\#permissionrequest-decision-control)  `PermissionRequest` Decision Control
+
+`PermissionRequest` hooks can allow or deny permission requests shown to the user.
+
+- For `"behavior": "allow"` you can also optionally pass in an `"updatedInput"` that modifies the tool’s input parameters before the tool executes.
+- For `"behavior": "deny"` you can also optionally pass in a `"message"` string that tells the model why the permission was denied, and a boolean `"interrupt"` which will stop Claude.
+
+Copy
+
+Ask AI
+
+```
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PermissionRequest",
+    "decision": {
+      "behavior": "allow",
+      "updatedInput": {
+        "command": "npm run lint"
+      }
+    }
+  }
+}
+```
 
 #### [​](https://code.claude.com/docs/en/hooks\#posttooluse-decision-control)  `PostToolUse` Decision Control
 
@@ -836,7 +904,7 @@ Ask AI
 }
 ```
 
-#### [​](https://code.claude.com/docs/en/hooks\#stop%2Fsubagentstop-decision-control)  `Stop`/`SubagentStop` Decision Control
+#### [​](https://code.claude.com/docs/en/hooks\#stop/subagentstop-decision-control)  `Stop`/`SubagentStop` Decision Control
 
 `Stop` and `SubagentStop` hooks can control whether Claude must continue.
 
@@ -880,7 +948,7 @@ Ask AI
 `SessionEnd` hooks run when a session ends. They cannot block session termination
 but can perform cleanup tasks.
 
-#### [​](https://code.claude.com/docs/en/hooks\#exit-code-example%3A-bash-command-validation)  Exit Code Example: Bash Command Validation
+#### [​](https://code.claude.com/docs/en/hooks\#exit-code-example:-bash-command-validation)  Exit Code Example: Bash Command Validation
 
 Copy
 
@@ -934,7 +1002,7 @@ if issues:
     sys.exit(2)
 ```
 
-#### [​](https://code.claude.com/docs/en/hooks\#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)  JSON Output Example: UserPromptSubmit to Add Context and Validation
+#### [​](https://code.claude.com/docs/en/hooks\#json-output-example:-userpromptsubmit-to-add-context-and-validation)  JSON Output Example: UserPromptSubmit to Add Context and Validation
 
 For `UserPromptSubmit` hooks, you can inject context using either method:
 
@@ -994,7 +1062,7 @@ print(json.dumps({
 sys.exit(0)
 ```
 
-#### [​](https://code.claude.com/docs/en/hooks\#json-output-example%3A-pretooluse-with-approval)  JSON Output Example: PreToolUse with Approval
+#### [​](https://code.claude.com/docs/en/hooks\#json-output-example:-pretooluse-with-approval)  JSON Output Example: PreToolUse with Approval
 
 Copy
 
