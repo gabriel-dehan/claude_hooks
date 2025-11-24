@@ -123,7 +123,7 @@ Ask AI
 ```
 
 - **matcher**: Pattern to match tool names, case-sensitive (only applicable for
-`PreToolUse` and `PostToolUse`)
+`PreToolUse`, `PermissionRequest`, and `PostToolUse`)
 
   - Simple strings match exactly: `Write` matches only the Write tool
   - Supports regex: `Edit|Write` or `Notebook.*`
@@ -313,6 +313,7 @@ Prompt-based hooks work with any hook event, but are most useful for:
 - **SubagentStop**: Evaluate if a subagent has completed its task
 - **UserPromptSubmit**: Validate user prompts with LLM assistance
 - **PreToolUse**: Make context-aware permission decisions
+- **PermissionRequest**: Intelligently allow or deny permission dialogs
 
 ### [​](https://code.claude.com/docs/en/hooks\#example:-intelligent-stop-hook)  Example: Intelligent Stop hook
 
@@ -582,7 +583,8 @@ Ask AI
   "tool_input": {
     "file_path": "/path/to/file.txt",
     "content": "file content"
-  }
+  },
+  "tool_use_id": "toolu_01ABC123..."
 }
 ```
 
@@ -609,7 +611,8 @@ Ask AI
   "tool_response": {
     "filePath": "/path/to/file.txt",
     "success": true
-  }
+  },
+  "tool_use_id": "toolu_01ABC123..."
 }
 ```
 
@@ -723,7 +726,7 @@ Ask AI
 
 ## [​](https://code.claude.com/docs/en/hooks\#hook-output)  Hook Output
 
-There are two ways for hooks to return output back to Claude Code. The output
+There are two mutually-exclusive ways for hooks to return output back to Claude Code. The output
 communicates whether to block and any feedback that should be shown to Claude
 and the user.
 
@@ -731,13 +734,16 @@ and the user.
 
 Hooks communicate status through exit codes, stdout, and stderr:
 
-- **Exit code 0**: Success. `stdout` is shown to the user in transcript mode
-(CTRL-R), except for `UserPromptSubmit` and `SessionStart`, where stdout is
-added to the context.
-- **Exit code 2**: Blocking error. `stderr` is fed back to Claude to process
-automatically. See per-hook-event behavior below.
-- **Other exit codes**: Non-blocking error. `stderr` is shown to the user and
-execution continues.
+- **Exit code 0**: Success. `stdout` is shown to the user in verbose mode
+(ctrl+o), except for `UserPromptSubmit` and `SessionStart`, where stdout is
+added to the context. JSON output in `stdout` is parsed for structured control
+(see [Advanced: JSON Output](https://code.claude.com/docs/en/hooks#advanced-json-output)).
+- **Exit code 2**: Blocking error. Only `stderr` is used as the error message
+and fed back to Claude. The format is `[command]: {stderr}`. JSON in `stdout`
+is **not** processed for exit code 2. See per-hook-event behavior below.
+- **Other exit codes**: Non-blocking error. `stderr` is shown to the user in verbose mode (ctrl+o) with
+format `Failed with non-blocking status code: {stderr}`. If `stderr` is empty,
+it shows `No stderr output`. Execution continues.
 
 Reminder: Claude Code does not see stdout if the exit code is 0, except for
 the `UserPromptSubmit` hook where stdout is injected as context.
@@ -747,6 +753,7 @@ the `UserPromptSubmit` hook where stdout is injected as context.
 | Hook Event | Behavior |
 | --- | --- |
 | `PreToolUse` | Blocks the tool call, shows stderr to Claude |
+| `PermissionRequest` | Denies the permission, shows stderr to Claude |
 | `PostToolUse` | Shows stderr to Claude (tool already ran) |
 | `Notification` | N/A, shows stderr to user only |
 | `UserPromptSubmit` | Blocks prompt processing, erases prompt, shows stderr to user only |
@@ -758,7 +765,11 @@ the `UserPromptSubmit` hook where stdout is injected as context.
 
 ### [​](https://code.claude.com/docs/en/hooks\#advanced:-json-output)  Advanced: JSON Output
 
-Hooks can return structured JSON in `stdout` for more sophisticated control:
+Hooks can return structured JSON in `stdout` for more sophisticated control.
+
+JSON output is only processed when the hook exits with code 0. If your hook
+exits with code 2 (blocking error), `stderr` text is used directly—any JSON in `stdout`
+is ignored. For other non-zero exit codes, only `stderr` is shown to the user in verbose mode (ctrl+o).
 
 #### [​](https://code.claude.com/docs/en/hooks\#common-json-fields)  Common JSON Fields
 
@@ -881,13 +892,21 @@ Ask AI
 
 #### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit-decision-control)  `UserPromptSubmit` Decision Control
 
-`UserPromptSubmit` hooks can control whether a user prompt is processed.
+`UserPromptSubmit` hooks can control whether a user prompt is processed and add context.**Adding context (exit code 0):**
+There are two ways to add context to the conversation:
 
-- `"block"` prevents the prompt from being processed. The submitted prompt is
-erased from context. `"reason"` is shown to the user but not added to context.
-- `undefined` allows the prompt to proceed normally. `"reason"` is ignored.
-- `"hookSpecificOutput.additionalContext"` adds the string to the context if not
-blocked.
+1. **Plain text stdout** (simpler): Any non-JSON text written to stdout is added
+as context. This is the easiest way to inject information.
+2. **JSON with `additionalContext`** (structured): Use the JSON format below for
+more control. The `additionalContext` field is added as context.
+
+Both methods work with exit code 0. Plain stdout is shown as hook output in
+the transcript; `additionalContext` is added more discretely.**Blocking prompts:**
+
+- `"decision": "block"` prevents the prompt from being processed. The submitted
+prompt is erased from context. `"reason"` is shown to the user but not added
+to context.
+- `"decision": undefined` (or omitted) allows the prompt to proceed normally.
 
 Copy
 
@@ -903,6 +922,10 @@ Ask AI
   }
 }
 ```
+
+The JSON format is not required for simple use cases. To add context, you can
+just print plain text to stdout with exit code 0. Use JSON when you need to
+block prompts or want more structured control.
 
 #### [​](https://code.claude.com/docs/en/hooks\#stop/subagentstop-decision-control)  `Stop`/`SubagentStop` Decision Control
 
@@ -1006,8 +1029,12 @@ if issues:
 
 For `UserPromptSubmit` hooks, you can inject context using either method:
 
-- Exit code 0 with stdout: Claude sees the context (special case for `UserPromptSubmit`)
-- JSON output: Provides more control over the behavior
+- **Plain text stdout** with exit code 0: Simplest approach—just print text
+- **JSON output** with exit code 0: Use `"decision": "block"` to reject prompts,
+or `additionalContext` for structured context injection
+
+Remember: Exit code 2 only uses `stderr` for the error message. To block using
+JSON (with a custom reason), use `"decision": "block"` with exit code 0.
 
 Copy
 
@@ -1091,7 +1118,7 @@ if tool_name == "Read":
         output = {
             "decision": "approve",
             "reason": "Documentation file auto-approved",
-            "suppressOutput": True  # Don't show in transcript mode
+            "suppressOutput": True  # Don't show in verbose mode
         }
         print(json.dumps(output))
         sys.exit(0)
@@ -1209,7 +1236,7 @@ This prevents malicious hook modifications from affecting your current session.
 - **Input**: JSON via stdin
 - **Output**:
 
-  - PreToolUse/PostToolUse/Stop/SubagentStop: Progress shown in transcript (Ctrl-R)
+  - PreToolUse/PermissionRequest/PostToolUse/Stop/SubagentStop: Progress shown in verbose mode (ctrl+o)
   - Notification/SessionEnd: Logged to debug only (`--debug`)
   - UserPromptSubmit/SessionStart: stdout added as context for Claude
 
@@ -1262,7 +1289,7 @@ Ask AI
 [DEBUG] Hook command completed with status 0: <Your stdout>
 ```
 
-Progress messages appear in transcript mode (Ctrl-R) showing:
+Progress messages appear in verbose mode (ctrl+o) showing:
 
 - Which hook is running
 - Command being executed
