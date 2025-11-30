@@ -113,8 +113,8 @@ class TestOutputClasses < Minitest::Test
     assert_equal('block', output.decision)
     assert_equal('Bad content detected', output.reason)
     assert(output.blocked?)
-    assert_equal(2, output.exit_code)
-    assert_equal(:stderr, output.output_stream)
+    assert_equal(0, output.exit_code) # JSON API uses exit 0
+    assert_equal(:stdout, output.output_stream) # JSON API uses stdout
   end
 
   # Test Stop Output
