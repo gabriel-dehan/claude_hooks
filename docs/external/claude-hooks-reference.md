@@ -31,8 +31,8 @@ On this page
 - [Configuration](https://code.claude.com/docs/en/hooks#configuration-2)
 - [Response schema](https://code.claude.com/docs/en/hooks#response-schema)
 - [Supported hook events](https://code.claude.com/docs/en/hooks#supported-hook-events)
-- [Example: Intelligent Stop hook](https://code.claude.com/docs/en/hooks#example:-intelligent-stop-hook)
-- [Example: SubagentStop with custom logic](https://code.claude.com/docs/en/hooks#example:-subagentstop-with-custom-logic)
+- [Example: Intelligent Stop hook](https://code.claude.com/docs/en/hooks#example%3A-intelligent-stop-hook)
+- [Example: SubagentStop with custom logic](https://code.claude.com/docs/en/hooks#example%3A-subagentstop-with-custom-logic)
 - [Comparison with bash command hooks](https://code.claude.com/docs/en/hooks#comparison-with-bash-command-hooks)
 - [Best practices](https://code.claude.com/docs/en/hooks#best-practices)
 - [Hook Events](https://code.claude.com/docs/en/hooks#hook-events)
@@ -57,20 +57,20 @@ On this page
 - [SessionStart Input](https://code.claude.com/docs/en/hooks#sessionstart-input)
 - [SessionEnd Input](https://code.claude.com/docs/en/hooks#sessionend-input)
 - [Hook Output](https://code.claude.com/docs/en/hooks#hook-output)
-- [Simple: Exit Code](https://code.claude.com/docs/en/hooks#simple:-exit-code)
+- [Simple: Exit Code](https://code.claude.com/docs/en/hooks#simple%3A-exit-code)
 - [Exit Code 2 Behavior](https://code.claude.com/docs/en/hooks#exit-code-2-behavior)
-- [Advanced: JSON Output](https://code.claude.com/docs/en/hooks#advanced:-json-output)
+- [Advanced: JSON Output](https://code.claude.com/docs/en/hooks#advanced%3A-json-output)
 - [Common JSON Fields](https://code.claude.com/docs/en/hooks#common-json-fields)
 - [PreToolUse Decision Control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control)
 - [PermissionRequest Decision Control](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control)
 - [PostToolUse Decision Control](https://code.claude.com/docs/en/hooks#posttooluse-decision-control)
 - [UserPromptSubmit Decision Control](https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control)
-- [Stop/SubagentStop Decision Control](https://code.claude.com/docs/en/hooks#stop/subagentstop-decision-control)
+- [Stop/SubagentStop Decision Control](https://code.claude.com/docs/en/hooks#stop%2Fsubagentstop-decision-control)
 - [SessionStart Decision Control](https://code.claude.com/docs/en/hooks#sessionstart-decision-control)
 - [SessionEnd Decision Control](https://code.claude.com/docs/en/hooks#sessionend-decision-control)
-- [Exit Code Example: Bash Command Validation](https://code.claude.com/docs/en/hooks#exit-code-example:-bash-command-validation)
-- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://code.claude.com/docs/en/hooks#json-output-example:-userpromptsubmit-to-add-context-and-validation)
-- [JSON Output Example: PreToolUse with Approval](https://code.claude.com/docs/en/hooks#json-output-example:-pretooluse-with-approval)
+- [Exit Code Example: Bash Command Validation](https://code.claude.com/docs/en/hooks#exit-code-example%3A-bash-command-validation)
+- [JSON Output Example: UserPromptSubmit to Add Context and Validation](https://code.claude.com/docs/en/hooks#json-output-example%3A-userpromptsubmit-to-add-context-and-validation)
+- [JSON Output Example: PreToolUse with Approval](https://code.claude.com/docs/en/hooks#json-output-example%3A-pretooluse-with-approval)
 - [Working with MCP Tools](https://code.claude.com/docs/en/hooks#working-with-mcp-tools)
 - [MCP Tool Naming](https://code.claude.com/docs/en/hooks#mcp-tool-naming)
 - [Configuring Hooks for MCP Tools](https://code.claude.com/docs/en/hooks#configuring-hooks-for-mcp-tools)
@@ -368,7 +368,7 @@ Ask AI
 | --- | --- | --- |
 | **Execution** | Runs bash script | Queries LLM |
 | **Decision logic** | You implement in code | LLM evaluates context |
-| **Setup complexity** | Requires script file | Just configure prompt |
+| **Setup complexity** | Requires script file | Configure prompt |
 | **Context awareness** | Limited to script logic | Natural language understanding |
 | **Performance** | Fast (local execution) | Slower (API call) |
 | **Use case** | Deterministic rules | Context-aware decisions |
@@ -504,7 +504,7 @@ fi
 exit 0
 ```
 
-**Example: Persisting all environment changes from the hook**When your setup modifies the environment (e.g., `nvm use`), capture and persist all changes by diffing the environment:
+**Example: Persisting all environment changes from the hook**When your setup modifies the environment (for example, `nvm use`), capture and persist all changes by diffing the environment:
 
 Copy
 
@@ -726,7 +726,7 @@ Ask AI
 
 ## [​](https://code.claude.com/docs/en/hooks\#hook-output)  Hook Output
 
-There are two mutually-exclusive ways for hooks to return output back to Claude Code. The output
+There are two mutually exclusive ways for hooks to return output back to Claude Code. The output
 communicates whether to block and any feedback that should be shown to Claude
 and the user.
 
@@ -923,8 +923,7 @@ Ask AI
 }
 ```
 
-The JSON format is not required for simple use cases. To add context, you can
-just print plain text to stdout with exit code 0. Use JSON when you need to
+The JSON format isn’t required for simple use cases. To add context, you can print plain text to stdout with exit code 0. Use JSON when you need to
 block prompts or want more structured control.
 
 #### [​](https://code.claude.com/docs/en/hooks\#stop/subagentstop-decision-control)  `Stop`/`SubagentStop` Decision Control
@@ -1029,7 +1028,7 @@ if issues:
 
 For `UserPromptSubmit` hooks, you can inject context using either method:
 
-- **Plain text stdout** with exit code 0: Simplest approach—just print text
+- **Plain text stdout** with exit code 0: Simplest approach, prints text
 - **JSON output** with exit code 0: Use `"decision": "block"` to reject prompts,
 or `additionalContext` for structured context injection
 
