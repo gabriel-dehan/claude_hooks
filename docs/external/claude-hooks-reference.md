@@ -1295,6 +1295,10 @@ Progress messages appear in verbose mode (ctrl+o) showing:
 - Success/failure status
 - Output or error messages
 
+Was this page helpful?
+
+YesNo
+
 [Checkpointing](https://code.claude.com/docs/en/checkpointing) [Plugins reference](https://code.claude.com/docs/en/plugins-reference)
 
 Ctrl+I
