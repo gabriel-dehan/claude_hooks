@@ -26,12 +26,20 @@ module ClaudeHooks
       end
 
       # === EXIT CODE LOGIC ===
-
+      #
+      # PostToolUse hooks use the advanced JSON API with exit code 0.
+      # Per Anthropic guidance: when using structured JSON with decision/reason fields,
+      # always output to stdout with exit 0 (not stderr with exit 2).
+      # Reference: https://github.com/anthropics/claude-code/issues/10875
       def exit_code
-        return 2 unless continue?
-        return 2 if blocked?
-
         0
+      end
+
+      # === OUTPUT STREAM LOGIC ===
+      #
+      # PostToolUse hooks always output to stdout when using the JSON API.
+      def output_stream
+        :stdout
       end
 
       # === MERGE HELPER ===
@@ -40,7 +48,7 @@ module ClaudeHooks
         compacted_outputs = outputs.compact
         return compacted_outputs.first if compacted_outputs.length == 1
         return super(*outputs) if compacted_outputs.empty?
-        
+
         merged = super(*outputs)
         merged_data = merged.data
         contexts = []
