@@ -11,7 +11,7 @@ require 'diffy'
 FIRECRAWL_API_KEY = ENV['FIRECRAWL_API_KEY']
 GITHUB_TOKEN = ENV['GITHUB_TOKEN']
 REPO = ENV['GITHUB_REPOSITORY'] || 'gabriel-dehan/claude_hooks'
-DOC_URL = 'https://docs.anthropic.com/en/docs/claude-code/hooks'
+DOC_URL = 'https://code.claude.com/docs/en/hooks'
 DOC_PATH = 'docs/external/claude-hooks-reference.md'
 
 class DocMonitor
