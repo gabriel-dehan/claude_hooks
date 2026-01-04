@@ -1,13 +1,13 @@
 PATH
   remote: .
   specs:
-    claude_hooks (1.0.0)
+    claude_hooks (1.0.2)
       json (~> 2.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    json (2.13.2)
+    json (2.18.0)
     minitest (5.25.5)
     rake (13.3.0)
 
@@ -21,4 +21,4 @@ DEPENDENCIES
   rake (~> 13.0)
 
 BUNDLED WITH
-   2.7.1
+   2.6.3
