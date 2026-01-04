@@ -24,6 +24,7 @@ A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will 
   - [📝 Example: Tool usage monitor](#-example-tool-usage-monitor)
   - [🔄 Hook Output](#-hook-output)
   - [🔌 Plugin Hooks Support](#-plugin-hooks-support)
+  - [🛠️ MCP Tools Integration](#️-mcp-tools-integration)
   - [🚨 Advices](#-advices)
   - [⚠️ Troubleshooting](#️-troubleshooting)
   - [🧪 CLI Debugging](#-cli-debugging)
@@ -35,7 +36,11 @@ A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will 
 > [!TIP]
 > Examples are available in [`example_dotclaude/hooks/`](example_dotclaude/hooks/). The GithubGuard in particular is a good example of a solid hook. You can also check [Kyle's hooks for some great examples](https://github.com/kylesnowschwartz/dotfiles/blob/main/claude/hooks)
 
-Here's how to create a simple hook:
+Claude Code supports two types of hooks:
+- **Command hooks** (`type: "command"`) - Execute Ruby/bash scripts (what this DSL is for)
+- **Prompt-based hooks** (`type: "prompt"`) - Delegate decisions to an LLM ([see guide](docs/PROMPT_BASED_HOOKS.md))
+
+Here's how to create a simple command hook with this DSL:
 
 1. **Install the gem:**
 ```bash
@@ -722,7 +727,70 @@ end
 - `${CLAUDE_PROJECT_DIR}`: Project root directory (same as for project hooks)
 - All standard environment variables and configuration options work the same way
 
-See the [plugin components reference](https://docs.claude.com/en/docs/claude-code/plugins-reference#hooks) for more details on creating plugin hooks.
+See the [plugin components reference](https://code.claude.com/docs/en/plugins-reference#hooks) for more details on creating plugin hooks.
+
+## 🛠️ MCP Tools Integration
+
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) tools can be used with Claude Code hooks. When MCP servers are configured, their tools become available and can be intercepted by hooks just like built-in tools.
+
+### MCP Tool Naming Convention
+
+MCP tools follow a specific naming pattern: `mcp__<server-name>__<tool-name>`
+
+**Example MCP tool names:**
+- `mcp__filesystem__read_file`
+- `mcp__github__create_issue`
+- `mcp__database__query`
+
+### Configuring Hooks for MCP Tools
+
+You can use matchers to target specific MCP tools or all tools from a server:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__github__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/entrypoints/github_guard.rb"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*__create.*|mcp__.*__delete.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/entrypoints/destructive_operation_guard.rb"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Common MCP Tool Patterns
+
+| Pattern | Matches |
+|---------|---------|
+| `mcp__*__*` | All MCP tools from all servers |
+| `mcp__github__*` | All tools from the github server |
+| `mcp__*__read*` | All read operations from any server |
+| `mcp__.*__create.*\|mcp__.*__delete.*` | All create/delete operations |
+
+### Best Practices for MCP Tools
+
+1. **Use regex matchers** - MCP tool names are predictable, making regex patterns very effective
+2. **Guard destructive operations** - Always review create/delete/update operations
+3. **Server-specific rules** - Different MCP servers may need different security policies
+4. **Log MCP tool usage** - Track which external tools are being used
+5. **Test with your MCP servers** - Tool names vary by server implementation
+
+See the [official MCP documentation](https://modelcontextprotocol.io/) for more information about MCP servers and tools.
 
 ## 🚨 Advices
 
