@@ -3,6 +3,14 @@
 require_relative 'base'
 
 module ClaudeHooks
+  # Stop hook for preventing Claude Code from stopping execution.
+  #
+  # When using continue_with_instructions!, this hook outputs JSON to stdout
+  # with exit code 0 (advanced JSON API approach).
+  #
+  # References:
+  # - https://github.com/anthropics/claude-code/issues/10875
+  # - https://github.com/gabriel-dehan/claude_hooks/issues/11
   class Stop < Base
     def self.hook_type
       'Stop'
