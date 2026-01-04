@@ -9,7 +9,7 @@ module ClaudeHooks
     end
 
     def self.input_fields
-      %w[tool_name tool_input tool_response]
+      %w[tool_name tool_input tool_response tool_use_id]
     end
 
     # === INPUT DATA ACCESS ===
@@ -24,6 +24,10 @@ module ClaudeHooks
 
     def tool_response
       @input_data['tool_response']
+    end
+
+    def tool_use_id
+      @input_data['tool_use_id'] || @input_data['toolUseId']
     end
 
     # === OUTPUT DATA HELPERS ===

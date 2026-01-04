@@ -11,6 +11,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 |--------|-------------|
 | `message` | Get the notification message content |
 | `notification_message` | Alias for `message` |
+| `notification_type` | Get the notification type: `'permission_prompt'`, `'idle_prompt'`, `'auth_success'`, `'elicitation_dialog'` |
 
 ## Hook State Helpers
 Notifications are outside facing and do not have any specific state to modify.

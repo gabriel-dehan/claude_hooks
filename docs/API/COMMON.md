@@ -12,6 +12,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `transcript_path` | Get path to the transcript file |
 | `cwd` | Get current working directory |
 | `hook_event_name` | Get the hook event name |
+| `permission_mode` | Get the permission mode: `'default'`, `'plan'`, `'acceptEdits'`, `'dontAsk'`, `'bypassPermissions'` (defaults to `'default'`) |
 | `read_transcript` | Read the transcript file |
 | `transcript` | Alias for `read_transcript` |
 

@@ -119,6 +119,8 @@ module ClaudeHooks
           UserPromptSubmit.new(data)
         when 'PreToolUse'
           PreToolUse.new(data)
+        when 'PermissionRequest'
+          PermissionRequest.new(data)
         when 'PostToolUse'
           PostToolUse.new(data)
         when 'Stop'

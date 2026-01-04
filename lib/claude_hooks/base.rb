@@ -9,7 +9,7 @@ module ClaudeHooks
   # Base class for Claude Code hook scripts
   class Base
     # Common input fields for all hook types
-    COMMON_INPUT_FIELDS = %w[session_id transcript_path cwd hook_event_name].freeze
+    COMMON_INPUT_FIELDS = %w[session_id transcript_path cwd hook_event_name permission_mode].freeze
 
     # Override in subclasses to specify hook type
     def self.hook_type
@@ -69,6 +69,10 @@ module ClaudeHooks
 
     def hook_event_name
       @input_data['hook_event_name'] || @input_data['hookEventName'] || hook_type
+    end
+
+    def permission_mode
+      @input_data['permission_mode'] || @input_data['permissionMode'] || 'default'
     end
 
     def read_transcript

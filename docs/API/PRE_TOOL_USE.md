@@ -11,6 +11,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 |--------|-------------|
 | `tool_name` | Get the name of the tool being used |
 | `tool_input` | Get the input data for the tool |
+| `tool_use_id` | Get the unique identifier for this tool use (e.g., `"toolu_01ABC123..."`) |
 
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
@@ -22,6 +23,7 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `approve_tool!(reason)` | Explicitly approve tool usage |
 | `block_tool!(reason)` | Block tool usage with feedback |
 | `ask_for_permission!(reason)` | Request user permission |
+| `update_tool_input!(updated_input)` | Update the tool input and automatically approve the tool (sets `permissionDecision` to `'allow'`) |
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.
@@ -34,8 +36,10 @@ Output helpers provide access to the hook's output data and helper methods for w
 | `output.denied?` | Check if the tool has been denied (permission_decision == 'deny') |
 | `output.blocked?` | Alias for `denied?` |
 | `output.should_ask_permission?` | Check if user permission is required (permission_decision == 'ask') |
+| `output.input_updated?` | Check if tool input has been updated |
 | `output.permission_decision` | Get the permission decision: 'allow', 'deny', or 'ask' |
 | `output.permission_reason` | Get the reason for the permission decision |
+| `output.updated_input` | Get the updated input (if provided) |
 
 ## Hook Exit Codes
 

@@ -12,6 +12,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `tool_name` | Get the name of the tool that was used |
 | `tool_input` | Get the input that was passed to the tool |
 | `tool_response` | Get the tool's response/output |
+| `tool_use_id` | Get the unique identifier for this tool use (e.g., `"toolu_01ABC123..."`) |
 
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.

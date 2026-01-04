@@ -9,7 +9,7 @@ module ClaudeHooks
     end
 
     def self.input_fields
-      %w[message]
+      %w[message notification_type]
     end
 
     # === INPUT DATA ACCESS ===
@@ -18,5 +18,9 @@ module ClaudeHooks
       @input_data['message']
     end
     alias_method :notification_message, :message
+
+    def notification_type
+      @input_data['notification_type'] || @input_data['notificationType']
+    end
   end
 end
