@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-01-04
+
+### Fixed
+
+- **Critical: Fixed hook output contract for JSON API** - Stop, PostToolUse, UserPromptSubmit, and PreToolUse hooks now correctly use stdout + exit 0 when outputting structured JSON
+  - Stop hooks now output to stdout with exit 0 instead of stderr with exit 2 (PR #15, fixes #11)
+  - PostToolUse hooks now use stdout + exit 0 for JSON API consistency
+  - UserPromptSubmit hooks now use stdout + exit 0 for JSON API consistency
+  - PreToolUse hooks now use exit 0 for all permission decisions (previously varied: 0 for allow, 1 for ask, 2 for deny)
+  - This aligns with Anthropic's official guidance: when using advanced JSON API with decision/reason fields, hooks must output to stdout with exit 0
+  - **Breaking behavior fixed**: Plugin hooks with `continue_with_instructions!` now work correctly
+  - Reference: https://github.com/anthropics/claude-code/issues/10875
+  - Reference: https://github.com/gabriel-dehan/claude_hooks/issues/11
+
+### Notes
+
+- All tests updated and passing (147 runs, 262 assertions, 0 failures)
+- This fix ensures compatibility with Claude Code's plugin system
+- The exit code 2 + stderr approach is only for simple text output without JSON structure
+
 ## [1.0.1] - 2025-10-13
 
 ### Documentation
