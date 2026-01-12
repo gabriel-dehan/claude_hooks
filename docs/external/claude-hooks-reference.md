@@ -8,7 +8,7 @@ English
 
 Search...
 
-Ctrl K
+Ctrl KAsk AI
 
 Search...
 
@@ -26,6 +26,7 @@ On this page
 - [Structure](https://code.claude.com/docs/en/hooks#structure)
 - [Project-Specific Hook Scripts](https://code.claude.com/docs/en/hooks#project-specific-hook-scripts)
 - [Plugin hooks](https://code.claude.com/docs/en/hooks#plugin-hooks)
+- [Hooks in Skills, Agents, and Slash Commands](https://code.claude.com/docs/en/hooks#hooks-in-skills%2C-agents%2C-and-slash-commands)
 - [Prompt-Based Hooks](https://code.claude.com/docs/en/hooks#prompt-based-hooks)
 - [How prompt-based hooks work](https://code.claude.com/docs/en/hooks#how-prompt-based-hooks-work)
 - [Configuration](https://code.claude.com/docs/en/hooks#configuration-2)
@@ -49,6 +50,10 @@ On this page
 - [SessionEnd](https://code.claude.com/docs/en/hooks#sessionend)
 - [Hook Input](https://code.claude.com/docs/en/hooks#hook-input)
 - [PreToolUse Input](https://code.claude.com/docs/en/hooks#pretooluse-input)
+- [Bash tool](https://code.claude.com/docs/en/hooks#bash-tool)
+- [Write tool](https://code.claude.com/docs/en/hooks#write-tool)
+- [Edit tool](https://code.claude.com/docs/en/hooks#edit-tool)
+- [Read tool](https://code.claude.com/docs/en/hooks#read-tool)
 - [PostToolUse Input](https://code.claude.com/docs/en/hooks#posttooluse-input)
 - [Notification Input](https://code.claude.com/docs/en/hooks#notification-input)
 - [UserPromptSubmit Input](https://code.claude.com/docs/en/hooks#userpromptsubmit-input)
@@ -94,7 +99,7 @@ Claude Code hooks are configured in your [settings files](https://code.claude.co
 - `~/.claude/settings.json` \- User settings
 - `.claude/settings.json` \- Project settings
 - `.claude/settings.local.json` \- Local project settings (not committed)
-- Enterprise managed policy settings
+- Managed policy settings
 
 Enterprise administrators can use `allowManagedHooksOnly` to block user, project, and plugin hooks. See [Hook configuration](https://code.claude.com/docs/en/settings#hook-configuration).
 
@@ -237,6 +242,50 @@ Plugin hooks run alongside your custom hooks. If multiple hooks match an event, 
 
 See the [plugin components reference](https://code.claude.com/docs/en/plugins-reference#hooks) for details on creating plugin hooks.
 
+### [​](https://code.claude.com/docs/en/hooks\#hooks-in-skills,-agents,-and-slash-commands)  Hooks in Skills, Agents, and Slash Commands
+
+In addition to settings files and plugins, hooks can be defined directly in [Skills](https://code.claude.com/docs/en/skills), [subagents](https://code.claude.com/docs/en/sub-agents), and [slash commands](https://code.claude.com/docs/en/slash-commands) using frontmatter. These hooks are scoped to the component’s lifecycle and only run when that component is active.**Supported events**: `PreToolUse`, `PostToolUse`, and `Stop`**Example in a Skill**:
+
+Copy
+
+Ask AI
+
+```
+---
+name: secure-operations
+description: Perform operations with security checks
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./scripts/security-check.sh"
+---
+```
+
+**Example in an agent**:
+
+Copy
+
+Ask AI
+
+```
+---
+name: code-reviewer
+description: Review code changes
+hooks:
+  PostToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: "./scripts/run-linter.sh"
+---
+```
+
+Component-scoped hooks follow the same configuration format as settings-based hooks but are automatically cleaned up when the component finishes executing.**Additional option for skills and slash commands:**
+
+- `once`: Set to `true` to run the hook only once per session. After the first successful execution, the hook is removed. Note: This option is currently only supported for skills and slash commands, not for agents.
+
 ## [​](https://code.claude.com/docs/en/hooks\#prompt-based-hooks)  Prompt-Based Hooks
 
 In addition to bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action. Prompt-based hooks are currently only supported for `Stop` and `SubagentStop` hooks, where they enable intelligent, context-aware decisions.
@@ -291,21 +340,15 @@ Ask AI
 
 ```
 {
-  "decision": "approve" | "block",
-  "reason": "Explanation for the decision",
-  "continue": false,  // Optional: stops Claude entirely
-  "stopReason": "Message shown to user",  // Optional: custom stop message
-  "systemMessage": "Warning or context"  // Optional: shown to user
+  "ok": true | false,
+  "reason": "Explanation for the decision"
 }
 ```
 
 **Response fields:**
 
-- `decision`: `"approve"` allows the action, `"block"` prevents it
-- `reason`: Explanation shown to Claude when decision is `"block"`
-- `continue`: (Optional) If `false`, stops Claude’s execution entirely
-- `stopReason`: (Optional) Message shown when `continue` is false
-- `systemMessage`: (Optional) Additional message shown to the user
+- `ok`: `true` allows the action, `false` prevents it
+- `reason`: Required when `ok` is `false`. Explanation shown to Claude
 
 ### [​](https://code.claude.com/docs/en/hooks\#supported-hook-events)  Supported hook events
 
@@ -331,7 +374,7 @@ Ask AI
         "hooks": [\
           {\
             "type": "prompt",\
-            "prompt": "You are evaluating whether Claude should stop working. Context: $ARGUMENTS\n\nAnalyze the conversation and determine if:\n1. All user-requested tasks are complete\n2. Any errors need to be addressed\n3. Follow-up work is needed\n\nRespond with JSON: {\"decision\": \"approve\" or \"block\", \"reason\": \"your explanation\"}",\
+            "prompt": "You are evaluating whether Claude should stop working. Context: $ARGUMENTS\n\nAnalyze the conversation and determine if:\n1. All user-requested tasks are complete\n2. Any errors need to be addressed\n3. Follow-up work is needed\n\nRespond with JSON: {\"ok\": true} to allow stopping, or {\"ok\": false, \"reason\": \"your explanation\"} to continue working.",\
             "timeout": 30\
           }\
         ]\
@@ -355,7 +398,7 @@ Ask AI
         "hooks": [\
           {\
             "type": "prompt",\
-            "prompt": "Evaluate if this subagent should stop. Input: $ARGUMENTS\n\nCheck if:\n- The subagent completed its assigned task\n- Any errors occurred that need fixing\n- Additional context gathering is needed\n\nReturn: {\"decision\": \"approve\" or \"block\", \"reason\": \"explanation\"}"\
+            "prompt": "Evaluate if this subagent should stop. Input: $ARGUMENTS\n\nCheck if:\n- The subagent completed its assigned task\n- Any errors occurred that need fixing\n- Additional context gathering is needed\n\nReturn: {\"ok\": true} to allow stopping, or {\"ok\": false, \"reason\": \"explanation\"} to continue."\
           }\
         ]\
       }\
@@ -568,7 +611,41 @@ Ask AI
 
 ### [​](https://code.claude.com/docs/en/hooks\#pretooluse-input)  PreToolUse Input
 
-The exact schema for `tool_input` depends on the tool.
+The exact schema for `tool_input` depends on the tool. Here are examples for commonly hooked tools.
+
+#### [​](https://code.claude.com/docs/en/hooks\#bash-tool)  Bash tool
+
+The Bash tool is the most commonly hooked tool for command validation:
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "psql -c 'SELECT * FROM users'",
+    "description": "Query the users table",
+    "timeout": 120000
+  },
+  "tool_use_id": "toolu_01ABC123..."
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `command` | string | The shell command to execute |
+| `description` | string | Optional description of what the command does |
+| `timeout` | number | Optional timeout in milliseconds |
+| `run_in_background` | boolean | Whether to run the command in background |
+
+#### [​](https://code.claude.com/docs/en/hooks\#write-tool)  Write tool
 
 Copy
 
@@ -589,6 +666,68 @@ Ask AI
   "tool_use_id": "toolu_01ABC123..."
 }
 ```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `file_path` | string | Absolute path to the file to write |
+| `content` | string | Content to write to the file |
+
+#### [​](https://code.claude.com/docs/en/hooks\#edit-tool)  Edit tool
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/path/to/file.txt",
+    "old_string": "original text",
+    "new_string": "replacement text"
+  },
+  "tool_use_id": "toolu_01ABC123..."
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `file_path` | string | Absolute path to the file to edit |
+| `old_string` | string | Text to find and replace |
+| `new_string` | string | Replacement text |
+| `replace_all` | boolean | Whether to replace all occurrences (default: false) |
+
+#### [​](https://code.claude.com/docs/en/hooks\#read-tool)  Read tool
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Read",
+  "tool_input": {
+    "file_path": "/path/to/file.txt"
+  },
+  "tool_use_id": "toolu_01ABC123..."
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `file_path` | string | Absolute path to the file to read |
+| `offset` | number | Optional line number to start reading from |
+| `limit` | number | Optional number of lines to read |
 
 ### [​](https://code.claude.com/docs/en/hooks\#posttooluse-input)  PostToolUse Input
 
@@ -819,8 +958,9 @@ shown to Claude.
 
 Additionally, hooks can modify tool inputs before execution using `updatedInput`:
 
-- `updatedInput` allows you to modify the tool’s input parameters before the tool executes.
-- This is most useful with `"permissionDecision": "allow"` to modify and approve tool calls.
+- `updatedInput` modifies the tool’s input parameters before the tool executes
+- Combine with `"permissionDecision": "allow"` to modify the input and auto-approve the tool call
+- Combine with `"permissionDecision": "ask"` to modify the input and show it to the user for confirmation
 
 Copy
 
@@ -830,7 +970,7 @@ Ask AI
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
-    "permissionDecision": "allow"
+    "permissionDecision": "allow",
     "permissionDecisionReason": "My reason here",
     "updatedInput": {
       "field_to_modify": "new value"
