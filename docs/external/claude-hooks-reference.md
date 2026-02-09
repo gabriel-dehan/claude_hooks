@@ -71,6 +71,12 @@ On this page
 - [Stop](https://code.claude.com/docs/en/hooks#stop)
 - [Stop input](https://code.claude.com/docs/en/hooks#stop-input)
 - [Stop decision control](https://code.claude.com/docs/en/hooks#stop-decision-control)
+- [TeammateIdle](https://code.claude.com/docs/en/hooks#teammateidle)
+- [TeammateIdle input](https://code.claude.com/docs/en/hooks#teammateidle-input)
+- [TeammateIdle decision control](https://code.claude.com/docs/en/hooks#teammateidle-decision-control)
+- [TaskCompleted](https://code.claude.com/docs/en/hooks#taskcompleted)
+- [TaskCompleted input](https://code.claude.com/docs/en/hooks#taskcompleted-input)
+- [TaskCompleted decision control](https://code.claude.com/docs/en/hooks#taskcompleted-decision-control)
 - [PreCompact](https://code.claude.com/docs/en/hooks#precompact)
 - [PreCompact input](https://code.claude.com/docs/en/hooks#precompact-input)
 - [SessionEnd](https://code.claude.com/docs/en/hooks#sessionend)
@@ -79,14 +85,14 @@ On this page
 - [How prompt-based hooks work](https://code.claude.com/docs/en/hooks#how-prompt-based-hooks-work)
 - [Prompt hook configuration](https://code.claude.com/docs/en/hooks#prompt-hook-configuration)
 - [Response schema](https://code.claude.com/docs/en/hooks#response-schema)
-- [Example: Multi-criteria Stop hook](https://code.claude.com/docs/en/hooks#example%3A-multi-criteria-stop-hook)
+- [Example: Multi-criteria Stop hook](https://code.claude.com/docs/en/hooks#example-multi-criteria-stop-hook)
 - [Agent-based hooks](https://code.claude.com/docs/en/hooks#agent-based-hooks)
 - [How agent hooks work](https://code.claude.com/docs/en/hooks#how-agent-hooks-work)
 - [Agent hook configuration](https://code.claude.com/docs/en/hooks#agent-hook-configuration)
 - [Run hooks in the background](https://code.claude.com/docs/en/hooks#run-hooks-in-the-background)
 - [Configure an async hook](https://code.claude.com/docs/en/hooks#configure-an-async-hook)
 - [How async hooks execute](https://code.claude.com/docs/en/hooks#how-async-hooks-execute)
-- [Example: run tests after file changes](https://code.claude.com/docs/en/hooks#example%3A-run-tests-after-file-changes)
+- [Example: run tests after file changes](https://code.claude.com/docs/en/hooks#example-run-tests-after-file-changes)
 - [Limitations](https://code.claude.com/docs/en/hooks#limitations)
 - [Security considerations](https://code.claude.com/docs/en/hooks#security-considerations)
 - [Disclaimer](https://code.claude.com/docs/en/hooks#disclaimer)
@@ -101,7 +107,7 @@ Hooks are user-defined shell commands or LLM prompts that execute automatically 
 
 Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, this arrives on stdin. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:
 
-![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd](https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=5c25fedbc3db6f8882af50c3cc478c32)
+![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd](https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=7a351ea1cc3d5da7a2176bf51196bc1a)
 
 The table below summarizes when each event fires. The [Hook events](https://code.claude.com/docs/en/hooks#hook-events) section documents the full input schema and decision control options for each one.
 
@@ -117,6 +123,8 @@ The table below summarizes when each event fires. The [Hook events](https://code
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
 | `Stop` | When Claude finishes responding |
+| `TeammateIdle` | When an [agent team](https://code.claude.com/docs/en/agent-teams) teammate is about to go idle |
+| `TaskCompleted` | When a task is being marked as completed |
 | `PreCompact` | Before context compaction |
 | `SessionEnd` | When a session terminates |
 
@@ -272,7 +280,7 @@ The `matcher` field is a regex string that filters when hooks fire. Use `"*"`, `
 | `SubagentStart` | agent type | `Bash`, `Explore`, `Plan`, or custom agent names |
 | `PreCompact` | what triggered compaction | `manual`, `auto` |
 | `SubagentStop` | agent type | same values as `SubagentStart` |
-| `UserPromptSubmit`, `Stop` | no matcher support | always fires on every occurrence |
+| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted` | no matcher support | always fires on every occurrence |
 
 The matcher is a regex, so `Edit|Write` matches either tool and `Notebook.*` matches any tool starting with Notebook. The matcher runs against a field from the [JSON input](https://code.claude.com/docs/en/hooks#hook-input-and-output) that Claude Code sends to your hook on stdin. For tool events, that field is `tool_name`. Each [hook event](https://code.claude.com/docs/en/hooks#hook-events) section lists the full set of matcher values and the input schema for that event.This example runs a linting script only when Claude writes or edits a file:
 
@@ -498,7 +506,7 @@ All hook events receive these fields via stdin as JSON, in addition to event-spe
 | `session_id` | Current session identifier |
 | `transcript_path` | Path to conversation JSON |
 | `cwd` | Current working directory when the hook is invoked |
-| `permission_mode` | Current [permission mode](https://code.claude.com/docs/en/iam#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"dontAsk"`, or `"bypassPermissions"` |
+| `permission_mode` | Current [permission mode](https://code.claude.com/docs/en/permissions#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"dontAsk"`, or `"bypassPermissions"` |
 | `hook_event_name` | Name of the event that fired |
 
 For example, a `PreToolUse` hook for a Bash command receives this on stdin:
@@ -555,6 +563,8 @@ Exit code 2 is the way a hook signals “stop, don’t do this.” The effect de
 | `UserPromptSubmit` | Yes | Blocks prompt processing and erases the prompt |
 | `Stop` | Yes | Prevents Claude from stopping, continues the conversation |
 | `SubagentStop` | Yes | Prevents the subagent from stopping |
+| `TeammateIdle` | Yes | Prevents the teammate from going idle (teammate continues working) |
+| `TaskCompleted` | Yes | Prevents the task from being marked as completed |
 | `PostToolUse` | No | Shows stderr to Claude (tool already ran) |
 | `PostToolUseFailure` | No | Shows stderr to Claude (tool already failed) |
 | `Notification` | No | Shows stderr to user only |
@@ -599,6 +609,7 @@ Not every event supports blocking or controlling behavior through JSON. The even
 | Events | Decision pattern | Key fields |
 | --- | --- | --- |
 | UserPromptSubmit, PostToolUse, PostToolUseFailure, Stop, SubagentStop | Top-level `decision` | `decision: "block"`, `reason` |
+| TeammateIdle, TaskCompleted | Exit code only | Exit code 2 blocks the action, stderr is fed back as feedback |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision` (allow/deny/ask), `permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior` (allow/deny) |
 
@@ -611,7 +622,7 @@ Here are examples of each pattern in action:
 - PermissionRequest
 
 
-Used by `UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `Stop`, and `SubagentStop`. The only value is `"block"` — to allow the action to proceed, omit `decision` from your JSON, or exit 0 without any JSON at all:
+Used by `UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `Stop`, and `SubagentStop`. The only value is `"block"`. To allow the action to proceed, omit `decision` from your JSON, or exit 0 without any JSON at all:
 
 Copy
 
@@ -1307,6 +1318,111 @@ Ask AI
 }
 ```
 
+### [​](https://code.claude.com/docs/en/hooks\#teammateidle)  TeammateIdle
+
+Runs when an [agent team](https://code.claude.com/docs/en/agent-teams) teammate is about to go idle after finishing its turn. Use this to enforce quality gates before a teammate stops working, such as requiring passing lint checks or verifying that output files exist.When a `TeammateIdle` hook exits with code 2, the teammate receives the stderr message as feedback and continues working instead of going idle. TeammateIdle hooks do not support matchers and fire on every occurrence.
+
+#### [​](https://code.claude.com/docs/en/hooks\#teammateidle-input)  TeammateIdle input
+
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), TeammateIdle hooks receive `teammate_name` and `team_name`.
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "TeammateIdle",
+  "teammate_name": "researcher",
+  "team_name": "my-project"
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `teammate_name` | Name of the teammate that is about to go idle |
+| `team_name` | Name of the team |
+
+#### [​](https://code.claude.com/docs/en/hooks\#teammateidle-decision-control)  TeammateIdle decision control
+
+TeammateIdle hooks use exit codes only, not JSON decision control. This example checks that a build artifact exists before allowing a teammate to go idle:
+
+Copy
+
+Ask AI
+
+```
+#!/bin/bash
+
+if [ ! -f "./dist/output.js" ]; then
+  echo "Build artifact missing. Run the build before stopping." >&2
+  exit 2
+fi
+
+exit 0
+```
+
+### [​](https://code.claude.com/docs/en/hooks\#taskcompleted)  TaskCompleted
+
+Runs when a task is being marked as completed. This fires in two situations: when any agent explicitly marks a task as completed through the TaskUpdate tool, or when an [agent team](https://code.claude.com/docs/en/agent-teams) teammate finishes its turn with in-progress tasks. Use this to enforce completion criteria like passing tests or lint checks before a task can close.When a `TaskCompleted` hook exits with code 2, the task is not marked as completed and the stderr message is fed back to the model as feedback. TaskCompleted hooks do not support matchers and fire on every occurrence.
+
+#### [​](https://code.claude.com/docs/en/hooks\#taskcompleted-input)  TaskCompleted input
+
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), TaskCompleted hooks receive `task_id`, `task_subject`, and optionally `task_description`, `teammate_name`, and `team_name`.
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "TaskCompleted",
+  "task_id": "task-001",
+  "task_subject": "Implement user authentication",
+  "task_description": "Add login and signup endpoints",
+  "teammate_name": "implementer",
+  "team_name": "my-project"
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `task_id` | Identifier of the task being completed |
+| `task_subject` | Title of the task |
+| `task_description` | Detailed description of the task. May be absent |
+| `teammate_name` | Name of the teammate completing the task. May be absent |
+| `team_name` | Name of the team. May be absent |
+
+#### [​](https://code.claude.com/docs/en/hooks\#taskcompleted-decision-control)  TaskCompleted decision control
+
+TaskCompleted hooks use exit codes only, not JSON decision control. This example runs tests and blocks task completion if they fail:
+
+Copy
+
+Ask AI
+
+```
+#!/bin/bash
+INPUT=$(cat)
+TASK_SUBJECT=$(echo "$INPUT" | jq -r '.task_subject')
+
+# Run the test suite
+if ! npm test 2>&1; then
+  echo "Tests not passing. Fix failing tests before completing: $TASK_SUBJECT" >&2
+  exit 2
+fi
+
+exit 0
+```
+
 ### [​](https://code.claude.com/docs/en/hooks\#precompact)  PreCompact
 
 Runs before Claude Code is about to run a compact operation.The matcher value indicates whether compaction was triggered manually or automatically:
@@ -1372,7 +1488,7 @@ SessionEnd hooks have no decision control. They cannot block session termination
 
 ## [​](https://code.claude.com/docs/en/hooks\#prompt-based-hooks)  Prompt-based hooks
 
-In addition to Bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action. Prompt-based hooks work with the following events: `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, `UserPromptSubmit`, `Stop`, and `SubagentStop`.
+In addition to Bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action. Prompt-based hooks work with the following events: `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, `UserPromptSubmit`, `Stop`, `SubagentStop`, and `TaskCompleted`. `TeammateIdle` does not support prompt-based or agent-based hooks.
 
 ### [​](https://code.claude.com/docs/en/hooks\#how-prompt-based-hooks-work)  How prompt-based hooks work
 
@@ -1434,7 +1550,7 @@ Ask AI
 | `ok` | `true` allows the action, `false` prevents it |
 | `reason` | Required when `ok` is `false`. Explanation shown to Claude |
 
-### [​](https://code.claude.com/docs/en/hooks\#example:-multi-criteria-stop-hook)  Example: Multi-criteria Stop hook
+### [​](https://code.claude.com/docs/en/hooks\#example-multi-criteria-stop-hook)  Example: Multi-criteria Stop hook
 
 This `Stop` hook uses a detailed prompt to check three conditions before allowing Claude to stop. If `"ok"` is `false`, Claude continues working with the provided reason as its next instruction. `SubagentStop` hooks use the same format to evaluate whether a [subagent](https://code.claude.com/docs/en/sub-agents) should stop:
 
@@ -1548,7 +1664,7 @@ The `timeout` field sets the maximum time in seconds for the background process.
 
 When an async hook fires, Claude Code starts the hook process and immediately continues without waiting for it to finish. The hook receives the same JSON input via stdin as a synchronous hook.After the background process exits, if the hook produced a JSON response with a `systemMessage` or `additionalContext` field, that content is delivered to Claude as context on the next conversation turn.
 
-### [​](https://code.claude.com/docs/en/hooks\#example:-run-tests-after-file-changes)  Example: run tests after file changes
+### [​](https://code.claude.com/docs/en/hooks\#example-run-tests-after-file-changes)  Example: run tests after file changes
 
 This hook starts a test suite in the background whenever Claude writes a file, then reports the results back to Claude when the tests finish. Save this script to `.claude/hooks/run-tests-async.sh` in your project and make it executable with `chmod +x`:
 
@@ -1665,6 +1781,6 @@ Assistant
 
 Responses are generated using AI and may contain mistakes.
 
-![Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code](https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1100&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=dcecf8d5edc88cd2bc49deb006d5760d)
+![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd](https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?w=1100&fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=5bb083988de020e7d568e8dd8f1422fc)
 
-![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd](https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=1100&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=7ae8e098340479347135e39df4a13454)
+![Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code](https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1100&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=dcecf8d5edc88cd2bc49deb006d5760d)
