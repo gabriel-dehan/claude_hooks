@@ -1,6 +1,6 @@
 [Skip to main content](https://code.claude.com/docs/en/hooks#content-area)
 
-[Claude Code Docs home page![light logo](https://mintcdn.com/claude-code/o69F7a6qoW9vboof/logo/light.svg?fit=max&auto=format&n=o69F7a6qoW9vboof&q=85&s=536eade682636e84231afce2577f9509)![dark logo](https://mintcdn.com/claude-code/o69F7a6qoW9vboof/logo/dark.svg?fit=max&auto=format&n=o69F7a6qoW9vboof&q=85&s=0766b3221061e80143e9f300733e640b)](https://code.claude.com/docs)
+[Claude Code Docs home page![light logo](https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/logo/light.svg?fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=d535f2e20f53cd911acc59ad1b64b2e0)![dark logo](https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/logo/dark.svg?fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=28e49a2ffe69101f4aae9bfa70b393d0)](https://code.claude.com/docs)
 
 ![US](https://d3gk2c5xim1je2.cloudfront.net/flags/US.svg)
 
@@ -8,7 +8,7 @@ English
 
 Search...
 
-⌘KAsk AI
+Ctrl KAsk AI
 
 Search...
 
@@ -20,85 +20,6 @@ Hooks reference
 
 [Getting started](https://code.claude.com/docs/en/overview) [Build with Claude Code](https://code.claude.com/docs/en/sub-agents) [Deployment](https://code.claude.com/docs/en/third-party-integrations) [Administration](https://code.claude.com/docs/en/setup) [Configuration](https://code.claude.com/docs/en/settings) [Reference](https://code.claude.com/docs/en/cli-reference) [Resources](https://code.claude.com/docs/en/legal-and-compliance)
 
-On this page
-
-- [Hook lifecycle](https://code.claude.com/docs/en/hooks#hook-lifecycle)
-- [How a hook resolves](https://code.claude.com/docs/en/hooks#how-a-hook-resolves)
-- [Configuration](https://code.claude.com/docs/en/hooks#configuration)
-- [Hook locations](https://code.claude.com/docs/en/hooks#hook-locations)
-- [Matcher patterns](https://code.claude.com/docs/en/hooks#matcher-patterns)
-- [Match MCP tools](https://code.claude.com/docs/en/hooks#match-mcp-tools)
-- [Hook handler fields](https://code.claude.com/docs/en/hooks#hook-handler-fields)
-- [Common fields](https://code.claude.com/docs/en/hooks#common-fields)
-- [Command hook fields](https://code.claude.com/docs/en/hooks#command-hook-fields)
-- [Prompt and agent hook fields](https://code.claude.com/docs/en/hooks#prompt-and-agent-hook-fields)
-- [Reference scripts by path](https://code.claude.com/docs/en/hooks#reference-scripts-by-path)
-- [Hooks in skills and agents](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents)
-- [The /hooks menu](https://code.claude.com/docs/en/hooks#the-%2Fhooks-menu)
-- [Disable or remove hooks](https://code.claude.com/docs/en/hooks#disable-or-remove-hooks)
-- [Hook input and output](https://code.claude.com/docs/en/hooks#hook-input-and-output)
-- [Common input fields](https://code.claude.com/docs/en/hooks#common-input-fields)
-- [Exit code output](https://code.claude.com/docs/en/hooks#exit-code-output)
-- [Exit code 2 behavior per event](https://code.claude.com/docs/en/hooks#exit-code-2-behavior-per-event)
-- [JSON output](https://code.claude.com/docs/en/hooks#json-output)
-- [Decision control](https://code.claude.com/docs/en/hooks#decision-control)
-- [Hook events](https://code.claude.com/docs/en/hooks#hook-events)
-- [SessionStart](https://code.claude.com/docs/en/hooks#sessionstart)
-- [SessionStart input](https://code.claude.com/docs/en/hooks#sessionstart-input)
-- [SessionStart decision control](https://code.claude.com/docs/en/hooks#sessionstart-decision-control)
-- [Persist environment variables](https://code.claude.com/docs/en/hooks#persist-environment-variables)
-- [UserPromptSubmit](https://code.claude.com/docs/en/hooks#userpromptsubmit)
-- [UserPromptSubmit input](https://code.claude.com/docs/en/hooks#userpromptsubmit-input)
-- [UserPromptSubmit decision control](https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control)
-- [PreToolUse](https://code.claude.com/docs/en/hooks#pretooluse)
-- [PreToolUse input](https://code.claude.com/docs/en/hooks#pretooluse-input)
-- [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control)
-- [PermissionRequest](https://code.claude.com/docs/en/hooks#permissionrequest)
-- [PermissionRequest input](https://code.claude.com/docs/en/hooks#permissionrequest-input)
-- [PermissionRequest decision control](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control)
-- [PostToolUse](https://code.claude.com/docs/en/hooks#posttooluse)
-- [PostToolUse input](https://code.claude.com/docs/en/hooks#posttooluse-input)
-- [PostToolUse decision control](https://code.claude.com/docs/en/hooks#posttooluse-decision-control)
-- [PostToolUseFailure](https://code.claude.com/docs/en/hooks#posttoolusefailure)
-- [PostToolUseFailure input](https://code.claude.com/docs/en/hooks#posttoolusefailure-input)
-- [PostToolUseFailure decision control](https://code.claude.com/docs/en/hooks#posttoolusefailure-decision-control)
-- [Notification](https://code.claude.com/docs/en/hooks#notification)
-- [Notification input](https://code.claude.com/docs/en/hooks#notification-input)
-- [SubagentStart](https://code.claude.com/docs/en/hooks#subagentstart)
-- [SubagentStart input](https://code.claude.com/docs/en/hooks#subagentstart-input)
-- [SubagentStop](https://code.claude.com/docs/en/hooks#subagentstop)
-- [SubagentStop input](https://code.claude.com/docs/en/hooks#subagentstop-input)
-- [Stop](https://code.claude.com/docs/en/hooks#stop)
-- [Stop input](https://code.claude.com/docs/en/hooks#stop-input)
-- [Stop decision control](https://code.claude.com/docs/en/hooks#stop-decision-control)
-- [TeammateIdle](https://code.claude.com/docs/en/hooks#teammateidle)
-- [TeammateIdle input](https://code.claude.com/docs/en/hooks#teammateidle-input)
-- [TeammateIdle decision control](https://code.claude.com/docs/en/hooks#teammateidle-decision-control)
-- [TaskCompleted](https://code.claude.com/docs/en/hooks#taskcompleted)
-- [TaskCompleted input](https://code.claude.com/docs/en/hooks#taskcompleted-input)
-- [TaskCompleted decision control](https://code.claude.com/docs/en/hooks#taskcompleted-decision-control)
-- [PreCompact](https://code.claude.com/docs/en/hooks#precompact)
-- [PreCompact input](https://code.claude.com/docs/en/hooks#precompact-input)
-- [SessionEnd](https://code.claude.com/docs/en/hooks#sessionend)
-- [SessionEnd input](https://code.claude.com/docs/en/hooks#sessionend-input)
-- [Prompt-based hooks](https://code.claude.com/docs/en/hooks#prompt-based-hooks)
-- [How prompt-based hooks work](https://code.claude.com/docs/en/hooks#how-prompt-based-hooks-work)
-- [Prompt hook configuration](https://code.claude.com/docs/en/hooks#prompt-hook-configuration)
-- [Response schema](https://code.claude.com/docs/en/hooks#response-schema)
-- [Example: Multi-criteria Stop hook](https://code.claude.com/docs/en/hooks#example-multi-criteria-stop-hook)
-- [Agent-based hooks](https://code.claude.com/docs/en/hooks#agent-based-hooks)
-- [How agent hooks work](https://code.claude.com/docs/en/hooks#how-agent-hooks-work)
-- [Agent hook configuration](https://code.claude.com/docs/en/hooks#agent-hook-configuration)
-- [Run hooks in the background](https://code.claude.com/docs/en/hooks#run-hooks-in-the-background)
-- [Configure an async hook](https://code.claude.com/docs/en/hooks#configure-an-async-hook)
-- [How async hooks execute](https://code.claude.com/docs/en/hooks#how-async-hooks-execute)
-- [Example: run tests after file changes](https://code.claude.com/docs/en/hooks#example-run-tests-after-file-changes)
-- [Limitations](https://code.claude.com/docs/en/hooks#limitations)
-- [Security considerations](https://code.claude.com/docs/en/hooks#security-considerations)
-- [Disclaimer](https://code.claude.com/docs/en/hooks#disclaimer)
-- [Security best practices](https://code.claude.com/docs/en/hooks#security-best-practices)
-- [Debug hooks](https://code.claude.com/docs/en/hooks#debug-hooks)
-
 For a quickstart guide with examples, see [Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide).
 
 Hooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code’s lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you’re setting up hooks for the first time, start with the [guide](https://code.claude.com/docs/en/hooks-guide) instead.
@@ -107,7 +28,7 @@ Hooks are user-defined shell commands or LLM prompts that execute automatically 
 
 Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, this arrives on stdin. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:
 
-![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd](https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=7a351ea1cc3d5da7a2176bf51196bc1a)
+![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd, with WorktreeCreate and WorktreeRemove as standalone setup and teardown events](https://mintcdn.com/claude-code/rsuu-ovdPNos9Dnn/images/hooks-lifecycle.svg?fit=max&auto=format&n=rsuu-ovdPNos9Dnn&q=85&s=ce5f1225339bbccdfbb52e99205db912)
 
 The table below summarizes when each event fires. The [Hook events](https://code.claude.com/docs/en/hooks#hook-events) section documents the full input schema and decision control options for each one.
 
@@ -125,6 +46,9 @@ The table below summarizes when each event fires. The [Hook events](https://code
 | `Stop` | When Claude finishes responding |
 | `TeammateIdle` | When an [agent team](https://code.claude.com/docs/en/agent-teams) teammate is about to go idle |
 | `TaskCompleted` | When a task is being marked as completed |
+| `ConfigChange` | When a configuration file changes during a session |
+| `WorktreeCreate` | When a worktree is being created via `--worktree` or `isolation: "worktree"`. Replaces default git behavior |
+| `WorktreeRemove` | When a worktree is being removed, either at session exit or when a subagent finishes |
 | `PreCompact` | Before context compaction |
 | `SessionEnd` | When a session terminates |
 
@@ -184,7 +108,7 @@ fi
 
 Now suppose Claude Code decides to run `Bash "rm -rf /tmp/build"`. Here’s what happens:
 
-![Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code](https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=7c13f51ffcbc37d22a593b27e2f2de72)
+![Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code](https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/hook-resolution.svg?fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=5bb890134390ecd0581477cf41ef730b)
 
 1
 
@@ -288,7 +212,8 @@ The `matcher` field is a regex string that filters when hooks fire. Use `"*"`, `
 | `SubagentStart` | agent type | `Bash`, `Explore`, `Plan`, or custom agent names |
 | `PreCompact` | what triggered compaction | `manual`, `auto` |
 | `SubagentStop` | agent type | same values as `SubagentStart` |
-| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted` | no matcher support | always fires on every occurrence |
+| `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |
+| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove` | no matcher support | always fires on every occurrence |
 
 The matcher is a regex, so `Edit|Write` matches either tool and `Notebook.*` matches any tool starting with Notebook. The matcher runs against a field from the [JSON input](https://code.claude.com/docs/en/hooks#hook-input-and-output) that Claude Code sends to your hook on stdin. For tool events, that field is `tool_name`. Each [hook event](https://code.claude.com/docs/en/hooks#hook-events) section lists the full set of matcher values and the input schema for that event.This example runs a linting script only when Claude writes or edits a file:
 
@@ -316,7 +241,7 @@ Ask AI
 }
 ```
 
-`UserPromptSubmit` and `Stop` don’t support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
+`UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, and `WorktreeRemove` don’t support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
 
 #### [​](https://code.claude.com/docs/en/hooks\#match-mcp-tools)  Match MCP tools
 
@@ -509,7 +434,7 @@ Type `/hooks` in Claude Code to open the interactive hooks manager, where you ca
 
 ### [​](https://code.claude.com/docs/en/hooks\#disable-or-remove-hooks)  Disable or remove hooks
 
-To remove a hook, delete its entry from the settings JSON file, or use the `/hooks` menu and select the hook to delete it.To temporarily disable all hooks without removing them, set `"disableAllHooks": true` in your settings file or use the toggle in the `/hooks` menu. There is no way to disable an individual hook while keeping it in the configuration.Direct edits to hooks in settings files don’t take effect immediately. Claude Code captures a snapshot of hooks at startup and uses it throughout the session. This prevents malicious or accidental hook modifications from taking effect mid-session without your review. If hooks are modified externally, Claude Code warns you and requires review in the `/hooks` menu before changes apply.
+To remove a hook, delete its entry from the settings JSON file, or use the `/hooks` menu and select the hook to delete it.To temporarily disable all hooks without removing them, set `"disableAllHooks": true` in your settings file or use the toggle in the `/hooks` menu. There is no way to disable an individual hook while keeping it in the configuration.The `disableAllHooks` setting respects the managed settings hierarchy. If an administrator has configured hooks through managed policy settings, `disableAllHooks` set in user, project, or local settings cannot disable those managed hooks. Only `disableAllHooks` set at the managed settings level can disable managed hooks.Direct edits to hooks in settings files don’t take effect immediately. Claude Code captures a snapshot of hooks at startup and uses it throughout the session. This prevents malicious or accidental hook modifications from taking effect mid-session without your review. If hooks are modified externally, Claude Code warns you and requires review in the `/hooks` menu before changes apply.
 
 ## [​](https://code.claude.com/docs/en/hooks\#hook-input-and-output)  Hook input and output
 
@@ -587,6 +512,7 @@ Exit code 2 is the way a hook signals “stop, don’t do this.” The effect de
 | `SubagentStop` | Yes | Prevents the subagent from stopping |
 | `TeammateIdle` | Yes | Prevents the teammate from going idle (teammate continues working) |
 | `TaskCompleted` | Yes | Prevents the task from being marked as completed |
+| `ConfigChange` | Yes | Blocks the configuration change from taking effect (except `policy_settings`) |
 | `PostToolUse` | No | Shows stderr to Claude (tool already ran) |
 | `PostToolUseFailure` | No | Shows stderr to Claude (tool already failed) |
 | `Notification` | No | Shows stderr to user only |
@@ -594,6 +520,8 @@ Exit code 2 is the way a hook signals “stop, don’t do this.” The effect de
 | `SessionStart` | No | Shows stderr to user only |
 | `SessionEnd` | No | Shows stderr to user only |
 | `PreCompact` | No | Shows stderr to user only |
+| `WorktreeCreate` | Yes | Any non-zero exit code causes worktree creation to fail |
+| `WorktreeRemove` | No | Failures are logged in debug mode only |
 
 ### [​](https://code.claude.com/docs/en/hooks\#json-output)  JSON output
 
@@ -632,10 +560,12 @@ Not every event supports blocking or controlling behavior through JSON. The even
 
 | Events | Decision pattern | Key fields |
 | --- | --- | --- |
-| UserPromptSubmit, PostToolUse, PostToolUseFailure, Stop, SubagentStop | Top-level `decision` | `decision: "block"`, `reason` |
+| UserPromptSubmit, PostToolUse, PostToolUseFailure, Stop, SubagentStop, ConfigChange | Top-level `decision` | `decision: "block"`, `reason` |
 | TeammateIdle, TaskCompleted | Exit code only | Exit code 2 blocks the action, stderr is fed back as feedback |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision` (allow/deny/ask), `permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior` (allow/deny) |
+| WorktreeCreate | stdout path | Hook prints absolute path to created worktree. Non-zero exit fails creation |
+| WorktreeRemove, Notification, SessionEnd, PreCompact | None | No decision control. Used for side effects like logging or cleanup |
 
 Here are examples of each pattern in action:
 
@@ -646,7 +576,7 @@ Here are examples of each pattern in action:
 - PermissionRequest
 
 
-Used by `UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `Stop`, and `SubagentStop`. The only value is `"block"`. To allow the action to proceed, omit `decision` from your JSON, or exit 0 without any JSON at all:
+Used by `UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `Stop`, `SubagentStop`, and `ConfigChange`. The only value is `"block"`. To allow the action to proceed, omit `decision` from your JSON, or exit 0 without any JSON at all:
 
 Report incorrect code
 
@@ -736,7 +666,7 @@ Ask AI
   "permission_mode": "default",
   "hook_event_name": "SessionStart",
   "source": "startup",
-  "model": "claude-sonnet-4-5-20250929"
+  "model": "claude-sonnet-4-6"
 }
 ```
 
@@ -1316,7 +1246,7 @@ Runs when a Claude Code subagent has finished responding. Matches on agent type,
 
 #### [​](https://code.claude.com/docs/en/hooks\#subagentstop-input)  SubagentStop input
 
-In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), SubagentStop hooks receive `stop_hook_active`, `agent_id`, `agent_type`, and `agent_transcript_path`. The `agent_type` field is the value used for matcher filtering. The `transcript_path` is the main session’s transcript, while `agent_transcript_path` is the subagent’s own transcript stored in a nested `subagents/` folder.
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), SubagentStop hooks receive `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, and `last_assistant_message`. The `agent_type` field is the value used for matcher filtering. The `transcript_path` is the main session’s transcript, while `agent_transcript_path` is the subagent’s own transcript stored in a nested `subagents/` folder. The `last_assistant_message` field contains the text content of the subagent’s final response, so hooks can access it without parsing the transcript file.
 
 Report incorrect code
 
@@ -1334,7 +1264,8 @@ Ask AI
   "stop_hook_active": false,
   "agent_id": "def456",
   "agent_type": "Explore",
-  "agent_transcript_path": "~/.claude/projects/.../abc123/subagents/agent-def456.jsonl"
+  "agent_transcript_path": "~/.claude/projects/.../abc123/subagents/agent-def456.jsonl",
+  "last_assistant_message": "Analysis complete. Found 3 potential issues..."
 }
 ```
 
@@ -1347,7 +1278,7 @@ the stoppage occurred due to a user interrupt.
 
 #### [​](https://code.claude.com/docs/en/hooks\#stop-input)  Stop input
 
-In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active`. This field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to prevent Claude Code from running indefinitely.
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active` and `last_assistant_message`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to prevent Claude Code from running indefinitely. The `last_assistant_message` field contains the text content of Claude’s final response, so hooks can access it without parsing the transcript file.
 
 Report incorrect code
 
@@ -1362,7 +1293,8 @@ Ask AI
   "cwd": "/Users/...",
   "permission_mode": "default",
   "hook_event_name": "Stop",
-  "stop_hook_active": true
+  "stop_hook_active": true,
+  "last_assistant_message": "I've completed the refactoring. Here's a summary..."
 }
 ```
 
@@ -1501,6 +1433,191 @@ fi
 exit 0
 ```
 
+### [​](https://code.claude.com/docs/en/hooks\#configchange)  ConfigChange
+
+Runs when a configuration file changes during a session. Use this to audit settings changes, enforce security policies, or block unauthorized modifications to configuration files.ConfigChange hooks fire for changes to settings files, managed policy settings, and skill files. The `source` field in the input tells you which type of configuration changed, and the optional `file_path` field provides the path to the changed file.The matcher filters on the configuration source:
+
+| Matcher | When it fires |
+| --- | --- |
+| `user_settings` | `~/.claude/settings.json` changes |
+| `project_settings` | `.claude/settings.json` changes |
+| `local_settings` | `.claude/settings.local.json` changes |
+| `policy_settings` | Managed policy settings change |
+| `skills` | A skill file in `.claude/skills/` changes |
+
+This example logs all configuration changes for security auditing:
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "ConfigChange": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/audit-config-change.sh"\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+#### [​](https://code.claude.com/docs/en/hooks\#configchange-input)  ConfigChange input
+
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), ConfigChange hooks receive `source` and optionally `file_path`. The `source` field indicates which configuration type changed, and `file_path` provides the path to the specific file that was modified.
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "ConfigChange",
+  "source": "project_settings",
+  "file_path": "/Users/.../my-project/.claude/settings.json"
+}
+```
+
+#### [​](https://code.claude.com/docs/en/hooks\#configchange-decision-control)  ConfigChange decision control
+
+ConfigChange hooks can block configuration changes from taking effect. Use exit code 2 or a JSON `decision` to prevent the change. When blocked, the new settings are not applied to the running session.
+
+| Field | Description |
+| --- | --- |
+| `decision` | `"block"` prevents the configuration change from being applied. Omit to allow the change |
+| `reason` | Explanation shown to the user when `decision` is `"block"` |
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "decision": "block",
+  "reason": "Configuration changes to project settings require admin approval"
+}
+```
+
+`policy_settings` changes cannot be blocked. Hooks still fire for `policy_settings` sources, so you can use them for audit logging, but any blocking decision is ignored. This ensures enterprise-managed settings always take effect.
+
+### [​](https://code.claude.com/docs/en/hooks\#worktreecreate)  WorktreeCreate
+
+When you run `claude --worktree` or a [subagent uses `isolation: "worktree"`](https://code.claude.com/docs/en/sub-agents#choose-the-subagent-scope), Claude Code creates an isolated working copy using `git worktree`. If you configure a WorktreeCreate hook, it replaces the default git behavior, letting you use a different version control system like SVN, Perforce, or Mercurial.The hook must print the absolute path to the created worktree directory on stdout. Claude Code uses this path as the working directory for the isolated session.This example creates an SVN working copy and prints the path for Claude Code to use. Replace the repository URL with your own:
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "WorktreeCreate": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "bash -c 'NAME=$(jq -r .name); DIR=\"$HOME/.claude/worktrees/$NAME\"; svn checkout https://svn.example.com/repo/trunk \"$DIR\" >&2 && echo \"$DIR\"'"\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+The hook reads the worktree `name` from the JSON input on stdin, checks out a fresh copy into a new directory, and prints the directory path. The `echo` on the last line is what Claude Code reads as the worktree path. Redirect any other output to stderr so it doesn’t interfere with the path.
+
+#### [​](https://code.claude.com/docs/en/hooks\#worktreecreate-input)  WorktreeCreate input
+
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), WorktreeCreate hooks receive the `name` field. This is a slug identifier for the new worktree, either specified by the user or auto-generated (for example, `bold-oak-a3f2`).
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "hook_event_name": "WorktreeCreate",
+  "name": "feature-auth"
+}
+```
+
+#### [​](https://code.claude.com/docs/en/hooks\#worktreecreate-output)  WorktreeCreate output
+
+The hook must print the absolute path to the created worktree directory on stdout. If the hook fails or produces no output, worktree creation fails with an error.WorktreeCreate hooks do not use the standard allow/block decision model. Instead, the hook’s success or failure determines the outcome. Only `type: "command"` hooks are supported.
+
+### [​](https://code.claude.com/docs/en/hooks\#worktreeremove)  WorktreeRemove
+
+The cleanup counterpart to [WorktreeCreate](https://code.claude.com/docs/en/hooks#worktreecreate). This hook fires when a worktree is being removed, either when you exit a `--worktree` session and choose to remove it, or when a subagent with `isolation: "worktree"` finishes. For git-based worktrees, Claude handles cleanup automatically with `git worktree remove`. If you configured a WorktreeCreate hook for a non-git version control system, pair it with a WorktreeRemove hook to handle cleanup. Without one, the worktree directory is left on disk.Claude Code passes the path that WorktreeCreate printed on stdout as `worktree_path` in the hook input. This example reads that path and removes the directory:
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "WorktreeRemove": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "bash -c 'jq -r .worktree_path | xargs rm -rf'"\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+#### [​](https://code.claude.com/docs/en/hooks\#worktreeremove-input)  WorktreeRemove input
+
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), WorktreeRemove hooks receive the `worktree_path` field, which is the absolute path to the worktree being removed.
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "hook_event_name": "WorktreeRemove",
+  "worktree_path": "/Users/.../my-project/.claude/worktrees/feature-auth"
+}
+```
+
+WorktreeRemove hooks have no decision control. They cannot block worktree removal but can perform cleanup tasks like removing version control state or archiving changes. Hook failures are logged in debug mode only. Only `type: "command"` hooks are supported.
+
 ### [​](https://code.claude.com/docs/en/hooks\#precompact)  PreCompact
 
 Runs before Claude Code is about to run a compact operation.The matcher value indicates whether compaction was triggered manually or automatically:
@@ -1570,7 +1687,28 @@ SessionEnd hooks have no decision control. They cannot block session termination
 
 ## [​](https://code.claude.com/docs/en/hooks\#prompt-based-hooks)  Prompt-based hooks
 
-In addition to Bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action. Prompt-based hooks work with the following events: `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, `UserPromptSubmit`, `Stop`, `SubagentStop`, and `TaskCompleted`. `TeammateIdle` does not support prompt-based or agent-based hooks.
+In addition to Bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action, and agent hooks (`type: "agent"`) that spawn an agentic verifier with tool access. Not all events support every hook type.Events that support all three hook types (`command`, `prompt`, and `agent`):
+
+- `PermissionRequest`
+- `PostToolUse`
+- `PostToolUseFailure`
+- `PreToolUse`
+- `Stop`
+- `SubagentStop`
+- `TaskCompleted`
+- `UserPromptSubmit`
+
+Events that only support `type: "command"` hooks:
+
+- `ConfigChange`
+- `Notification`
+- `PreCompact`
+- `SessionEnd`
+- `SessionStart`
+- `SubagentStart`
+- `TeammateIdle`
+- `WorktreeCreate`
+- `WorktreeRemove`
 
 ### [​](https://code.claude.com/docs/en/hooks\#how-prompt-based-hooks-work)  How prompt-based hooks work
 
@@ -1873,4 +2011,10 @@ YesNo
 
 [Checkpointing](https://code.claude.com/docs/en/checkpointing) [Plugins reference](https://code.claude.com/docs/en/plugins-reference)
 
-⌘I
+Assistant
+
+Responses are generated using AI and may contain mistakes.
+
+![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd, with WorktreeCreate and WorktreeRemove as standalone setup and teardown events](https://mintcdn.com/claude-code/rsuu-ovdPNos9Dnn/images/hooks-lifecycle.svg?w=1100&fit=max&auto=format&n=rsuu-ovdPNos9Dnn&q=85&s=614def559f34f9b0c1dec93739d96b64)
+
+![Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code](https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/hook-resolution.svg?w=1100&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=0e9dd1807dc7a5c56011d0889b0d5208)
