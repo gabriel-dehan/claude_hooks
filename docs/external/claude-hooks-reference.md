@@ -20,13 +20,102 @@ Hooks reference
 
 [Getting started](https://code.claude.com/docs/en/overview) [Build with Claude Code](https://code.claude.com/docs/en/sub-agents) [Deployment](https://code.claude.com/docs/en/third-party-integrations) [Administration](https://code.claude.com/docs/en/setup) [Configuration](https://code.claude.com/docs/en/settings) [Reference](https://code.claude.com/docs/en/cli-reference) [Resources](https://code.claude.com/docs/en/legal-and-compliance)
 
+On this page
+
+- [Hook lifecycle](https://code.claude.com/docs/en/hooks#hook-lifecycle)
+- [How a hook resolves](https://code.claude.com/docs/en/hooks#how-a-hook-resolves)
+- [Configuration](https://code.claude.com/docs/en/hooks#configuration)
+- [Hook locations](https://code.claude.com/docs/en/hooks#hook-locations)
+- [Matcher patterns](https://code.claude.com/docs/en/hooks#matcher-patterns)
+- [Match MCP tools](https://code.claude.com/docs/en/hooks#match-mcp-tools)
+- [Hook handler fields](https://code.claude.com/docs/en/hooks#hook-handler-fields)
+- [Common fields](https://code.claude.com/docs/en/hooks#common-fields)
+- [Command hook fields](https://code.claude.com/docs/en/hooks#command-hook-fields)
+- [HTTP hook fields](https://code.claude.com/docs/en/hooks#http-hook-fields)
+- [Prompt and agent hook fields](https://code.claude.com/docs/en/hooks#prompt-and-agent-hook-fields)
+- [Reference scripts by path](https://code.claude.com/docs/en/hooks#reference-scripts-by-path)
+- [Hooks in skills and agents](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents)
+- [The /hooks menu](https://code.claude.com/docs/en/hooks#the-%2Fhooks-menu)
+- [Disable or remove hooks](https://code.claude.com/docs/en/hooks#disable-or-remove-hooks)
+- [Hook input and output](https://code.claude.com/docs/en/hooks#hook-input-and-output)
+- [Common input fields](https://code.claude.com/docs/en/hooks#common-input-fields)
+- [Exit code output](https://code.claude.com/docs/en/hooks#exit-code-output)
+- [Exit code 2 behavior per event](https://code.claude.com/docs/en/hooks#exit-code-2-behavior-per-event)
+- [HTTP response handling](https://code.claude.com/docs/en/hooks#http-response-handling)
+- [JSON output](https://code.claude.com/docs/en/hooks#json-output)
+- [Decision control](https://code.claude.com/docs/en/hooks#decision-control)
+- [Hook events](https://code.claude.com/docs/en/hooks#hook-events)
+- [SessionStart](https://code.claude.com/docs/en/hooks#sessionstart)
+- [SessionStart input](https://code.claude.com/docs/en/hooks#sessionstart-input)
+- [SessionStart decision control](https://code.claude.com/docs/en/hooks#sessionstart-decision-control)
+- [Persist environment variables](https://code.claude.com/docs/en/hooks#persist-environment-variables)
+- [UserPromptSubmit](https://code.claude.com/docs/en/hooks#userpromptsubmit)
+- [UserPromptSubmit input](https://code.claude.com/docs/en/hooks#userpromptsubmit-input)
+- [UserPromptSubmit decision control](https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control)
+- [PreToolUse](https://code.claude.com/docs/en/hooks#pretooluse)
+- [PreToolUse input](https://code.claude.com/docs/en/hooks#pretooluse-input)
+- [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control)
+- [PermissionRequest](https://code.claude.com/docs/en/hooks#permissionrequest)
+- [PermissionRequest input](https://code.claude.com/docs/en/hooks#permissionrequest-input)
+- [PermissionRequest decision control](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control)
+- [PostToolUse](https://code.claude.com/docs/en/hooks#posttooluse)
+- [PostToolUse input](https://code.claude.com/docs/en/hooks#posttooluse-input)
+- [PostToolUse decision control](https://code.claude.com/docs/en/hooks#posttooluse-decision-control)
+- [PostToolUseFailure](https://code.claude.com/docs/en/hooks#posttoolusefailure)
+- [PostToolUseFailure input](https://code.claude.com/docs/en/hooks#posttoolusefailure-input)
+- [PostToolUseFailure decision control](https://code.claude.com/docs/en/hooks#posttoolusefailure-decision-control)
+- [Notification](https://code.claude.com/docs/en/hooks#notification)
+- [Notification input](https://code.claude.com/docs/en/hooks#notification-input)
+- [SubagentStart](https://code.claude.com/docs/en/hooks#subagentstart)
+- [SubagentStart input](https://code.claude.com/docs/en/hooks#subagentstart-input)
+- [SubagentStop](https://code.claude.com/docs/en/hooks#subagentstop)
+- [SubagentStop input](https://code.claude.com/docs/en/hooks#subagentstop-input)
+- [Stop](https://code.claude.com/docs/en/hooks#stop)
+- [Stop input](https://code.claude.com/docs/en/hooks#stop-input)
+- [Stop decision control](https://code.claude.com/docs/en/hooks#stop-decision-control)
+- [TeammateIdle](https://code.claude.com/docs/en/hooks#teammateidle)
+- [TeammateIdle input](https://code.claude.com/docs/en/hooks#teammateidle-input)
+- [TeammateIdle decision control](https://code.claude.com/docs/en/hooks#teammateidle-decision-control)
+- [TaskCompleted](https://code.claude.com/docs/en/hooks#taskcompleted)
+- [TaskCompleted input](https://code.claude.com/docs/en/hooks#taskcompleted-input)
+- [TaskCompleted decision control](https://code.claude.com/docs/en/hooks#taskcompleted-decision-control)
+- [ConfigChange](https://code.claude.com/docs/en/hooks#configchange)
+- [ConfigChange input](https://code.claude.com/docs/en/hooks#configchange-input)
+- [ConfigChange decision control](https://code.claude.com/docs/en/hooks#configchange-decision-control)
+- [WorktreeCreate](https://code.claude.com/docs/en/hooks#worktreecreate)
+- [WorktreeCreate input](https://code.claude.com/docs/en/hooks#worktreecreate-input)
+- [WorktreeCreate output](https://code.claude.com/docs/en/hooks#worktreecreate-output)
+- [WorktreeRemove](https://code.claude.com/docs/en/hooks#worktreeremove)
+- [WorktreeRemove input](https://code.claude.com/docs/en/hooks#worktreeremove-input)
+- [PreCompact](https://code.claude.com/docs/en/hooks#precompact)
+- [PreCompact input](https://code.claude.com/docs/en/hooks#precompact-input)
+- [SessionEnd](https://code.claude.com/docs/en/hooks#sessionend)
+- [SessionEnd input](https://code.claude.com/docs/en/hooks#sessionend-input)
+- [Prompt-based hooks](https://code.claude.com/docs/en/hooks#prompt-based-hooks)
+- [How prompt-based hooks work](https://code.claude.com/docs/en/hooks#how-prompt-based-hooks-work)
+- [Prompt hook configuration](https://code.claude.com/docs/en/hooks#prompt-hook-configuration)
+- [Response schema](https://code.claude.com/docs/en/hooks#response-schema)
+- [Example: Multi-criteria Stop hook](https://code.claude.com/docs/en/hooks#example-multi-criteria-stop-hook)
+- [Agent-based hooks](https://code.claude.com/docs/en/hooks#agent-based-hooks)
+- [How agent hooks work](https://code.claude.com/docs/en/hooks#how-agent-hooks-work)
+- [Agent hook configuration](https://code.claude.com/docs/en/hooks#agent-hook-configuration)
+- [Run hooks in the background](https://code.claude.com/docs/en/hooks#run-hooks-in-the-background)
+- [Configure an async hook](https://code.claude.com/docs/en/hooks#configure-an-async-hook)
+- [How async hooks execute](https://code.claude.com/docs/en/hooks#how-async-hooks-execute)
+- [Example: run tests after file changes](https://code.claude.com/docs/en/hooks#example-run-tests-after-file-changes)
+- [Limitations](https://code.claude.com/docs/en/hooks#limitations)
+- [Security considerations](https://code.claude.com/docs/en/hooks#security-considerations)
+- [Disclaimer](https://code.claude.com/docs/en/hooks#disclaimer)
+- [Security best practices](https://code.claude.com/docs/en/hooks#security-best-practices)
+- [Debug hooks](https://code.claude.com/docs/en/hooks#debug-hooks)
+
 For a quickstart guide with examples, see [Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide).
 
-Hooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code’s lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you’re setting up hooks for the first time, start with the [guide](https://code.claude.com/docs/en/hooks-guide) instead.
+Hooks are user-defined shell commands, HTTP endpoints, or LLM prompts that execute automatically at specific points in Claude Code’s lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks, HTTP hooks, and MCP tool hooks. If you’re setting up hooks for the first time, start with the [guide](https://code.claude.com/docs/en/hooks-guide) instead.
 
 ## [​](https://code.claude.com/docs/en/hooks\#hook-lifecycle)  Hook lifecycle
 
-Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, this arrives on stdin. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:
+Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, input arrives on stdin. For HTTP hooks, it arrives as the POST request body. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:
 
 ![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd, with WorktreeCreate and WorktreeRemove as standalone setup and teardown events](https://mintcdn.com/claude-code/rsuu-ovdPNos9Dnn/images/hooks-lifecycle.svg?fit=max&auto=format&n=rsuu-ovdPNos9Dnn&q=85&s=ce5f1225339bbccdfbb52e99205db912)
 
@@ -182,7 +271,7 @@ Hooks are defined in JSON settings files. The configuration has three levels of 
 
 See [How a hook resolves](https://code.claude.com/docs/en/hooks#how-a-hook-resolves) above for a complete walkthrough with an annotated example.
 
-This page uses specific terms for each level: **hook event** for the lifecycle point, **matcher group** for the filter, and **hook handler** for the shell command, prompt, or agent that runs. “Hook” on its own refers to the general feature.
+This page uses specific terms for each level: **hook event** for the lifecycle point, **matcher group** for the filter, and **hook handler** for the shell command, HTTP endpoint, prompt, or agent that runs. “Hook” on its own refers to the general feature.
 
 ### [​](https://code.claude.com/docs/en/hooks\#hook-locations)  Hook locations
 
@@ -293,9 +382,10 @@ Ask AI
 
 ### [​](https://code.claude.com/docs/en/hooks\#hook-handler-fields)  Hook handler fields
 
-Each object in the inner `hooks` array is a hook handler: the shell command, LLM prompt, or agent that runs when the matcher matches. There are three types:
+Each object in the inner `hooks` array is a hook handler: the shell command, HTTP endpoint, LLM prompt, or agent that runs when the matcher matches. There are four types:
 
 - **[Command hooks](https://code.claude.com/docs/en/hooks#command-hook-fields)** (`type: "command"`): run a shell command. Your script receives the event’s [JSON input](https://code.claude.com/docs/en/hooks#hook-input-and-output) on stdin and communicates results back through exit codes and stdout.
+- **[HTTP hooks](https://code.claude.com/docs/en/hooks#http-hook-fields)** (`type: "http"`): send the event’s JSON input as an HTTP POST request to a URL. The endpoint communicates results back through the response body using the same [JSON output format](https://code.claude.com/docs/en/hooks#json-output) as command hooks.
 - **[Prompt hooks](https://code.claude.com/docs/en/hooks#prompt-and-agent-hook-fields)** (`type: "prompt"`): send a prompt to a Claude model for single-turn evaluation. The model returns a yes/no decision as JSON. See [Prompt-based hooks](https://code.claude.com/docs/en/hooks#prompt-based-hooks).
 - **[Agent hooks](https://code.claude.com/docs/en/hooks#prompt-and-agent-hook-fields)** (`type: "agent"`): spawn a subagent that can use tools like Read, Grep, and Glob to verify conditions before returning a decision. See [Agent-based hooks](https://code.claude.com/docs/en/hooks#agent-based-hooks).
 
@@ -305,7 +395,7 @@ These fields apply to all hook types:
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `type` | yes | `"command"`, `"prompt"`, or `"agent"` |
+| `type` | yes | `"command"`, `"http"`, `"prompt"`, or `"agent"` |
 | `timeout` | no | Seconds before canceling. Defaults: 600 for command, 30 for prompt, 60 for agent |
 | `statusMessage` | no | Custom spinner message displayed while the hook runs |
 | `once` | no | If `true`, runs only once per session then is removed. Skills only, not agents. See [Hooks in skills and agents](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents) |
@@ -319,6 +409,49 @@ In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-
 | `command` | yes | Shell command to execute |
 | `async` | no | If `true`, runs in the background without blocking. See [Run hooks in the background](https://code.claude.com/docs/en/hooks#run-hooks-in-the-background) |
 
+#### [​](https://code.claude.com/docs/en/hooks\#http-hook-fields)  HTTP hook fields
+
+In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-fields), HTTP hooks accept these fields:
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `url` | yes | URL to send the POST request to |
+| `headers` | no | Additional HTTP headers as key-value pairs. Values support environment variable interpolation using `$VAR_NAME` or `${VAR_NAME}` syntax. Only variables listed in `allowedEnvVars` are resolved |
+| `allowedEnvVars` | no | List of environment variable names that may be interpolated into header values. References to unlisted variables are replaced with empty strings. Required for any env var interpolation to work |
+
+Claude Code sends the hook’s [JSON input](https://code.claude.com/docs/en/hooks#hook-input-and-output) as the POST request body with `Content-Type: application/json`. The response body uses the same [JSON output format](https://code.claude.com/docs/en/hooks#json-output) as command hooks.Error handling differs from command hooks: non-2xx responses, connection failures, and timeouts all produce non-blocking errors that allow execution to continue. To block a tool call or deny a permission, return a 2xx response with a JSON body containing `decision: "block"` or a `hookSpecificOutput` with `permissionDecision: "deny"`.This example sends `PreToolUse` events to a local validation service, authenticating with a token from the `MY_TOKEN` environment variable:
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "hooks": {
+    "PreToolUse": [\
+      {\
+        "matcher": "Bash",\
+        "hooks": [\
+          {\
+            "type": "http",\
+            "url": "http://localhost:8080/hooks/pre-tool-use",\
+            "timeout": 30,\
+            "headers": {\
+              "Authorization": "Bearer $MY_TOKEN"\
+            },\
+            "allowedEnvVars": ["MY_TOKEN"]\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+HTTP hooks must be configured by editing settings JSON directly. The `/hooks` interactive menu only supports adding command hooks.
+
 #### [​](https://code.claude.com/docs/en/hooks\#prompt-and-agent-hook-fields)  Prompt and agent hook fields
 
 In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-fields), prompt and agent hooks accept these fields:
@@ -328,7 +461,7 @@ In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-
 | `prompt` | yes | Prompt text to send to the model. Use `$ARGUMENTS` as a placeholder for the hook input JSON |
 | `model` | no | Model to use for evaluation. Defaults to a fast model |
 
-All matching hooks run in parallel, and identical handlers are deduplicated automatically. Handlers run in the current directory with Claude Code’s environment. The `$CLAUDE_CODE_REMOTE` environment variable is set to `"true"` in remote web environments and not set in the local CLI.
+All matching hooks run in parallel, and identical handlers are deduplicated automatically. Command hooks are deduplicated by command string, and HTTP hooks are deduplicated by URL. Handlers run in the current directory with Claude Code’s environment. The `$CLAUDE_CODE_REMOTE` environment variable is set to `"true"` in remote web environments and not set in the local CLI.
 
 ### [​](https://code.claude.com/docs/en/hooks\#reference-scripts-by-path)  Reference scripts by path
 
@@ -438,11 +571,11 @@ To remove a hook, delete its entry from the settings JSON file, or use the `/hoo
 
 ## [​](https://code.claude.com/docs/en/hooks\#hook-input-and-output)  Hook input and output
 
-Hooks receive JSON data via stdin and communicate results through exit codes, stdout, and stderr. This section covers fields and behavior common to all events. Each event’s section under [Hook events](https://code.claude.com/docs/en/hooks#hook-events) includes its specific input schema and decision control options.
+Command hooks receive JSON data via stdin and communicate results through exit codes, stdout, and stderr. HTTP hooks receive the same JSON as the POST request body and communicate results through the HTTP response body. This section covers fields and behavior common to all events. Each event’s section under [Hook events](https://code.claude.com/docs/en/hooks#hook-events) includes its specific input schema and decision control options.
 
 ### [​](https://code.claude.com/docs/en/hooks\#common-input-fields)  Common input fields
 
-All hook events receive these fields via stdin as JSON, in addition to event-specific fields documented in each [hook event](https://code.claude.com/docs/en/hooks#hook-events) section:
+All hook events receive these fields as JSON, in addition to event-specific fields documented in each [hook event](https://code.claude.com/docs/en/hooks#hook-events) section. For command hooks, this JSON arrives via stdin. For HTTP hooks, it arrives as the POST request body.
 
 | Field | Description |
 | --- | --- |
@@ -522,6 +655,18 @@ Exit code 2 is the way a hook signals “stop, don’t do this.” The effect de
 | `PreCompact` | No | Shows stderr to user only |
 | `WorktreeCreate` | Yes | Any non-zero exit code causes worktree creation to fail |
 | `WorktreeRemove` | No | Failures are logged in debug mode only |
+
+### [​](https://code.claude.com/docs/en/hooks\#http-response-handling)  HTTP response handling
+
+HTTP hooks use HTTP status codes and response bodies instead of exit codes and stdout:
+
+- **2xx with an empty body**: success, equivalent to exit code 0 with no output
+- **2xx with a plain text body**: success, the text is added as context
+- **2xx with a JSON body**: success, parsed using the same [JSON output](https://code.claude.com/docs/en/hooks#json-output) schema as command hooks
+- **Non-2xx status**: non-blocking error, execution continues
+- **Connection failure or timeout**: non-blocking error, execution continues
+
+Unlike command hooks, HTTP hooks cannot signal a blocking error through status codes alone. To block a tool call or deny a permission, return a 2xx response with a JSON body containing the appropriate decision fields.
 
 ### [​](https://code.claude.com/docs/en/hooks\#json-output)  JSON output
 
@@ -808,7 +953,7 @@ block prompts or want more structured control.
 
 ### [​](https://code.claude.com/docs/en/hooks\#pretooluse)  PreToolUse
 
-Runs after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Task`, `WebFetch`, `WebSearch`, and any [MCP tool names](https://code.claude.com/docs/en/hooks#match-mcp-tools).Use [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.
+Runs after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Agent`, `WebFetch`, `WebSearch`, and any [MCP tool names](https://code.claude.com/docs/en/hooks#match-mcp-tools).Use [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.
 
 #### [​](https://code.claude.com/docs/en/hooks\#pretooluse-input)  PreToolUse input
 
@@ -896,7 +1041,7 @@ Searches the web.
 | `allowed_domains` | array | `["docs.example.com"]` | Optional: only include results from these domains |
 | `blocked_domains` | array | `["spam.example.com"]` | Optional: exclude results from these domains |
 
-##### Task
+##### Agent
 
 Spawns a [subagent](https://code.claude.com/docs/en/sub-agents).
 
@@ -1195,7 +1340,7 @@ Notification hooks cannot block or modify notifications. In addition to the [JSO
 
 ### [​](https://code.claude.com/docs/en/hooks\#subagentstart)  SubagentStart
 
-Runs when a Claude Code subagent is spawned via the Task tool. Supports matchers to filter by agent type name (built-in agents like `Bash`, `Explore`, `Plan`, or custom agent names from `.claude/agents/`).
+Runs when a Claude Code subagent is spawned via the Agent tool. Supports matchers to filter by agent type name (built-in agents like `Bash`, `Explore`, `Plan`, or custom agent names from `.claude/agents/`).
 
 #### [​](https://code.claude.com/docs/en/hooks\#subagentstart-input)  SubagentStart input
 
@@ -1687,7 +1832,7 @@ SessionEnd hooks have no decision control. They cannot block session termination
 
 ## [​](https://code.claude.com/docs/en/hooks\#prompt-based-hooks)  Prompt-based hooks
 
-In addition to Bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action, and agent hooks (`type: "agent"`) that spawn an agentic verifier with tool access. Not all events support every hook type.Events that support all three hook types (`command`, `prompt`, and `agent`):
+In addition to command and HTTP hooks, Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action, and agent hooks (`type: "agent"`) that spawn an agentic verifier with tool access. Not all events support every hook type.Events that support all four hook types (`command`, `http`, `prompt`, and `agent`):
 
 - `PermissionRequest`
 - `PostToolUse`
@@ -1969,9 +2114,9 @@ Async hooks have several constraints compared to synchronous hooks:
 
 ### [​](https://code.claude.com/docs/en/hooks\#disclaimer)  Disclaimer
 
-Hooks run with your system user’s full permissions.
+Command hooks run with your system user’s full permissions.
 
-Hooks execute shell commands with your full user permissions. They can modify, delete, or access any files your user account can access. Review and test all hook commands before adding them to your configuration.
+Command hooks execute shell commands with your full user permissions. They can modify, delete, or access any files your user account can access. Review and test all hook commands before adding them to your configuration.
 
 ### [​](https://code.claude.com/docs/en/hooks\#security-best-practices)  Security best practices
 
@@ -2010,6 +2155,8 @@ Was this page helpful?
 YesNo
 
 [Checkpointing](https://code.claude.com/docs/en/checkpointing) [Plugins reference](https://code.claude.com/docs/en/plugins-reference)
+
+Ctrl+I
 
 Assistant
 
