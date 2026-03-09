@@ -49,6 +49,9 @@ On this page
 - [SessionStart input](https://code.claude.com/docs/en/hooks#sessionstart-input)
 - [SessionStart decision control](https://code.claude.com/docs/en/hooks#sessionstart-decision-control)
 - [Persist environment variables](https://code.claude.com/docs/en/hooks#persist-environment-variables)
+- [InstructionsLoaded](https://code.claude.com/docs/en/hooks#instructionsloaded)
+- [InstructionsLoaded input](https://code.claude.com/docs/en/hooks#instructionsloaded-input)
+- [InstructionsLoaded decision control](https://code.claude.com/docs/en/hooks#instructionsloaded-decision-control)
 - [UserPromptSubmit](https://code.claude.com/docs/en/hooks#userpromptsubmit)
 - [UserPromptSubmit input](https://code.claude.com/docs/en/hooks#userpromptsubmit-input)
 - [UserPromptSubmit decision control](https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control)
@@ -117,7 +120,7 @@ Hooks are user-defined shell commands, HTTP endpoints, or LLM prompts that execu
 
 Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, input arrives on stdin. For HTTP hooks, it arrives as the POST request body. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:
 
-![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd, with WorktreeCreate and WorktreeRemove as standalone setup and teardown events](https://mintcdn.com/claude-code/rsuu-ovdPNos9Dnn/images/hooks-lifecycle.svg?fit=max&auto=format&n=rsuu-ovdPNos9Dnn&q=85&s=ce5f1225339bbccdfbb52e99205db912)
+![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd, with WorktreeCreate, WorktreeRemove, and InstructionsLoaded as standalone async events](https://mintcdn.com/claude-code/JWoaQLhotXStH4d2/images/hooks-lifecycle.svg?fit=max&auto=format&n=JWoaQLhotXStH4d2&q=85&s=9310bd002ef90ca32ac668455f5580a0)
 
 The table below summarizes when each event fires. The [Hook events](https://code.claude.com/docs/en/hooks#hook-events) section documents the full input schema and decision control options for each one.
 
@@ -135,6 +138,7 @@ The table below summarizes when each event fires. The [Hook events](https://code
 | `Stop` | When Claude finishes responding |
 | `TeammateIdle` | When an [agent team](https://code.claude.com/docs/en/agent-teams) teammate is about to go idle |
 | `TaskCompleted` | When a task is being marked as completed |
+| `InstructionsLoaded` | When a CLAUDE.md or `.claude/rules/*.md` file is loaded into context. Fires at session start and when files are lazily loaded during a session |
 | `ConfigChange` | When a configuration file changes during a session |
 | `WorktreeCreate` | When a worktree is being created via `--worktree` or `isolation: "worktree"`. Replaces default git behavior |
 | `WorktreeRemove` | When a worktree is being removed, either at session exit or when a subagent finishes |
@@ -302,7 +306,7 @@ The `matcher` field is a regex string that filters when hooks fire. Use `"*"`, `
 | `PreCompact` | what triggered compaction | `manual`, `auto` |
 | `SubagentStop` | agent type | same values as `SubagentStart` |
 | `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |
-| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove` | no matcher support | always fires on every occurrence |
+| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `InstructionsLoaded` | no matcher support | always fires on every occurrence |
 
 The matcher is a regex, so `Edit|Write` matches either tool and `Notebook.*` matches any tool starting with Notebook. The matcher runs against a field from the [JSON input](https://code.claude.com/docs/en/hooks#hook-input-and-output) that Claude Code sends to your hook on stdin. For tool events, that field is `tool_name`. Each [hook event](https://code.claude.com/docs/en/hooks#hook-events) section lists the full set of matcher values and the input schema for that event.This example runs a linting script only when Claude writes or edits a file:
 
@@ -330,7 +334,7 @@ Ask AI
 }
 ```
 
-`UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, and `WorktreeRemove` don’t support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
+`UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, and `InstructionsLoaded` don’t support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
 
 #### [​](https://code.claude.com/docs/en/hooks\#match-mcp-tools)  Match MCP tools
 
@@ -585,6 +589,13 @@ All hook events receive these fields as JSON, in addition to event-specific fiel
 | `permission_mode` | Current [permission mode](https://code.claude.com/docs/en/permissions#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"dontAsk"`, or `"bypassPermissions"` |
 | `hook_event_name` | Name of the event that fired |
 
+When running with `--agent` or inside a subagent, two additional fields are included:
+
+| Field | Description |
+| --- | --- |
+| `agent_id` | Unique identifier for the subagent. Present only when the hook fires inside a subagent call. Use this to distinguish subagent hook calls from main-thread calls. |
+| `agent_type` | Agent name (for example, `"Explore"` or `"security-reviewer"`). Present when the session uses `--agent` or the hook fires inside a subagent. For subagents, the subagent’s type takes precedence over the session’s `--agent` value. |
+
 For example, a `PreToolUse` hook for a Bash command receives this on stdin:
 
 Report incorrect code
@@ -655,6 +666,7 @@ Exit code 2 is the way a hook signals “stop, don’t do this.” The effect de
 | `PreCompact` | No | Shows stderr to user only |
 | `WorktreeCreate` | Yes | Any non-zero exit code causes worktree creation to fail |
 | `WorktreeRemove` | No | Failures are logged in debug mode only |
+| `InstructionsLoaded` | No | Exit code is ignored |
 
 ### [​](https://code.claude.com/docs/en/hooks\#http-response-handling)  HTTP response handling
 
@@ -706,11 +718,11 @@ Not every event supports blocking or controlling behavior through JSON. The even
 | Events | Decision pattern | Key fields |
 | --- | --- | --- |
 | UserPromptSubmit, PostToolUse, PostToolUseFailure, Stop, SubagentStop, ConfigChange | Top-level `decision` | `decision: "block"`, `reason` |
-| TeammateIdle, TaskCompleted | Exit code only | Exit code 2 blocks the action, stderr is fed back as feedback |
+| TeammateIdle, TaskCompleted | Exit code or `continue: false` | Exit code 2 blocks the action with stderr feedback. JSON `{"continue": false, "stopReason": "..."}` also stops the teammate entirely, matching `Stop` hook behavior |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision` (allow/deny/ask), `permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior` (allow/deny) |
 | WorktreeCreate | stdout path | Hook prints absolute path to created worktree. Non-zero exit fails creation |
-| WorktreeRemove, Notification, SessionEnd, PreCompact | None | No decision control. Used for side effects like logging or cleanup |
+| WorktreeRemove, Notification, SessionEnd, PreCompact, InstructionsLoaded | None | No decision control. Used for side effects like logging or cleanup |
 
 Here are examples of each pattern in action:
 
@@ -784,7 +796,7 @@ Each event corresponds to a point in Claude Code’s lifecycle where hooks can r
 
 ### [​](https://code.claude.com/docs/en/hooks\#sessionstart)  SessionStart
 
-Runs when Claude Code starts a new session or resumes an existing session. Useful for loading development context like existing issues or recent changes to your codebase, or setting up environment variables. For static context that does not require a script, use [CLAUDE.md](https://code.claude.com/docs/en/memory) instead.SessionStart runs on every session, so keep these hooks fast.The matcher value corresponds to how the session was initiated:
+Runs when Claude Code starts a new session or resumes an existing session. Useful for loading development context like existing issues or recent changes to your codebase, or setting up environment variables. For static context that does not require a script, use [CLAUDE.md](https://code.claude.com/docs/en/memory) instead.SessionStart runs on every session, so keep these hooks fast. Only `type: "command"` hooks are supported.The matcher value corresponds to how the session was initiated:
 
 | Matcher | When it fires |
 | --- | --- |
@@ -888,6 +900,46 @@ exit 0
 Any variables written to this file will be available in all subsequent Bash commands that Claude Code executes during the session.
 
 `CLAUDE_ENV_FILE` is available for SessionStart hooks. Other hook types do not have access to this variable.
+
+### [​](https://code.claude.com/docs/en/hooks\#instructionsloaded)  InstructionsLoaded
+
+Fires when a `CLAUDE.md` or `.claude/rules/*.md` file is loaded into context. This event fires at session start for eagerly-loaded files and again later when files are lazily loaded, for example when Claude accesses a subdirectory that contains a nested `CLAUDE.md` or when conditional rules with `paths:` frontmatter match. The hook does not support blocking or decision control. It runs asynchronously for observability purposes.InstructionsLoaded does not support matchers and fires on every load occurrence.
+
+#### [​](https://code.claude.com/docs/en/hooks\#instructionsloaded-input)  InstructionsLoaded input
+
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), InstructionsLoaded hooks receive these fields:
+
+| Field | Description |
+| --- | --- |
+| `file_path` | Absolute path to the instruction file that was loaded |
+| `memory_type` | Scope of the file: `"User"`, `"Project"`, `"Local"`, or `"Managed"` |
+| `load_reason` | Why the file was loaded: `"session_start"`, `"nested_traversal"`, `"path_glob_match"`, or `"include"` |
+| `globs` | Path glob patterns from the file’s `paths:` frontmatter, if any. Present only for `path_glob_match` loads |
+| `trigger_file_path` | Path to the file whose access triggered this load, for lazy loads |
+| `parent_file_path` | Path to the parent instruction file that included this one, for `include` loads |
+
+Report incorrect code
+
+Copy
+
+Ask AI
+
+```
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../transcript.jsonl",
+  "cwd": "/Users/my-project",
+  "permission_mode": "default",
+  "hook_event_name": "InstructionsLoaded",
+  "file_path": "/Users/my-project/CLAUDE.md",
+  "memory_type": "Project",
+  "load_reason": "session_start"
+}
+```
+
+#### [​](https://code.claude.com/docs/en/hooks\#instructionsloaded-decision-control)  InstructionsLoaded decision control
+
+InstructionsLoaded hooks have no decision control. They cannot block or modify instruction loading. Use this event for audit logging, compliance tracking, or observability.
 
 ### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit)  UserPromptSubmit
 
@@ -1467,7 +1519,7 @@ Ask AI
 
 ### [​](https://code.claude.com/docs/en/hooks\#teammateidle)  TeammateIdle
 
-Runs when an [agent team](https://code.claude.com/docs/en/agent-teams) teammate is about to go idle after finishing its turn. Use this to enforce quality gates before a teammate stops working, such as requiring passing lint checks or verifying that output files exist.When a `TeammateIdle` hook exits with code 2, the teammate receives the stderr message as feedback and continues working instead of going idle. TeammateIdle hooks do not support matchers and fire on every occurrence.
+Runs when an [agent team](https://code.claude.com/docs/en/agent-teams) teammate is about to go idle after finishing its turn. Use this to enforce quality gates before a teammate stops working, such as requiring passing lint checks or verifying that output files exist.When a `TeammateIdle` hook exits with code 2, the teammate receives the stderr message as feedback and continues working instead of going idle. To stop the teammate entirely instead of re-running it, return JSON with `{"continue": false, "stopReason": "..."}`. TeammateIdle hooks do not support matchers and fire on every occurrence.
 
 #### [​](https://code.claude.com/docs/en/hooks\#teammateidle-input)  TeammateIdle input
 
@@ -1498,7 +1550,12 @@ Ask AI
 
 #### [​](https://code.claude.com/docs/en/hooks\#teammateidle-decision-control)  TeammateIdle decision control
 
-TeammateIdle hooks use exit codes only, not JSON decision control. This example checks that a build artifact exists before allowing a teammate to go idle:
+TeammateIdle hooks support two ways to control teammate behavior:
+
+- **Exit code 2**: the teammate receives the stderr message as feedback and continues working instead of going idle.
+- **JSON `{"continue": false, "stopReason": "..."}`**: stops the teammate entirely, matching `Stop` hook behavior. The `stopReason` is shown to the user.
+
+This example checks that a build artifact exists before allowing a teammate to go idle:
 
 Report incorrect code
 
@@ -1519,7 +1576,7 @@ exit 0
 
 ### [​](https://code.claude.com/docs/en/hooks\#taskcompleted)  TaskCompleted
 
-Runs when a task is being marked as completed. This fires in two situations: when any agent explicitly marks a task as completed through the TaskUpdate tool, or when an [agent team](https://code.claude.com/docs/en/agent-teams) teammate finishes its turn with in-progress tasks. Use this to enforce completion criteria like passing tests or lint checks before a task can close.When a `TaskCompleted` hook exits with code 2, the task is not marked as completed and the stderr message is fed back to the model as feedback. TaskCompleted hooks do not support matchers and fire on every occurrence.
+Runs when a task is being marked as completed. This fires in two situations: when any agent explicitly marks a task as completed through the TaskUpdate tool, or when an [agent team](https://code.claude.com/docs/en/agent-teams) teammate finishes its turn with in-progress tasks. Use this to enforce completion criteria like passing tests or lint checks before a task can close.When a `TaskCompleted` hook exits with code 2, the task is not marked as completed and the stderr message is fed back to the model as feedback. To stop the teammate entirely instead of re-running it, return JSON with `{"continue": false, "stopReason": "..."}`. TaskCompleted hooks do not support matchers and fire on every occurrence.
 
 #### [​](https://code.claude.com/docs/en/hooks\#taskcompleted-input)  TaskCompleted input
 
@@ -1556,7 +1613,12 @@ Ask AI
 
 #### [​](https://code.claude.com/docs/en/hooks\#taskcompleted-decision-control)  TaskCompleted decision control
 
-TaskCompleted hooks use exit codes only, not JSON decision control. This example runs tests and blocks task completion if they fail:
+TaskCompleted hooks support two ways to control task completion:
+
+- **Exit code 2**: the task is not marked as completed and the stderr message is fed back to the model as feedback.
+- **JSON `{"continue": false, "stopReason": "..."}`**: stops the teammate entirely, matching `Stop` hook behavior. The `stopReason` is shown to the user.
+
+This example runs tests and blocks task completion if they fail:
 
 Report incorrect code
 
@@ -1846,6 +1908,7 @@ In addition to command and HTTP hooks, Claude Code supports prompt-based hooks (
 Events that only support `type: "command"` hooks:
 
 - `ConfigChange`
+- `InstructionsLoaded`
 - `Notification`
 - `PreCompact`
 - `SessionEnd`
@@ -2162,6 +2225,6 @@ Assistant
 
 Responses are generated using AI and may contain mistakes.
 
-![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd, with WorktreeCreate and WorktreeRemove as standalone setup and teardown events](https://mintcdn.com/claude-code/rsuu-ovdPNos9Dnn/images/hooks-lifecycle.svg?w=1100&fit=max&auto=format&n=rsuu-ovdPNos9Dnn&q=85&s=614def559f34f9b0c1dec93739d96b64)
+![Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd, with WorktreeCreate, WorktreeRemove, and InstructionsLoaded as standalone async events](https://mintcdn.com/claude-code/JWoaQLhotXStH4d2/images/hooks-lifecycle.svg?w=1100&fit=max&auto=format&n=JWoaQLhotXStH4d2&q=85&s=4f35067e11e2d1861513ae8faf92cc04)
 
 ![Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code](https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/hook-resolution.svg?w=1100&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=0e9dd1807dc7a5c56011d0889b0d5208)
