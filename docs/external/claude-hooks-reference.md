@@ -423,7 +423,7 @@ These fields apply to all hook types:
 | `if` | no | Permission rule syntax to filter when this hook runs, such as `"Bash(git *)"` or `"Edit(*.ts)"`. The hook only spawns if the tool call matches the pattern. Only evaluated on tool events: `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, and `PermissionDenied`. On other events, a hook with `if` set never runs. Uses the same syntax as [permission rules](https://code.claude.com/docs/en/permissions) |
 | `timeout` | no | Seconds before canceling. Defaults: 600 for command, 30 for prompt, 60 for agent |
 | `statusMessage` | no | Custom spinner message displayed while the hook runs |
-| `once` | no | If `true`, runs only once per session then is removed. Skills only, not agents. See [Hooks in skills and agents](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents) |
+| `once` | no | If `true`, runs once per session then is removed. Only honored for hooks declared in [skill frontmatter](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents); ignored in settings files and agent frontmatter |
 
 #### [​](https://code.claude.com/docs/en/hooks\#command-hook-fields)  Command hook fields
 
@@ -433,6 +433,7 @@ In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-
 | --- | --- | --- |
 | `command` | yes | Shell command to execute |
 | `async` | no | If `true`, runs in the background without blocking. See [Run hooks in the background](https://code.claude.com/docs/en/hooks#run-hooks-in-the-background) |
+| `asyncRewake` | no | If `true`, runs in the background and wakes Claude on exit code 2. Implies `async`. The hook’s stderr, or stdout if stderr is empty, is shown to Claude as a system reminder so it can react to a long-running background failure |
 | `shell` | no | Shell to use for this hook. Accepts `"bash"` (default) or `"powershell"`. Setting `"powershell"` runs the command via PowerShell on Windows. Does not require `CLAUDE_CODE_USE_POWERSHELL_TOOL` since hooks spawn PowerShell directly |
 
 #### [​](https://code.claude.com/docs/en/hooks\#http-hook-fields)  HTTP hook fields
@@ -659,7 +660,7 @@ Exit code 2 is the way a hook signals “stop, don’t do this.” The effect de
 | `SessionEnd` | No | Shows stderr to user only |
 | `CwdChanged` | No | Shows stderr to user only |
 | `FileChanged` | No | Shows stderr to user only |
-| `PreCompact` | No | Shows stderr to user only |
+| `PreCompact` | Yes | Blocks compaction |
 | `PostCompact` | No | Shows stderr to user only |
 | `Elicitation` | Yes | Denies the elicitation |
 | `ElicitationResult` | Yes | Blocks the response (action becomes decline) |
@@ -710,7 +711,7 @@ Not every event supports blocking or controlling behavior through JSON. The even
 
 | Events | Decision pattern | Key fields |
 | --- | --- | --- |
-| UserPromptSubmit, PostToolUse, PostToolUseFailure, Stop, SubagentStop, ConfigChange | Top-level `decision` | `decision: "block"`, `reason` |
+| UserPromptSubmit, PostToolUse, PostToolUseFailure, Stop, SubagentStop, ConfigChange, PreCompact | Top-level `decision` | `decision: "block"`, `reason` |
 | TeammateIdle, TaskCreated, TaskCompleted | Exit code or `continue: false` | Exit code 2 blocks the action with stderr feedback. JSON `{"continue": false, "stopReason": "..."}` also stops the teammate entirely, matching `Stop` hook behavior |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision` (allow/deny/ask/defer), `permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior` (allow/deny) |
@@ -718,7 +719,7 @@ Not every event supports blocking or controlling behavior through JSON. The even
 | WorktreeCreate | path return | Command hook prints path on stdout; HTTP hook returns `hookSpecificOutput.worktreePath`. Hook failure or missing path fails creation |
 | Elicitation | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values for accept) |
 | ElicitationResult | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values override) |
-| WorktreeRemove, Notification, SessionEnd, PreCompact, PostCompact, InstructionsLoaded, StopFailure, CwdChanged, FileChanged | None | No decision control. Used for side effects like logging or cleanup |
+| WorktreeRemove, Notification, SessionEnd, PostCompact, InstructionsLoaded, StopFailure, CwdChanged, FileChanged | None | No decision control. Used for side effects like logging or cleanup |
 
 Here are examples of each pattern in action:
 
@@ -729,7 +730,7 @@ Here are examples of each pattern in action:
 - PermissionRequest
 
 
-Used by `UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `Stop`, `SubagentStop`, and `ConfigChange`. The only value is `"block"`. To allow the action to proceed, omit `decision` from your JSON, or exit 0 without any JSON at all:
+Used by `UserPromptSubmit`, `PostToolUse`, `PostToolUseFailure`, `Stop`, `SubagentStop`, `ConfigChange`, and `PreCompact`. The only value is `"block"`. To allow the action to proceed, omit `decision` from your JSON, or exit 0 without any JSON at all:
 
 ```
 {
@@ -1055,7 +1056,7 @@ Asks the user one to four multiple-choice questions.
 
 | Field | Description |
 | --- | --- |
-| `permissionDecision` | `"allow"` skips the permission prompt. `"deny"` prevents the tool call. `"ask"` prompts the user to confirm. `"defer"` exits gracefully so the tool can be resumed later. [Deny and ask rules](https://code.claude.com/docs/en/permissions#manage-permissions) still apply when a hook returns `"allow"` |
+| `permissionDecision` | `"allow"` skips the permission prompt. `"deny"` prevents the tool call. `"ask"` prompts the user to confirm. `"defer"` exits gracefully so the tool can be resumed later. [Deny and ask rules](https://code.claude.com/docs/en/permissions#manage-permissions) are still evaluated regardless of what the hook returns |
 | `permissionDecisionReason` | For `"allow"` and `"ask"`, shown to the user but not Claude. For `"deny"`, shown to Claude. For `"defer"`, ignored |
 | `updatedInput` | Modifies the tool’s input parameters before execution. Replaces the entire input object, so include unchanged fields alongside modified ones. Combine with `"allow"` to auto-approve, or `"ask"` to show the modified input to the user. For `"defer"`, ignored |
 | `additionalContext` | String added to Claude’s context before the tool executes. For `"defer"`, ignored |
@@ -1152,8 +1153,8 @@ PermissionRequest hooks receive `tool_name` and `tool_input` fields like PreTool
 
 | Field | Description |
 | --- | --- |
-| `behavior` | `"allow"` grants the permission, `"deny"` denies it |
-| `updatedInput` | For `"allow"` only: modifies the tool’s input parameters before execution. Replaces the entire input object, so include unchanged fields alongside modified ones |
+| `behavior` | `"allow"` grants the permission, `"deny"` denies it. [Deny and ask rules](https://code.claude.com/docs/en/permissions#manage-permissions) are still evaluated, so a hook returning `"allow"` does not override a matching deny rule |
+| `updatedInput` | For `"allow"` only: modifies the tool’s input parameters before execution. Replaces the entire input object, so include unchanged fields alongside modified ones. The modified input is re-evaluated against deny and ask rules |
 | `updatedPermissions` | For `"allow"` only: array of [permission update entries](https://code.claude.com/docs/en/hooks#permission-update-entries) to apply, such as adding an allow rule or changing the session permission mode |
 | `message` | For `"deny"` only: tells Claude why the permission was denied |
 | `interrupt` | For `"deny"` only: if `true`, stops Claude |
@@ -1184,6 +1185,8 @@ The `updatedPermissions` output field and the [`permission_suggestions` input fi
 | `setMode` | `mode`, `destination` | Changes the permission mode. Valid modes are `default`, `acceptEdits`, `dontAsk`, `bypassPermissions`, and `plan` |
 | `addDirectories` | `directories`, `destination` | Adds working directories. `directories` is an array of path strings |
 | `removeDirectories` | `directories`, `destination` | Removes working directories |
+
+`setMode` with `bypassPermissions` only takes effect if the session was launched with bypass mode already available: `--dangerously-skip-permissions`, `--permission-mode bypassPermissions`, `--allow-dangerously-skip-permissions`, or `permissions.defaultMode: "bypassPermissions"` in settings, and the mode is not disabled by [`permissions.disableBypassPermissionsMode`](https://code.claude.com/docs/en/permissions#managed-settings). Otherwise the update is a no-op. `bypassPermissions` is never persisted as `defaultMode` regardless of `destination`.
 
 The `destination` field on every entry determines whether the change stays in memory or persists to a settings file.
 
@@ -1892,6 +1895,8 @@ Runs before Claude Code is about to run a compact operation.The matcher value in
 | `manual` | `/compact` |
 | `auto` | Auto-compact when the context window is full |
 
+Exit with code 2 to block compaction. For a manual `/compact`, the stderr message is shown to the user. You can also block by returning JSON with `"decision": "block"`.Blocking automatic compaction has different effects depending on when it fires. If compaction was triggered proactively before the context limit, Claude Code skips it and the conversation continues uncompacted. If compaction was triggered to recover from a context-limit error already returned by the API, the underlying error surfaces and the current request fails.
+
 #### [​](https://code.claude.com/docs/en/hooks\#precompact-input)  PreCompact input
 
 In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), PreCompact hooks receive `trigger` and `custom_instructions`. For `manual`, `custom_instructions` contains what the user passes into `/compact`. For `auto`, `custom_instructions` is empty.
@@ -1961,7 +1966,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 }
 ```
 
-SessionEnd hooks have no decision control. They cannot block session termination but can perform cleanup tasks.SessionEnd hooks have a default timeout of 1.5 seconds. This applies to session exit, `/clear`, and switching sessions via interactive `/resume`. If your hooks need more time, set the `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` environment variable to a higher value in milliseconds. Any per-hook `timeout` setting is also capped by this value.
+SessionEnd hooks have no decision control. They cannot block session termination but can perform cleanup tasks.SessionEnd hooks have a default timeout of 1.5 seconds. This applies to session exit, `/clear`, and switching sessions via interactive `/resume`. If a hook needs more time, set a per-hook `timeout` in the hook configuration. The overall budget is automatically raised to the highest per-hook timeout configured in settings files, up to 60 seconds. Timeouts set on plugin-provided hooks do not raise the budget. To override the budget explicitly, set the `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` environment variable in milliseconds.
 
 ```
 CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS=5000 claude
@@ -2322,7 +2327,7 @@ Async hooks have several constraints compared to synchronous hooks:
 
 - Only `type: "command"` hooks support `async`. Prompt-based hooks cannot run asynchronously.
 - Async hooks cannot block tool calls or return decisions. By the time the hook completes, the triggering action has already proceeded.
-- Hook output is delivered on the next conversation turn. If the session is idle, the response waits until the next user interaction.
+- Hook output is delivered on the next conversation turn. If the session is idle, the response waits until the next user interaction. Exception: an `asyncRewake` hook that exits with code 2 wakes Claude immediately even when the session is idle.
 - Each execution creates a separate background process. There is no deduplication across multiple firings of the same async hook.
 
 ## [​](https://code.claude.com/docs/en/hooks\#security-considerations)  Security considerations
