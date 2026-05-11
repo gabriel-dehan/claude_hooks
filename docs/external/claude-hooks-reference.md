@@ -646,6 +646,7 @@ Hook events receive these fields as JSON, in addition to event-specific fields d
 | `transcript_path` | Path to conversation JSON |
 | `cwd` | Current working directory when the hook is invoked |
 | `permission_mode` | Current [permission mode](https://code.claude.com/docs/en/permissions#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"auto"`, `"dontAsk"`, or `"bypassPermissions"`. Not all events receive this field: see each event’s JSON example below to check |
+| `effort` | Object with a `level` field holding the active [effort level](https://code.claude.com/docs/en/model-config#adjust-effort-level) for the turn: `"low"`, `"medium"`, `"high"`, `"xhigh"`, or `"max"`. If the requested effort exceeds what the current model supports, this is the downgraded level the model actually used, not the level you requested. The object matches the [status line](https://code.claude.com/docs/en/statusline#available-data)`effort` field. Present for events that fire within a tool-use context, such as `PreToolUse`, `PostToolUse`, `Stop`, and `SubagentStop`, when the current model supports the effort parameter. The level is also available to hook commands and the Bash tool as the `$CLAUDE_EFFORT` environment variable. |
 | `hook_event_name` | Name of the event that fired |
 
 When running with `--agent` or inside a subagent, two additional fields are included:
@@ -1056,7 +1057,7 @@ Plain stdout is shown as hook output in the transcript. The `additionalContext` 
 | `decision` | `"block"` prevents the prompt from being processed and erases it from context. Omit to allow the prompt to proceed |
 | `reason` | Shown to the user when `decision` is `"block"`. Not added to context |
 | `additionalContext` | String added to Claude’s context alongside the submitted prompt. See [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude) |
-| `sessionTitle` | Sets the session title, same effect as `/rename`. Use to name sessions automatically based on the prompt content |
+| `sessionTitle` | Sets the session title. Use to name sessions automatically based on the prompt content |
 
 ```
 {
@@ -1290,7 +1291,7 @@ The `deferred_tool_use` field carries the tool’s `id`, `name`, and `input`. Th
 
 There is no timeout or retry limit. The session remains on disk until you resume it, subject to the [`cleanupPeriodDays`](https://code.claude.com/docs/en/settings#available-settings) retention sweep that deletes session files after 30 days by default. If the answer is not ready when you resume, the hook can return `"defer"` again and the process exits the same way. The calling process controls when to break the loop by eventually returning `"allow"` or `"deny"` from the hook.`"defer"` only works when Claude makes a single tool call in the turn. If Claude makes several tool calls at once, `"defer"` is ignored with a warning and the tool proceeds through the normal permission flow. The constraint exists because resume can only re-run one tool: there is no way to defer one call from a batch without leaving the others unresolved.If the deferred tool is no longer available when you resume, the process exits with `stop_reason: "tool_deferred_unavailable"` and `is_error: true` before the hook fires. This happens when an MCP server that provided the tool is not connected for the resumed session. The `deferred_tool_use` payload is still included so you can identify which tool went missing.
 
-`--resume` does not restore the permission mode from the prior session. Pass the same `--permission-mode` flag on resume that was active when the tool was deferred. Claude Code logs a warning if the modes differ.
+`--resume` restores the permission mode that was active when the tool was deferred, so you do not need to pass `--permission-mode` again. The exceptions are `plan` and `bypassPermissions`, which are never carried over. Passing `--permission-mode` explicitly on resume overrides the restored value.
 
 ### [​](https://code.claude.com/docs/en/hooks\#permissionrequest)  PermissionRequest
 
@@ -1415,7 +1416,7 @@ Runs immediately after a tool completes successfully.Matches on tool name, same 
 
 | Field | Description |
 | --- | --- |
-| `decision` | `"block"` prompts Claude with the `reason`. Omit to allow the action to proceed |
+| `decision` | `"block"` adds the `reason` next to the tool result. Claude still sees the original output; to replace it, use `updatedToolOutput` |
 | `reason` | Explanation shown to Claude when `decision` is `"block"` |
 | `additionalContext` | String added to Claude’s context alongside the tool result. See [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude) |
 | `updatedToolOutput` | Replaces the tool’s output with the provided value before it is sent to Claude. The value must match the tool’s output shape |
@@ -2412,10 +2413,18 @@ The LLM must respond with JSON containing:
 
 | Field | Description |
 | --- | --- |
-| `ok` | `true` allows the action, `false` blocks it |
-| `reason` | Required when `ok` is `false`. Explanation for the block |
+| `ok` | `true` to allow, `false` to block. See the per-event behavior below |
+| `reason` | Required when `ok` is `false`. Explanation for the decision |
 
-For `Stop` and `SubagentStop`, an `ok: false` reason is fed back to Claude as its next instruction and the turn continues. For all other supported events, the turn ends and the reason appears in the chat as a warning line; Claude does not see it. This is equivalent to returning `"continue": false` from a command hook. If you need different blocking semantics on those events, use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) with the per-event fields described in [Decision control](https://code.claude.com/docs/en/hooks#decision-control).
+What happens on `ok: false` depends on the event:
+
+- `Stop` and `SubagentStop`: the reason is fed back to Claude as its next instruction and the turn continues
+- `PreToolUse`: the tool call is denied and the reason is returned to Claude as the tool error, equivalent to a command hook’s `permissionDecision: "deny"`
+- `PostToolUse`, `PostToolBatch`, `UserPromptSubmit`, and `UserPromptExpansion`: the turn ends and the reason appears in the chat as a warning line, equivalent to returning `"continue": false` from a command hook
+- `PostToolUseFailure`, `TaskCreated`, and `TaskCompleted`: the reason is returned to Claude as a tool error, similar to `PreToolUse`
+- `PermissionRequest`: `ok: false` has no effect. To deny an approval from a hook, use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) returning `hookSpecificOutput.decision.behavior: "deny"`
+
+If you need finer control on any event, use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) with the per-event fields described in [Decision control](https://code.claude.com/docs/en/hooks#decision-control).
 
 ### [​](https://code.claude.com/docs/en/hooks\#example-multi-criteria-stop-hook)  Example: Multi-criteria Stop hook
 
