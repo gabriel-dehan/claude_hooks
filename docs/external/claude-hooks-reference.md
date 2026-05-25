@@ -18,135 +18,6 @@ Hooks reference
 
 [Getting started](https://code.claude.com/docs/en/overview) [Build with Claude Code](https://code.claude.com/docs/en/agents) [Administration](https://code.claude.com/docs/en/admin-setup) [Configuration](https://code.claude.com/docs/en/settings) [Reference](https://code.claude.com/docs/en/cli-reference) [Agent SDK](https://code.claude.com/docs/en/agent-sdk/overview) [What's New](https://code.claude.com/docs/en/whats-new) [Resources](https://code.claude.com/docs/en/legal-and-compliance)
 
-On this page
-
-- [Hook lifecycle](https://code.claude.com/docs/en/hooks#hook-lifecycle)
-- [How a hook resolves](https://code.claude.com/docs/en/hooks#how-a-hook-resolves)
-- [Configuration](https://code.claude.com/docs/en/hooks#configuration)
-- [Hook locations](https://code.claude.com/docs/en/hooks#hook-locations)
-- [Matcher patterns](https://code.claude.com/docs/en/hooks#matcher-patterns)
-- [Match MCP tools](https://code.claude.com/docs/en/hooks#match-mcp-tools)
-- [Hook handler fields](https://code.claude.com/docs/en/hooks#hook-handler-fields)
-- [Common fields](https://code.claude.com/docs/en/hooks#common-fields)
-- [Command hook fields](https://code.claude.com/docs/en/hooks#command-hook-fields)
-- [HTTP hook fields](https://code.claude.com/docs/en/hooks#http-hook-fields)
-- [MCP tool hook fields](https://code.claude.com/docs/en/hooks#mcp-tool-hook-fields)
-- [Prompt and agent hook fields](https://code.claude.com/docs/en/hooks#prompt-and-agent-hook-fields)
-- [Reference scripts by path](https://code.claude.com/docs/en/hooks#reference-scripts-by-path)
-- [Hooks in skills and agents](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents)
-- [The /hooks menu](https://code.claude.com/docs/en/hooks#the-%2Fhooks-menu)
-- [Disable or remove hooks](https://code.claude.com/docs/en/hooks#disable-or-remove-hooks)
-- [Hook input and output](https://code.claude.com/docs/en/hooks#hook-input-and-output)
-- [Common input fields](https://code.claude.com/docs/en/hooks#common-input-fields)
-- [Exit code output](https://code.claude.com/docs/en/hooks#exit-code-output)
-- [Exit code 2 behavior per event](https://code.claude.com/docs/en/hooks#exit-code-2-behavior-per-event)
-- [HTTP response handling](https://code.claude.com/docs/en/hooks#http-response-handling)
-- [JSON output](https://code.claude.com/docs/en/hooks#json-output)
-- [Emit terminal notifications](https://code.claude.com/docs/en/hooks#emit-terminal-notifications)
-- [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude)
-- [Decision control](https://code.claude.com/docs/en/hooks#decision-control)
-- [Hook events](https://code.claude.com/docs/en/hooks#hook-events)
-- [SessionStart](https://code.claude.com/docs/en/hooks#sessionstart)
-- [SessionStart input](https://code.claude.com/docs/en/hooks#sessionstart-input)
-- [SessionStart decision control](https://code.claude.com/docs/en/hooks#sessionstart-decision-control)
-- [Persist environment variables](https://code.claude.com/docs/en/hooks#persist-environment-variables)
-- [Setup](https://code.claude.com/docs/en/hooks#setup)
-- [Setup input](https://code.claude.com/docs/en/hooks#setup-input)
-- [Setup decision control](https://code.claude.com/docs/en/hooks#setup-decision-control)
-- [InstructionsLoaded](https://code.claude.com/docs/en/hooks#instructionsloaded)
-- [InstructionsLoaded input](https://code.claude.com/docs/en/hooks#instructionsloaded-input)
-- [InstructionsLoaded decision control](https://code.claude.com/docs/en/hooks#instructionsloaded-decision-control)
-- [UserPromptSubmit](https://code.claude.com/docs/en/hooks#userpromptsubmit)
-- [UserPromptSubmit input](https://code.claude.com/docs/en/hooks#userpromptsubmit-input)
-- [UserPromptSubmit decision control](https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control)
-- [UserPromptExpansion](https://code.claude.com/docs/en/hooks#userpromptexpansion)
-- [UserPromptExpansion input](https://code.claude.com/docs/en/hooks#userpromptexpansion-input)
-- [UserPromptExpansion decision control](https://code.claude.com/docs/en/hooks#userpromptexpansion-decision-control)
-- [PreToolUse](https://code.claude.com/docs/en/hooks#pretooluse)
-- [PreToolUse input](https://code.claude.com/docs/en/hooks#pretooluse-input)
-- [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control)
-- [Defer a tool call for later](https://code.claude.com/docs/en/hooks#defer-a-tool-call-for-later)
-- [PermissionRequest](https://code.claude.com/docs/en/hooks#permissionrequest)
-- [PermissionRequest input](https://code.claude.com/docs/en/hooks#permissionrequest-input)
-- [PermissionRequest decision control](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control)
-- [Permission update entries](https://code.claude.com/docs/en/hooks#permission-update-entries)
-- [PostToolUse](https://code.claude.com/docs/en/hooks#posttooluse)
-- [PostToolUse input](https://code.claude.com/docs/en/hooks#posttooluse-input)
-- [PostToolUse decision control](https://code.claude.com/docs/en/hooks#posttooluse-decision-control)
-- [PostToolUseFailure](https://code.claude.com/docs/en/hooks#posttoolusefailure)
-- [PostToolUseFailure input](https://code.claude.com/docs/en/hooks#posttoolusefailure-input)
-- [PostToolUseFailure decision control](https://code.claude.com/docs/en/hooks#posttoolusefailure-decision-control)
-- [PostToolBatch](https://code.claude.com/docs/en/hooks#posttoolbatch)
-- [PostToolBatch input](https://code.claude.com/docs/en/hooks#posttoolbatch-input)
-- [PostToolBatch decision control](https://code.claude.com/docs/en/hooks#posttoolbatch-decision-control)
-- [PermissionDenied](https://code.claude.com/docs/en/hooks#permissiondenied)
-- [PermissionDenied input](https://code.claude.com/docs/en/hooks#permissiondenied-input)
-- [PermissionDenied decision control](https://code.claude.com/docs/en/hooks#permissiondenied-decision-control)
-- [Notification](https://code.claude.com/docs/en/hooks#notification)
-- [Notification input](https://code.claude.com/docs/en/hooks#notification-input)
-- [SubagentStart](https://code.claude.com/docs/en/hooks#subagentstart)
-- [SubagentStart input](https://code.claude.com/docs/en/hooks#subagentstart-input)
-- [SubagentStop](https://code.claude.com/docs/en/hooks#subagentstop)
-- [SubagentStop input](https://code.claude.com/docs/en/hooks#subagentstop-input)
-- [TaskCreated](https://code.claude.com/docs/en/hooks#taskcreated)
-- [TaskCreated input](https://code.claude.com/docs/en/hooks#taskcreated-input)
-- [TaskCreated decision control](https://code.claude.com/docs/en/hooks#taskcreated-decision-control)
-- [TaskCompleted](https://code.claude.com/docs/en/hooks#taskcompleted)
-- [TaskCompleted input](https://code.claude.com/docs/en/hooks#taskcompleted-input)
-- [TaskCompleted decision control](https://code.claude.com/docs/en/hooks#taskcompleted-decision-control)
-- [Stop](https://code.claude.com/docs/en/hooks#stop)
-- [Stop input](https://code.claude.com/docs/en/hooks#stop-input)
-- [Stop decision control](https://code.claude.com/docs/en/hooks#stop-decision-control)
-- [StopFailure](https://code.claude.com/docs/en/hooks#stopfailure)
-- [StopFailure input](https://code.claude.com/docs/en/hooks#stopfailure-input)
-- [TeammateIdle](https://code.claude.com/docs/en/hooks#teammateidle)
-- [TeammateIdle input](https://code.claude.com/docs/en/hooks#teammateidle-input)
-- [TeammateIdle decision control](https://code.claude.com/docs/en/hooks#teammateidle-decision-control)
-- [ConfigChange](https://code.claude.com/docs/en/hooks#configchange)
-- [ConfigChange input](https://code.claude.com/docs/en/hooks#configchange-input)
-- [ConfigChange decision control](https://code.claude.com/docs/en/hooks#configchange-decision-control)
-- [CwdChanged](https://code.claude.com/docs/en/hooks#cwdchanged)
-- [CwdChanged input](https://code.claude.com/docs/en/hooks#cwdchanged-input)
-- [CwdChanged output](https://code.claude.com/docs/en/hooks#cwdchanged-output)
-- [FileChanged](https://code.claude.com/docs/en/hooks#filechanged)
-- [FileChanged input](https://code.claude.com/docs/en/hooks#filechanged-input)
-- [FileChanged output](https://code.claude.com/docs/en/hooks#filechanged-output)
-- [WorktreeCreate](https://code.claude.com/docs/en/hooks#worktreecreate)
-- [WorktreeCreate input](https://code.claude.com/docs/en/hooks#worktreecreate-input)
-- [WorktreeCreate output](https://code.claude.com/docs/en/hooks#worktreecreate-output)
-- [WorktreeRemove](https://code.claude.com/docs/en/hooks#worktreeremove)
-- [WorktreeRemove input](https://code.claude.com/docs/en/hooks#worktreeremove-input)
-- [PreCompact](https://code.claude.com/docs/en/hooks#precompact)
-- [PreCompact input](https://code.claude.com/docs/en/hooks#precompact-input)
-- [PostCompact](https://code.claude.com/docs/en/hooks#postcompact)
-- [PostCompact input](https://code.claude.com/docs/en/hooks#postcompact-input)
-- [SessionEnd](https://code.claude.com/docs/en/hooks#sessionend)
-- [SessionEnd input](https://code.claude.com/docs/en/hooks#sessionend-input)
-- [Elicitation](https://code.claude.com/docs/en/hooks#elicitation)
-- [Elicitation input](https://code.claude.com/docs/en/hooks#elicitation-input)
-- [Elicitation output](https://code.claude.com/docs/en/hooks#elicitation-output)
-- [ElicitationResult](https://code.claude.com/docs/en/hooks#elicitationresult)
-- [ElicitationResult input](https://code.claude.com/docs/en/hooks#elicitationresult-input)
-- [ElicitationResult output](https://code.claude.com/docs/en/hooks#elicitationresult-output)
-- [Prompt-based hooks](https://code.claude.com/docs/en/hooks#prompt-based-hooks)
-- [How prompt-based hooks work](https://code.claude.com/docs/en/hooks#how-prompt-based-hooks-work)
-- [Prompt hook configuration](https://code.claude.com/docs/en/hooks#prompt-hook-configuration)
-- [Response schema](https://code.claude.com/docs/en/hooks#response-schema)
-- [Example: Multi-criteria Stop hook](https://code.claude.com/docs/en/hooks#example-multi-criteria-stop-hook)
-- [Agent-based hooks](https://code.claude.com/docs/en/hooks#agent-based-hooks)
-- [How agent hooks work](https://code.claude.com/docs/en/hooks#how-agent-hooks-work)
-- [Agent hook configuration](https://code.claude.com/docs/en/hooks#agent-hook-configuration)
-- [Run hooks in the background](https://code.claude.com/docs/en/hooks#run-hooks-in-the-background)
-- [Configure an async hook](https://code.claude.com/docs/en/hooks#configure-an-async-hook)
-- [How async hooks execute](https://code.claude.com/docs/en/hooks#how-async-hooks-execute)
-- [Example: run tests after file changes](https://code.claude.com/docs/en/hooks#example-run-tests-after-file-changes)
-- [Limitations](https://code.claude.com/docs/en/hooks#limitations)
-- [Security considerations](https://code.claude.com/docs/en/hooks#security-considerations)
-- [Disclaimer](https://code.claude.com/docs/en/hooks#disclaimer)
-- [Security best practices](https://code.claude.com/docs/en/hooks#security-best-practices)
-- [Windows PowerShell tool](https://code.claude.com/docs/en/hooks#windows-powershell-tool)
-- [Debug hooks](https://code.claude.com/docs/en/hooks#debug-hooks)
-
 > ## Documentation Index
 >
 > Fetch the complete documentation index at: [https://code.claude.com/docs/llms.txt](https://code.claude.com/docs/llms.txt)
@@ -237,7 +108,7 @@ if echo "$COMMAND" | grep -q 'rm -rf'; then
     }
   }'
 else
-  exit 0  # allow the command
+  exit 0  # no decision; normal permission flow applies
 fi
 ```
 
@@ -291,7 +162,7 @@ The script inspects the full command and finds `rm -rf`, so it prints a decision
 }
 ```
 
-If the command had been a safer `rm` variant like `rm file.txt`, the script would hit `exit 0` instead, which tells Claude Code to allow the tool call with no further action.
+If the command had been a safer `rm` variant like `rm file.txt`, the script would hit `exit 0` instead. Exit code 0 with no output means the hook has no decision to report, so the tool call continues through the normal [permission flow](https://code.claude.com/docs/en/permissions). The hook can deny the call, but staying silent doesn’t approve it.
 
 5
 
@@ -355,7 +226,7 @@ The `FileChanged` event does not follow these rules when building its watch list
 | `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |
 | `CwdChanged` | no matcher support | always fires on every directory change |
 | `FileChanged` | literal filenames to watch (see [FileChanged](https://code.claude.com/docs/en/hooks#filechanged)) | `.envrc|.env` |
-| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, `unknown` |
+| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, `unknown` |
 | `InstructionsLoaded` | load reason | `session_start`, `nested_traversal`, `path_glob_match`, `include`, `compact` |
 | `UserPromptExpansion` | command name | your skill or command names |
 | `Elicitation` | MCP server name | your configured MCP server names |
@@ -722,7 +593,7 @@ if [[ "$command" == rm* ]]; then
   exit 2  # Blocking error: tool call is prevented
 fi
 
-exit 0  # Success: tool call proceeds
+exit 0  # No decision: the normal permission flow applies
 ```
 
 For most hook events, only exit code 2 blocks the action. Claude Code treats exit code 1 as a non-blocking error and proceeds with the action, even though 1 is the conventional Unix failure code. If your hook is meant to enforce a policy, use `exit 2`. The exception is `WorktreeCreate`, where any non-zero exit code aborts worktree creation.
@@ -777,7 +648,7 @@ Unlike command hooks, HTTP hooks cannot signal a blocking error through status c
 
 ### [​](https://code.claude.com/docs/en/hooks\#json-output)  JSON output
 
-Exit codes let you allow or block, but JSON output gives you finer-grained control. Instead of exiting with code 2 to block, exit 0 and print a JSON object to stdout. Claude Code reads specific fields from that JSON to control behavior, including [decision control](https://code.claude.com/docs/en/hooks#decision-control) for blocking, allowing, or escalating to the user.
+Exit codes only let you block or stay silent, but JSON output gives you finer-grained control. Instead of exiting with code 2 to block, exit 0 and print a JSON object to stdout. Claude Code reads specific fields from that JSON to control behavior, including [decision control](https://code.claude.com/docs/en/hooks#decision-control) for blocking, allowing, or escalating to the user.
 
 You must choose one approach per hook, not both: either use exit codes alone for signaling, or exit 0 and print JSON for structured control. Claude Code only processes JSON on exit 0. If you exit 2, any JSON is ignored.
 
@@ -791,7 +662,7 @@ Your hook’s stdout must contain only the JSON object. If your shell profile pr
 | --- | --- | --- |
 | `continue` | `true` | If `false`, Claude stops processing entirely after the hook runs. Takes precedence over any event-specific decision fields |
 | `stopReason` | none | Message shown to the user when `continue` is `false`. Not shown to Claude |
-| `suppressOutput` | `false` | If `true`, omits stdout from the debug log |
+| `suppressOutput` | `false` | If `true`, hides the hook’s stdout from the transcript. Stdout still appears in the debug log |
 | `systemMessage` | none | Warning message shown to the user |
 | `terminalSequence` | none | A terminal escape sequence for Claude Code to emit on your behalf, such as a desktop notification, window title, or bell. Restricted to OSC `0`/`1`/`2`/`9`/`99`/`777` and BEL. If the value contains anything outside the allowlist, the field is ignored. Use this instead of writing to `/dev/tty`, which is unavailable to hooks |
 
@@ -868,6 +739,7 @@ Not every event supports blocking or controlling behavior through JSON. The even
 | WorktreeCreate | path return | Command hook prints path on stdout; HTTP hook returns `hookSpecificOutput.worktreePath`. Hook failure or missing path fails creation |
 | Elicitation | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values for accept) |
 | ElicitationResult | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values override) |
+| SessionStart, Setup, SubagentStart | Context only | `hookSpecificOutput.additionalContext` adds context for Claude. SessionStart also accepts [`initialUserMessage` and `watchPaths`](https://code.claude.com/docs/en/hooks#sessionstart-decision-control). No blocking or decision control |
 | WorktreeRemove, Notification, SessionEnd, PostCompact, InstructionsLoaded, StopFailure, CwdChanged, FileChanged | None | No decision control. Used for side effects like logging or cleanup |
 
 Here are examples of each pattern in action:
@@ -955,6 +827,8 @@ Any text your hook script prints to stdout is added as context for Claude. In ad
 | Field | Description |
 | --- | --- |
 | `additionalContext` | String added to Claude’s context at the start of the conversation, before the first prompt. See [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude) for how the text is delivered and what to put in it |
+| `initialUserMessage` | String used as the first user message of the session. Applies in [non-interactive mode](https://code.claude.com/docs/en/headless) (`-p`), where it becomes the first turn even if no prompt is provided. If a prompt is provided, it follows as the next turn. Unlike `additionalContext`, which attaches to an existing turn, this creates the turn |
+| `watchPaths` | Array of absolute paths to watch for [FileChanged](https://code.claude.com/docs/en/hooks#filechanged) events during this session |
 
 ```
 {
@@ -1119,6 +993,7 @@ Plain stdout is shown as hook output in the transcript. The `additionalContext` 
 | `reason` | Shown to the user when `decision` is `"block"`. Not added to context |
 | `additionalContext` | String added to Claude’s context alongside the submitted prompt. See [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude) |
 | `sessionTitle` | Sets the session title. Use to name sessions automatically based on the prompt content |
+| `suppressOriginalPrompt` | If `true` when `decision` is `"block"`, omits the original prompt text from the block message shown to the user |
 
 ```
 {
@@ -1447,7 +1322,7 @@ The `updatedPermissions` output field and the [`permission_suggestions` input fi
 | `addRules` | `rules`, `behavior`, `destination` | Adds permission rules. `rules` is an array of `{toolName, ruleContent?}` objects. Omit `ruleContent` to match the whole tool. `behavior` is `"allow"`, `"deny"`, or `"ask"` |
 | `replaceRules` | `rules`, `behavior`, `destination` | Replaces all rules of the given `behavior` at the `destination` with the provided `rules` |
 | `removeRules` | `rules`, `behavior`, `destination` | Removes matching rules of the given `behavior` |
-| `setMode` | `mode`, `destination` | Changes the permission mode. Valid modes are `default`, `acceptEdits`, `dontAsk`, `bypassPermissions`, and `plan` |
+| `setMode` | `mode`, `destination` | Changes the permission mode. Valid modes are `default`, `auto`, `acceptEdits`, `dontAsk`, `bypassPermissions`, and `plan` |
 | `addDirectories` | `directories`, `destination` | Adds working directories. `directories` is an array of path strings |
 | `removeDirectories` | `directories`, `destination` | Removes working directories |
 
@@ -1718,7 +1593,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
   "hook_event_name": "Notification",
-  "message": "Claude needs your permission to use Bash",
+  "message": "Claude needs your permission",
   "title": "Permission needed",
   "notification_type": "permission_prompt"
 }
@@ -1766,7 +1641,7 @@ Runs when a Claude Code subagent has finished responding. Matches on agent type,
 
 #### [​](https://code.claude.com/docs/en/hooks\#subagentstop-input)  SubagentStop input
 
-In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), SubagentStop hooks receive `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, and `last_assistant_message`. The `agent_type` field is the value used for matcher filtering. The `transcript_path` is the main session’s transcript, while `agent_transcript_path` is the subagent’s own transcript stored in a nested `subagents/` folder. The `last_assistant_message` field contains the text content of the subagent’s final response, so hooks can access it without parsing the transcript file.
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), SubagentStop hooks receive `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, and `last_assistant_message`. The `agent_type` field is the value used for matcher filtering. The `transcript_path` is the main session’s transcript, while `agent_transcript_path` is the subagent’s own transcript stored in a nested `subagents/` folder. The `last_assistant_message` field contains the text content of the subagent’s final response, so hooks can access it without parsing the transcript file.SubagentStop hooks also receive the `background_tasks` and `session_crons` arrays described under [Stop input](https://code.claude.com/docs/en/hooks#stop-input), available in Claude Code v2.1.145 or later. Both arrays are scoped to the parent session, not the subagent.
 
 ```
 {
@@ -1779,7 +1654,9 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
   "agent_id": "def456",
   "agent_type": "Explore",
   "agent_transcript_path": "~/.claude/projects/.../abc123/subagents/agent-def456.jsonl",
-  "last_assistant_message": "Analysis complete. Found 3 potential issues..."
+  "last_assistant_message": "Analysis complete. Found 3 potential issues...",
+  "background_tasks": [],
+  "session_crons": []
 }
 ```
 
@@ -1902,7 +1779,30 @@ The [`/goal`](https://code.claude.com/docs/en/goal) command is a built-in shortc
 
 #### [​](https://code.claude.com/docs/en/hooks\#stop-input)  Stop input
 
-In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active` and `last_assistant_message`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to prevent Claude Code from running indefinitely. The `last_assistant_message` field contains the text content of Claude’s final response, so hooks can access it without parsing the transcript file.
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active`, `last_assistant_message`, `background_tasks`, and `session_crons`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks.The `last_assistant_message` field contains the text content of Claude’s final response, so hooks can access it without parsing the transcript file.The `background_tasks` and `session_crons` arrays, available in Claude Code v2.1.145 or later, let hooks distinguish “session is done” from “session is paused waiting for background work to wake it back up”. Both arrays are present when the task registry is reachable and are empty when nothing is in flight or scheduled.Each entry in `background_tasks` describes one in-flight task and uses these fields:
+
+| Field | Description |
+| --- | --- |
+| `id` | Task identifier |
+| `type` | Friendly task-type label such as `shell`, `subagent`, `monitor`, `workflow`, `teammate`, `cloud session`, or `MCP task`. Each label identifies which Claude Code feature created the task. Falls back to the raw discriminant for unrecognized types |
+| `status` | Current task status |
+| `description` | Free-text description, capped at 1000 characters with an in-string `… [+N chars]` marker when clipped |
+| `command` | Shell command line, capped at 1000 characters. Present only for `shell` tasks |
+| `agent_type` | Subagent type name. Present only for `subagent` tasks |
+| `server` | MCP server name. Present only for `monitor` and `MCP task` tasks |
+| `tool` | MCP tool name. Present only for `monitor` and `MCP task` tasks |
+| `name` | Workflow name. Present only for `workflow` tasks |
+
+Each entry in `session_crons` describes one session-scoped scheduled wakeup, sourced from `CronCreate`, `ScheduleWakeup`, and `/loop`:
+
+| Field | Description |
+| --- | --- |
+| `id` | Cron task identifier |
+| `schedule` | Cron expression, for example `0 9 * * 1-5` |
+| `recurring` | `false` for one-shot wakeups whose schedule encodes a single fire time, `true` for tasks that re-fire on every match |
+| `prompt` | Prompt submitted when the cron fires, capped at 1000 characters with the same `… [+N chars]` marker |
+
+This example shows a Stop input with one in-flight shell task and one recurring cron:
 
 ```
 {
@@ -1912,7 +1812,24 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
   "permission_mode": "default",
   "hook_event_name": "Stop",
   "stop_hook_active": true,
-  "last_assistant_message": "I've completed the refactoring. Here's a summary..."
+  "last_assistant_message": "I've completed the refactoring. Here's a summary...",
+  "background_tasks": [\
+    {\
+      "id": "task-001",\
+      "type": "shell",\
+      "status": "running",\
+      "description": "tail logs",\
+      "command": "tail -f /var/log/syslog"\
+    }\
+  ],
+  "session_crons": [\
+    {\
+      "id": "cron-001",\
+      "schedule": "0 9 * * 1-5",\
+      "recurring": true,\
+      "prompt": "check the build"\
+    }\
+  ]
 }
 ```
 
@@ -1942,7 +1859,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 
 | Field | Description |
 | --- | --- |
-| `error` | Error type: `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, or `unknown` |
+| `error` | Error type: `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, or `unknown` |
 | `error_details` | Additional details about the error, when available |
 | `last_assistant_message` | The rendered error text shown in the conversation. Unlike `Stop` and `SubagentStop`, where this field holds Claude’s conversational output, for `StopFailure` it contains the API error string itself, such as `"API Error: Rate limit reached"` |
 
@@ -2421,6 +2338,7 @@ Exit code 2 blocks the response, changing the effective action to `decline`.
 
 In addition to command, HTTP, and MCP tool hooks, Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action, and agent hooks (`type: "agent"`) that spawn an agentic verifier with tool access. Not all events support every hook type.Events that support all five hook types (`command`, `http`, `mcp_tool`, `prompt`, and `agent`):
 
+- `PermissionDenied`
 - `PermissionRequest`
 - `PostToolBatch`
 - `PostToolUse`
@@ -2430,6 +2348,7 @@ In addition to command, HTTP, and MCP tool hooks, Claude Code supports prompt-ba
 - `SubagentStop`
 - `TaskCompleted`
 - `TaskCreated`
+- `TeammateIdle`
 - `UserPromptExpansion`
 - `UserPromptSubmit`
 
@@ -2442,13 +2361,11 @@ Events that support `command`, `http`, and `mcp_tool` hooks but not `prompt` or 
 - `FileChanged`
 - `InstructionsLoaded`
 - `Notification`
-- `PermissionDenied`
 - `PostCompact`
 - `PreCompact`
 - `SessionEnd`
 - `StopFailure`
 - `SubagentStart`
-- `TeammateIdle`
 - `WorktreeCreate`
 - `WorktreeRemove`
 
@@ -2514,7 +2431,9 @@ What happens on `ok: false` depends on the event:
 - `PostToolUse`: by default the turn ends and the reason appears in the chat as a warning line. Set `continueOnBlock: true` to feed the reason back to Claude and continue the turn instead
 - `PostToolBatch`, `UserPromptSubmit`, and `UserPromptExpansion`: the turn ends and the reason appears as a warning line. These events end the turn on `decision: "block"` regardless of `continue`
 - `PostToolUseFailure`, `TaskCreated`, and `TaskCompleted`: the reason is returned to Claude as a tool error, similar to `PreToolUse`
+- `TeammateIdle`: by default the teammate stops and the reason appears as a warning line. Set `continueOnBlock: true` to feed the reason back to the teammate and keep it working instead
 - `PermissionRequest`: `ok: false` has no effect. To deny an approval from a hook, use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) returning `hookSpecificOutput.decision.behavior: "deny"`
+- `PermissionDenied`: `ok: false` has no effect because the denial already happened. The only output this event reads is `hookSpecificOutput.retry`, which prompt and agent hooks cannot set — they run on this event, but their output is discarded. Use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) to return `retry`
 
 If you need finer control on any event, use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) with the per-event fields described in [Decision control](https://code.claude.com/docs/en/hooks#decision-control).
 
@@ -2735,7 +2654,7 @@ Hook execution details, including which hooks matched, their exit codes, and ful
 [DEBUG] Hook command completed with status 0: <Your stdout>
 ```
 
-For more granular hook matching details, set `CLAUDE_CODE_DEBUG_LOG_LEVEL=verbose` to see additional log lines such as hook matcher counts and query matching.For troubleshooting common issues like hooks not firing, infinite Stop hook loops, or configuration errors, see [Limitations and troubleshooting](https://code.claude.com/docs/en/hooks-guide#limitations-and-troubleshooting) in the guide. For a broader diagnostic walkthrough covering `/context`, `/doctor`, and settings precedence, see [Debug your config](https://code.claude.com/docs/en/debug-your-config).
+For more granular hook matching details, set `CLAUDE_CODE_DEBUG_LOG_LEVEL=verbose` to see additional log lines such as hook matcher counts and query matching.For troubleshooting common issues like hooks not firing, Stop hooks that keep blocking, or configuration errors, see [Limitations and troubleshooting](https://code.claude.com/docs/en/hooks-guide#limitations-and-troubleshooting) in the guide. For a broader diagnostic walkthrough covering `/context`, `/doctor`, and settings precedence, see [Debug your config](https://code.claude.com/docs/en/debug-your-config).
 
 Was this page helpful?
 
