@@ -1,12 +1,12 @@
-[Skip to main content](https://code.claude.com/docs/en/hooks#content-area)
-
 > ## Documentation Index
 >
-> Fetch the complete documentation index at: [https://code.claude.com/docs/llms.txt](https://code.claude.com/docs/llms.txt)
+> Fetch the complete documentation index at: [/docs/llms.txt](https://code.claude.com/docs/llms.txt)
 >
 > Use this file to discover all available pages before exploring further.
 
-For a quickstart guide with examples, see [Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide).
+[Skip to main content](https://code.claude.com/docs/en/hooks#content-area)
+
+For a quickstart guide with examples, see [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide).
 
 Hooks are user-defined shell commands, HTTP endpoints, or LLM prompts that execute automatically at specific points in Claude Code’s lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks, HTTP hooks, and MCP tool hooks. If you’re setting up hooks for the first time, start with the [guide](https://code.claude.com/docs/en/hooks-guide) instead.
 
@@ -209,7 +209,7 @@ The `FileChanged` event does not follow these rules when building its watch list
 | `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |
 | `CwdChanged` | no matcher support | always fires on every directory change |
 | `FileChanged` | literal filenames to watch (see [FileChanged](https://code.claude.com/docs/en/hooks#filechanged)) | `.envrc|.env` |
-| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, `unknown` |
+| `StopFailure` | error type | `rate_limit`, `overloaded`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, `unknown` |
 | `InstructionsLoaded` | load reason | `session_start`, `nested_traversal`, `path_glob_match`, `include`, `compact` |
 | `UserPromptExpansion` | command name | your skill or command names |
 | `Elicitation` | MCP server name | your configured MCP server names |
@@ -297,12 +297,22 @@ These fields apply to all hook types:
 | Field | Required | Description |
 | --- | --- | --- |
 | `type` | yes | `"command"`, `"http"`, `"mcp_tool"`, `"prompt"`, or `"agent"` |
-| `if` | no | Permission rule syntax to filter when this hook runs, such as `"Bash(git *)"` or `"Edit(*.ts)"`. The hook only spawns if the tool call matches the pattern, or if a Bash command is too complex to parse. Only evaluated on tool events: `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, and `PermissionDenied`. On other events, a hook with `if` set never runs. Uses the same syntax as [permission rules](https://code.claude.com/docs/en/permissions) |
-| `timeout` | no | Seconds before canceling. Defaults: 600 for `command`, `http`, and `mcp_tool`; 30 for `prompt`; 60 for `agent`. [`UserPromptSubmit`](https://code.claude.com/docs/en/hooks#userpromptsubmit) lowers the `command`, `http`, and `mcp_tool` default to 30 |
+| `if` | no | Permission rule syntax to filter when this hook runs, such as `"Bash(git *)"` or `"Edit(*.ts)"`. The hook command only runs if the tool call matches the pattern. See the [Bash matching table](https://code.claude.com/docs/en/hooks#bash-if-matching) below for how Bash patterns evaluate against subcommands, `$()`, and backticks. Only evaluated on tool events: `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, and `PermissionDenied`. On other events, a hook with `if` set never runs. Uses the same syntax as [permission rules](https://code.claude.com/docs/en/permissions) |
+| `timeout` | no | Seconds before canceling. Defaults: 600 for `command`, `http`, and `mcp_tool`; 30 for `prompt`; 60 for `agent`. [`UserPromptSubmit`](https://code.claude.com/docs/en/hooks#userpromptsubmit) lowers the `command`, `http`, and `mcp_tool` default to 30, and [`MessageDisplay`](https://code.claude.com/docs/en/hooks#messagedisplay) lowers it to 10 |
 | `statusMessage` | no | Custom spinner message displayed while the hook runs |
 | `once` | no | If `true`, runs once per session then is removed. Only honored for hooks declared in [skill frontmatter](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents); ignored in settings files and agent frontmatter |
 
-The `if` field holds exactly one permission rule. There is no `&&`, `||`, or list syntax for combining rules; to apply multiple conditions, define a separate hook handler for each. For Bash, the rule is matched against each subcommand of the tool input after leading `VAR=value` assignments are stripped, so `if: "Bash(git push *)"` matches both `FOO=bar git push` and `npm test && git push`. The hook runs if any subcommand matches, and always runs when the command is too complex to parse.
+The `if` field holds exactly one permission rule. There is no `&&`, `||`, or list syntax for combining rules; to apply multiple conditions, define a separate hook handler for each.For Bash patterns, whether your hook command runs depends on the shape of the pattern and the Bash command Claude is invoking. Leading `VAR=value` assignments are stripped before matching.
+
+| `if` pattern | Bash command | Hook runs? | Why |
+| --- | --- | --- | --- |
+| `Bash(git *)` | `FOO=bar git push` | yes | leading assignments are stripped; `git push` matches |
+| `Bash(git *)` | `npm test && git push` | yes | each subcommand is checked; `git push` matches |
+| `Bash(rm *)` | `echo $(rm -rf /)` | yes | commands inside `$()` and backticks are checked; `rm -rf /` matches |
+| `Bash(rm *)` | `echo $(date)` | no | no subcommand matches `rm *` |
+| `Bash(git push *)` | `echo $(date)` | yes | patterns that constrain past the command name fail open on `$()`, backticks, or `$VAR` |
+
+The filter also fails open, running your hook regardless of pattern, when the Bash command cannot be parsed. Because the `if` filter is best-effort, use the [permission system](https://code.claude.com/docs/en/permissions) rather than a hook to enforce a hard allow or deny.
 
 #### [​](https://code.claude.com/docs/en/hooks\#command-hook-fields)  Command hook fields
 
@@ -418,7 +428,7 @@ In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `prompt` | yes | Prompt text to send to the model. Use `$ARGUMENTS` as a placeholder for the hook input JSON |
+| `prompt` | yes | Prompt text to send to the model. Use `$ARGUMENTS` as a placeholder for the hook input JSON. Escape with a backslash to include literal text: `\$1.00` renders as `$1.00` |
 | `model` | no | Model to use for evaluation. Defaults to a fast model |
 
 All matching hooks run in parallel, and identical handlers are deduplicated automatically. Command hooks are deduplicated by command string and `args`, and HTTP hooks are deduplicated by URL. Handlers run in the current directory with Claude Code’s environment. The `$CLAUDE_CODE_REMOTE` environment variable is set to `"true"` in remote web environments and not set in the local CLI.
@@ -700,6 +710,7 @@ Where the reminder appears depends on the event:
 - [SessionStart](https://code.claude.com/docs/en/hooks#sessionstart), [Setup](https://code.claude.com/docs/en/hooks#setup), and [SubagentStart](https://code.claude.com/docs/en/hooks#subagentstart): at the start of the conversation, before the first prompt
 - [UserPromptSubmit](https://code.claude.com/docs/en/hooks#userpromptsubmit) and [UserPromptExpansion](https://code.claude.com/docs/en/hooks#userpromptexpansion): alongside the submitted prompt
 - [PreToolUse](https://code.claude.com/docs/en/hooks#pretooluse), [PostToolUse](https://code.claude.com/docs/en/hooks#posttooluse), [PostToolUseFailure](https://code.claude.com/docs/en/hooks#posttoolusefailure), and [PostToolBatch](https://code.claude.com/docs/en/hooks#posttoolbatch): next to the tool result
+- [Stop](https://code.claude.com/docs/en/hooks#stop) and [SubagentStop](https://code.claude.com/docs/en/hooks#subagentstop): at the end of the turn. The conversation continues so Claude can act on the feedback. See [Stop decision control](https://code.claude.com/docs/en/hooks#stop-decision-control)
 
 When several hooks return `additionalContext` for the same event, Claude receives all of the values. If a value exceeds 10,000 characters, Claude Code writes the full text to a file in the session directory and passes Claude the file path with a short preview instead.Use `additionalContext` for information Claude should know about the current state of your environment or the operation that just ran:
 
@@ -715,7 +726,7 @@ Not every event supports blocking or controlling behavior through JSON. The even
 
 | Events | Decision pattern | Key fields |
 | --- | --- | --- |
-| UserPromptSubmit, UserPromptExpansion, PostToolUse, PostToolUseFailure, PostToolBatch, Stop, SubagentStop, ConfigChange, PreCompact | Top-level `decision` | `decision: "block"`, `reason` |
+| UserPromptSubmit, UserPromptExpansion, PostToolUse, PostToolUseFailure, PostToolBatch, Stop, SubagentStop, ConfigChange, PreCompact | Top-level `decision` | `decision: "block"`, `reason`. Stop and SubagentStop also accept `hookSpecificOutput.additionalContext` for [non-error feedback that continues the conversation](https://code.claude.com/docs/en/hooks#stop-decision-control) |
 | TeammateIdle, TaskCreated, TaskCompleted | Exit code or `continue: false` | Exit code 2 blocks the action with stderr feedback. JSON `{"continue": false, "stopReason": "..."}` also stops the teammate entirely, matching `Stop` hook behavior |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision` (allow/deny/ask/defer), `permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior` (allow/deny) |
@@ -958,7 +969,7 @@ InstructionsLoaded hooks have no decision control. They cannot block or modify i
 
 Runs when the user submits a prompt, before Claude processes it. This allows you
 to add additional context based on the prompt/conversation, validate prompts, or
-block certain types of prompts.`UserPromptSubmit` hooks have a default timeout of 30 seconds for `command`, `http`, and `mcp_tool` types, shorter than the 600-second default for those types on other events. Because this hook runs before every prompt and blocks model processing until it completes, a stuck hook stalls the session. If your hook needs more time, set the `timeout` field in the hook entry.
+block certain types of prompts.`UserPromptSubmit` hooks have a default timeout of 30 seconds for `command`, `http`, and `mcp_tool` types, shorter than the 600-second default for those types on most other events. Because this hook runs before every prompt and blocks model processing until it completes, a stuck hook stalls the session. If your hook needs more time, set the `timeout` field in the hook entry.
 
 #### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit-input)  UserPromptSubmit input
 
@@ -1053,7 +1064,13 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 
 ### [​](https://code.claude.com/docs/en/hooks\#messagedisplay)  MessageDisplay
 
-Runs while an assistant message streams to the screen. Claude Code displays the message in increments: each time a batch of newly completed lines is ready to render, the hook runs once with those lines and Claude Code renders the hook’s replacement text in their place. A long message produces several calls; a short message may produce only one. Use this to reformat, redact, or condense Claude’s responses as they appear on screen.MessageDisplay is display-only: the replacement text changes only what is rendered on screen. The transcript and what Claude sees keep the original text, so Claude never sees the replacement, and verbose mode shows the original. MessageDisplay does not support matchers and fires for every assistant message that streams text; messages with no text, such as tool-call-only responses, do not trigger it.In non-interactive runs, including Agent SDK queries and `claude -p`, MessageDisplay runs once per assistant message instead of once per batch of lines. The single call arrives after the message completes and carries the full message text: `index` is `0`, `final` is `true`, and `delta` holds the entire message. A hook that collects the `delta` text for each message receives the same total text in both modes.
+Runs while an assistant message streams to the screen. Claude Code displays the message in increments: each time a batch of newly completed lines is ready to render, the hook runs once with those lines and Claude Code renders the hook’s replacement text in their place. A long message produces several calls; a short message may produce only one.Use MessageDisplay to:
+
+- strip markdown for a minimal display
+- transform the text an Agent SDK application shows its users
+- redact API keys or internal hostnames from Claude’s responses
+
+Claude Code holds each batch until your hook returns, so keep the hook fast. If the hook fails or times out, Claude Code displays the original text. The default timeout for this event is 10 seconds; if your hook needs more time, set the `timeout` field in the hook entry.MessageDisplay is display-only: the replacement text changes only what is rendered on screen. The transcript and what Claude sees keep the original text, so Claude never sees the replacement, and verbose mode shows the original. The hook receives assistant message text only, so tool results and the text you type render unchanged.MessageDisplay does not support matchers and fires for every assistant message that streams text; messages with no text, such as tool-call-only responses, do not trigger it.In non-interactive runs, including Agent SDK queries and `claude -p`, MessageDisplay runs once per assistant message instead of once per batch of lines. The single call arrives after the message completes and carries the full message text: `index` is `0`, `final` is `true`, and `delta` holds the entire message. A hook that collects the `delta` text for each message receives the same total text in both modes.
 
 #### [​](https://code.claude.com/docs/en/hooks\#messagedisplay-input)  MessageDisplay input
 
@@ -1089,7 +1106,82 @@ In addition to the [JSON output fields](https://code.claude.com/docs/en/hooks#js
 | --- | --- |
 | `displayContent` | Text displayed in place of the delta. Omit it to display the original |
 
-MessageDisplay hooks have no decision control. They cannot block the message or change what is stored in the transcript or sent to Claude.
+MessageDisplay hooks have no decision control. They cannot block the message or change what is stored in the transcript or sent to Claude.This example strips markdown formatting from Claude’s responses for a plain-text display. The script reads each batch from stdin, removes bold markers and inline code backticks from `delta`, and returns the result as `displayContent`.
+
+- macOS/Linux
+
+- Windows (PowerShell)
+
+
+Register a command hook for the event in your settings file:
+
+```
+{
+  "hooks": {
+    "MessageDisplay": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/plain-display.sh",\
+            "args": []\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+Save this script to `.claude/hooks/plain-display.sh` in your project and make it executable with `chmod +x`:
+
+```
+#!/bin/bash
+jq '{hookSpecificOutput: {hookEventName: "MessageDisplay", displayContent: (.delta | gsub("\\*\\*"; "") | gsub("`"; ""))}}'
+```
+
+The script needs `jq` on your `PATH`.
+
+Register a command hook that runs the script through PowerShell:
+
+```
+{
+  "hooks": {
+    "MessageDisplay": [\
+      {\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "powershell.exe",\
+            "args": [\
+              "-NoProfile",\
+              "-ExecutionPolicy",\
+              "Bypass",\
+              "-File",\
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/plain-display.ps1"\
+            ]\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+The `-NoProfile` flag skips loading your PowerShell profile so the hook starts fast, and `-ExecutionPolicy Bypass` lets PowerShell run the local script file.Save this script to `.claude/hooks/plain-display.ps1` in your project:
+
+```
+$batch = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$text = $batch.delta -replace '\*\*', '' -replace '`', ''
+@{
+  hookSpecificOutput = @{
+    hookEventName = "MessageDisplay"
+    displayContent = $text
+  }
+} | ConvertTo-Json
+```
+
+Batches with no markdown pass through unchanged. If the script fails, for example because `jq` is missing, Claude Code displays the original text and notes the failure only in [debug output](https://code.claude.com/docs/en/hooks#debug-hooks), not in the session.
 
 ### [​](https://code.claude.com/docs/en/hooks\#pretooluse)  PreToolUse
 
@@ -1697,7 +1789,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 }
 ```
 
-SubagentStop hooks use the same decision control format as [Stop hooks](https://code.claude.com/docs/en/hooks#stop-decision-control). They do not support `additionalContext`. Returning `decision: "block"` with a `reason` keeps the subagent running and delivers `reason` to the subagent as its next instruction. To inject context into the parent session after a subagent returns, use a [`PostToolUse`](https://code.claude.com/docs/en/hooks#posttooluse) hook on the `Agent` tool instead.
+SubagentStop hooks use the same decision control format as [Stop hooks](https://code.claude.com/docs/en/hooks#stop-decision-control), including `hookSpecificOutput.additionalContext` with `hookEventName` set to `"SubagentStop"`, for non-error feedback that keeps the subagent running. Returning `decision: "block"` with a `reason` keeps the subagent running and delivers `reason` to the subagent as its next instruction. To inject context into the parent session after a subagent returns, use a [`PostToolUse`](https://code.claude.com/docs/en/hooks#posttooluse) hook on the `Agent` tool instead.
 
 ### [​](https://code.claude.com/docs/en/hooks\#taskcreated)  TaskCreated
 
@@ -1878,11 +1970,23 @@ This example shows a Stop input with one in-flight shell task and one recurring 
 | --- | --- |
 | `decision` | `"block"` prevents Claude from stopping. Omit to allow Claude to stop |
 | `reason` | Required when `decision` is `"block"`. Tells Claude why it should continue |
+| `hookSpecificOutput.additionalContext` | Non-error feedback for Claude. The conversation continues so Claude can act on it, but unlike `decision: "block"` it is shown in the transcript as hook feedback rather than a hook error |
 
 ```
 {
   "decision": "block",
   "reason": "Must be provided when Claude is blocked from stopping"
+}
+```
+
+Use `additionalContext` when the hook is working as designed and giving Claude guidance, such as “run the test suite before finishing”. It keeps the conversation going through the same loop protections as `decision: "block"`, namely the `stop_hook_active` input and the 8-consecutive-continuation cap, but the transcript labels it `Stop hook feedback` and no hook error notification is shown:
+
+```
+{
+  "hookSpecificOutput": {
+    "hookEventName": "Stop",
+    "additionalContext": "Please run the test suite before finishing"
+  }
 }
 ```
 
@@ -1896,7 +2000,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 
 | Field | Description |
 | --- | --- |
-| `error` | Error type: `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, or `unknown` |
+| `error` | Error type: `rate_limit`, `overloaded`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, or `unknown` |
 | `error_details` | Additional details about the error, when available |
 | `last_assistant_message` | The rendered error text shown in the conversation. Unlike `Stop` and `SubagentStop`, where this field holds Claude’s conversational output, for `StopFailure` it contains the API error string itself, such as `"API Error: Rate limit reached"` |
 
