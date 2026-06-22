@@ -1304,7 +1304,7 @@ In `PostToolUse`, `tool_response` for a completed Agent call carries the subagen
 | `totalToolUseCount` | number | `7` | Count of tool calls the subagent made |
 | `usage` | object | `{"input_tokens": 8320, ...}` | Per-type token breakdown: `input_tokens`, `output_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens` |
 
-For `run_in_background: true` calls, the tool returns immediately after launching the subagent, so `tool_response` carries no usage fields. It has `status: "async_launched"`, `agentId`, `description`, `prompt`, `outputFile`, and `resolvedModel`.The `resolvedModel` field names the model the subagent actually runs on, which can differ from the `model` value in `tool_input`. It requires Claude Code v2.1.174 or later.
+For `run_in_background: true` calls, the tool returns immediately after launching the subagent, so `tool_response` carries no usage fields. It has `status: "async_launched"`, `agentId`, `description`, `prompt`, `outputFile`, and `resolvedModel`.The `resolvedModel` field names the model the subagent actually runs on, which can differ from the `model` value in `tool_input`, such as when `availableModels` or another override applies. It requires Claude Code v2.1.174 or later.
 
 ##### AskUserQuestion
 
@@ -1818,7 +1818,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
   "task_subject": "Implement user authentication",
   "task_description": "Add login and signup endpoints",
   "teammate_name": "implementer",
-  "team_name": "my-project"
+  "team_name": "session-a1b2c3d4"
 }
 ```
 
@@ -1828,7 +1828,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 | `task_subject` | Title of the task |
 | `task_description` | Detailed description of the task. May be absent |
 | `teammate_name` | Name of the teammate creating the task. May be absent |
-| `team_name` | Name of the team. May be absent |
+| `team_name` | Deprecated. Session-derived team name; will be removed in a future release |
 
 #### [​](https://code.claude.com/docs/en/hooks\#taskcreated-decision-control)  TaskCreated decision control
 
@@ -1871,7 +1871,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
   "task_subject": "Implement user authentication",
   "task_description": "Add login and signup endpoints",
   "teammate_name": "implementer",
-  "team_name": "my-project"
+  "team_name": "session-a1b2c3d4"
 }
 ```
 
@@ -1881,7 +1881,7 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 | `task_subject` | Title of the task |
 | `task_description` | Detailed description of the task. May be absent |
 | `teammate_name` | Name of the teammate completing the task. May be absent |
-| `team_name` | Name of the team. May be absent |
+| `team_name` | Deprecated. Session-derived team name; will be removed in a future release |
 
 #### [​](https://code.claude.com/docs/en/hooks\#taskcompleted-decision-control)  TaskCompleted decision control
 
@@ -2042,14 +2042,14 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
   "permission_mode": "default",
   "hook_event_name": "TeammateIdle",
   "teammate_name": "researcher",
-  "team_name": "my-project"
+  "team_name": "session-a1b2c3d4"
 }
 ```
 
 | Field | Description |
 | --- | --- |
 | `teammate_name` | Name of the teammate that is about to go idle |
-| `team_name` | Name of the team |
+| `team_name` | Deprecated. Session-derived team name; will be removed in a future release |
 
 #### [​](https://code.claude.com/docs/en/hooks\#teammateidle-decision-control)  TeammateIdle decision control
 
