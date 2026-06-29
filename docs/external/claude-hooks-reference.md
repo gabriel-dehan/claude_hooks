@@ -191,10 +191,10 @@ The `matcher` field filters when hooks fire. How a matcher is evaluated depends 
 | Matcher value | Evaluated as | Example |
 | --- | --- | --- |
 | `"*"`, `""`, or omitted | Match all | fires on every occurrence of the event |
-| Only letters, digits, `_`, and `|` | Exact string, or `|`-separated list of exact strings | `Bash` matches only the Bash tool; `Edit|Write` matches either tool exactly |
+| Only letters, digits, `_`, spaces, `,`, and `|` | Exact string, or list of exact strings separated by `|` or `,` with optional surrounding whitespace | `Bash` matches only the Bash tool; `Edit|Write` and `Edit, Write` each match either tool exactly |
 | Contains any other character | JavaScript regular expression | `^Notebook` matches any tool starting with Notebook; `mcp__memory__.*` matches every tool from the `memory` server |
 
-The `FileChanged` event does not follow these rules when building its watch list. See [FileChanged](https://code.claude.com/docs/en/hooks#filechanged).Each event type matches on a different field:
+Comma separators and the surrounding whitespace tolerance require Claude Code v2.1.191 or later. The `FileChanged` and `StopFailure` events accept only `|` as the list separator and treat `,` as a literal character; all other events listed in the table that follows accept `|` or `,`.The `FileChanged` event does not follow these rules when building its watch list. See [FileChanged](https://code.claude.com/docs/en/hooks#filechanged).Each event type matches on a different field:
 
 | Event | What the matcher filters | Example matcher values |
 | --- | --- | --- |
@@ -289,6 +289,8 @@ Each object in the inner `hooks` array is a hook handler: the shell command, HTT
 - **[MCP tool hooks](https://code.claude.com/docs/en/hooks#mcp-tool-hook-fields)** (`type: "mcp_tool"`): call a tool on an already-connected [MCP server](https://code.claude.com/docs/en/mcp). The tool’s text output is treated like command-hook stdout.
 - **[Prompt hooks](https://code.claude.com/docs/en/hooks#prompt-and-agent-hook-fields)** (`type: "prompt"`): send a prompt to a Claude model for single-turn evaluation. The model returns a yes/no decision as JSON. See [Prompt-based hooks](https://code.claude.com/docs/en/hooks#prompt-based-hooks).
 - **[Agent hooks](https://code.claude.com/docs/en/hooks#prompt-and-agent-hook-fields)** (`type: "agent"`): spawn a subagent that can use tools like Read, Grep, and Glob to verify conditions before returning a decision. Agent hooks are experimental and may change. See [Agent-based hooks](https://code.claude.com/docs/en/hooks#agent-based-hooks).
+
+All matching hooks run in parallel, and identical handlers are deduplicated automatically. Command hooks are deduplicated by command string and `args`, and HTTP hooks are deduplicated by URL.Handlers run in the current directory with Claude Code’s environment. The `$CLAUDE_CODE_REMOTE` environment variable is set to `"true"` in remote web environments and not set in the local CLI.
 
 #### [​](https://code.claude.com/docs/en/hooks\#common-fields)  Common fields
 
@@ -430,8 +432,6 @@ In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-
 | --- | --- | --- |
 | `prompt` | yes | Prompt text to send to the model. Use `$ARGUMENTS` as a placeholder for the hook input JSON. Escape with a backslash to include literal text: `\$1.00` renders as `$1.00` |
 | `model` | no | Model to use for evaluation. Defaults to a fast model |
-
-All matching hooks run in parallel, and identical handlers are deduplicated automatically. Command hooks are deduplicated by command string and `args`, and HTTP hooks are deduplicated by URL. Handlers run in the current directory with Claude Code’s environment. The `$CLAUDE_CODE_REMOTE` environment variable is set to `"true"` in remote web environments and not set in the local CLI.
 
 ### [​](https://code.claude.com/docs/en/hooks\#reference-scripts-by-path)  Reference scripts by path
 
@@ -740,10 +740,10 @@ Not every event supports blocking or controlling behavior through JSON. The even
 
 A few events can also rewrite content rather than only allow or block it:
 
-- `PreToolUse` — `updatedInput` directly under `hookSpecificOutput` replaces a tool’s arguments before it runs ( [details](https://code.claude.com/docs/en/hooks#pretooluse-decision-control))
-- `PermissionRequest` — `updatedInput` inside the `decision` object ( [details](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control))
-- `PostToolUse` — `updatedToolOutput` replaces the tool’s result ( [details](https://code.claude.com/docs/en/hooks#posttooluse-decision-control))
-- `UserPromptSubmit` — cannot replace the prompt; only injects `additionalContext` alongside it
+- `PreToolUse`: `updatedInput` directly under `hookSpecificOutput` replaces a tool’s arguments before it runs. See [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control)
+- `PermissionRequest`: `updatedInput` inside the `decision` object. See [PermissionRequest decision control](https://code.claude.com/docs/en/hooks#permissionrequest-decision-control)
+- `PostToolUse`: `updatedToolOutput` replaces the tool’s result. See [PostToolUse decision control](https://code.claude.com/docs/en/hooks#posttooluse-decision-control)
+- `UserPromptSubmit`: cannot replace the prompt; it only injects `additionalContext` alongside it
 
 For redaction or transformation use cases, intercept at `PreToolUse` for outbound tool inputs and `PostToolUse` for inbound tool results.Here are examples of each pattern in action:
 
@@ -2582,7 +2582,7 @@ What happens on `ok: false` depends on the event:
 - `PostToolUseFailure`, `TaskCreated`, and `TaskCompleted`: the reason is returned to Claude as a tool error, similar to `PreToolUse`
 - `TeammateIdle`: by default the teammate stops and the reason appears as a warning line. Set `continueOnBlock: true` to feed the reason back to the teammate and keep it working instead
 - `PermissionRequest`: `ok: false` has no effect. To deny an approval from a hook, use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) returning `hookSpecificOutput.decision.behavior: "deny"`
-- `PermissionDenied`: `ok: false` has no effect because the denial already happened. The only output this event reads is `hookSpecificOutput.retry`, which prompt and agent hooks cannot set — they run on this event, but their output is discarded. Use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) to return `retry`
+- `PermissionDenied`: `ok: false` has no effect because the denial already happened. The only output this event reads is `hookSpecificOutput.retry`, which prompt and agent hooks cannot set. They run on this event, but their output is discarded. Use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) to return `retry`
 
 If you need finer control on any event, use a [command hook](https://code.claude.com/docs/en/hooks#command-hook-fields) with the per-event fields described in [Decision control](https://code.claude.com/docs/en/hooks#decision-control).
 
