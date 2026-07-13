@@ -256,7 +256,7 @@ To match every tool from a server, append `.*` to the server prefix. The `.*` is
 - `mcp__brave-search__.*` matches all tools from a server whose name contains a hyphen
 - `mcp__.*__write.*` matches any tool whose name starts with `write` from any server
 
-Hyphens in the exact-match set require Claude Code v2.1.195 or later. On earlier versions a bare hyphenated prefix like `mcp__brave-search` is evaluated as an unanchored regular expression and matches every tool from that server. The `mcp__brave-search__.*` form works on every version.This example logs all memory server operations and validates write operations from any MCP server:
+Hyphens in the exact-match set require Claude Code v2.1.195 or later. On earlier versions a bare hyphenated prefix like `mcp__brave-search` is evaluated as an unanchored regular expression and matches every tool from that server. The `mcp__brave-search__.*` form works on every version.Tools from a [plugin-bundled MCP server](https://code.claude.com/docs/en/mcp#plugin-provided-mcp-servers) use a scoped server segment that includes the plugin name: `mcp__plugin_<plugin-name>_<server-name>__<tool>`. A matcher written against the bare server key never fires for these tools. For a plugin named `my-plugin` that bundles a server under the key `db`, a `query` tool appears as `mcp__plugin_my-plugin_db__query`, so the matcher for every tool from that server is `mcp__plugin_my-plugin_db__.*`. Use the same scoped tool name in a handler’s [`if` field](https://code.claude.com/docs/en/hooks#common-fields). See [Plugin-provided MCP servers](https://code.claude.com/docs/en/mcp#plugin-provided-mcp-servers) for how the scoped name is built.This example logs all memory server operations and validates write operations from any MCP server:
 
 ```
 {
@@ -403,7 +403,7 @@ In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `server` | yes | Name of a configured MCP server. The server must already be connected; the hook never triggers an OAuth or connection flow |
+| `server` | yes | Name of a configured MCP server. For a [plugin-bundled server](https://code.claude.com/docs/en/mcp#plugin-provided-mcp-servers), this is the scoped name `plugin:<plugin-name>:<server-name>`, such as `plugin:my-plugin:db`, not the bare server key. The server must already be connected; the hook never triggers an OAuth or connection flow |
 | `tool` | yes | Name of the tool to call on that server |
 | `input` | no | Arguments passed to the tool. String values support `${path}` substitution from the hook’s [JSON input](https://code.claude.com/docs/en/hooks#hook-input-and-output), such as `"${tool_input.file_path}"` |
 
@@ -547,7 +547,7 @@ Hook events receive these fields as JSON, in addition to event-specific fields d
 | --- | --- |
 | `session_id` | Current session identifier |
 | `prompt_id` | UUID identifying the user prompt currently being processed. Matches the [`prompt.id` attribute on OpenTelemetry events](https://code.claude.com/docs/en/monitoring-usage#event-correlation-attributes), so you can correlate hook output with telemetry for a single prompt. Absent until the first user input. Requires Claude Code v2.1.196 or later |
-| `transcript_path` | Path to conversation JSON |
+| `transcript_path` | Path to conversation JSON. The transcript file is written asynchronously and may lag the in-memory conversation, so it may not yet include the current turn’s most recent messages when a hook fires. Hooks that need the final assistant text of the current turn should use `last_assistant_message` on [Stop](https://code.claude.com/docs/en/hooks#stop) and [SubagentStop](https://code.claude.com/docs/en/hooks#subagentstop) instead of reading the transcript |
 | `cwd` | Current working directory when the hook is invoked |
 | `permission_mode` | Current [permission mode](https://code.claude.com/docs/en/permissions#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"auto"`, `"dontAsk"`, or `"bypassPermissions"`. The mode labeled **Manual** arrives as `"default"`, never as `"manual"`, so scripts that match `"default"` keep working. Not all events receive this field. Check the JSON example in each [hook event](https://code.claude.com/docs/en/hooks#hook-events) section |
 | `effort` | Object with a `level` field holding the active [effort level](https://code.claude.com/docs/en/model-config#adjust-effort-level) for the turn: `"low"`, `"medium"`, `"high"`, `"xhigh"`, or `"max"`. If the requested model effort exceeds what the current model supports, this is the downgraded level the model actually used. Ultracode is not a distinct level and reports as `"xhigh"`. The object matches the [status line](https://code.claude.com/docs/en/statusline#available-data)`effort` field. Present for events that fire within a tool-use context, such as `PreToolUse`, `PostToolUse`, `Stop`, and `SubagentStop`, when the current model supports the effort parameter. The level is also available to hook commands and the Bash tool as the `$CLAUDE_EFFORT` environment variable. |
@@ -1334,13 +1334,13 @@ Asks the user one to four multiple-choice questions.
 
 ##### ExitPlanMode
 
-Presents a plan and asks the user to approve it before Claude leaves [plan mode](https://code.claude.com/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode). Claude writes the plan to a file on disk before calling the tool, so the literal `tool_input` from the model only carries `allowedPrompts`. Claude Code injects the plan content and file path before passing the input to hooks.
+Presents a plan and asks the user to approve it before Claude leaves [plan mode](https://code.claude.com/docs/en/permission-modes#analyze-before-you-edit-with-plan-mode). Claude writes the plan to a file on disk before calling the tool, so the literal `tool_input` from the model is typically empty. Claude Code injects the plan content and file path before passing the input to hooks.
 
 | Field | Type | Example | Description |
 | --- | --- | --- | --- |
 | `plan` | string | `"## Refactor auth\n1. Extract..."` | Plan content in Markdown. Injected from the plan file on disk |
 | `planFilePath` | string | `"/Users/.../plans/refactor-auth.md"` | Path to the plan file. Injected |
-| `allowedPrompts` | array | `[{"tool": "Bash", "prompt": "run tests"}]` | Optional. Prompt-based permissions Claude is requesting to implement the plan, each with a `tool` name and a `prompt` describing the category of action |
+| `allowedPrompts` | array | `[{"tool": "Bash", "prompt": "run tests"}]` | Deprecated. Claude Code accepts the field but ignores it. Before v2.1.205, it carried prompt-based permissions Claude requested to implement the plan |
 
 In `PostToolUse`, `tool_response` is an object with `plan` and `filePath` fields holding the approved plan, plus internal status flags. Read `tool_response.plan` for the plan content rather than re-reading the file from disk.
 
@@ -1946,7 +1946,7 @@ The [`/goal`](https://code.claude.com/docs/en/goal) command is a built-in shortc
 
 #### [​](https://code.claude.com/docs/en/hooks\#stop-input)  Stop input
 
-In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active`, `last_assistant_message`, `background_tasks`, and `session_crons`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks.The `last_assistant_message` field contains the text content of Claude’s final response, so hooks can access it without parsing the transcript file.The `background_tasks` and `session_crons` arrays, available in Claude Code v2.1.145 or later, let hooks distinguish “session is done” from “session is paused waiting for background work to wake it back up”. Both arrays are present when the task registry is reachable and are empty when nothing is in flight or scheduled.Each entry in `background_tasks` describes one in-flight task and uses these fields:
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active`, `last_assistant_message`, `background_tasks`, and `session_crons`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks.The `last_assistant_message` field contains the text content of Claude’s final response, so hooks can access it without parsing the transcript file. For hooks that act on the just-completed turn, such as read-aloud or notification hooks, use this field rather than reading `transcript_path`: the transcript file isn’t guaranteed to include the final message at Stop time on all versions.The `background_tasks` and `session_crons` arrays, available in Claude Code v2.1.145 or later, let hooks distinguish “session is done” from “session is paused waiting for background work to wake it back up”. Both arrays are present when the task registry is reachable and are empty when nothing is in flight or scheduled.Each entry in `background_tasks` describes one in-flight task and uses these fields:
 
 | Field | Description |
 | --- | --- |
@@ -2236,7 +2236,7 @@ FileChanged hooks have no decision control. They can’t block the file change f
 
 ### [​](https://code.claude.com/docs/en/hooks\#worktreecreate)  WorktreeCreate
 
-Runs when a worktree is being created, either from `claude --worktree` or from a [subagent using `isolation: "worktree"`](https://code.claude.com/docs/en/sub-agents#choose-the-subagent-scope). By default Claude Code creates the isolated working copy with `git worktree`. Configuring a WorktreeCreate hook replaces that default git behavior, letting you use a different version control system like SVN, Perforce, or Mercurial.Because the hook replaces the default behavior entirely, [`.worktreeinclude`](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees) is not processed. If you need to copy local configuration files like `.env` into the new worktree, do it inside your hook script.The hook must return the absolute path to the created worktree directory. Claude Code uses this path as the working directory for the isolated session. Command hooks print it on stdout; HTTP hooks return it via `hookSpecificOutput.worktreePath`.This example creates an SVN working copy and prints the path for Claude Code to use. Replace the repository URL with your own:
+Runs when a worktree is being created, either from `claude --worktree` or from a [subagent using `isolation: "worktree"`](https://code.claude.com/docs/en/sub-agents#choose-the-subagent-scope). By default Claude Code creates the isolated working copy with `git worktree`. Configuring a WorktreeCreate hook replaces that default git behavior, letting you use a different version control system like SVN, Perforce, or Mercurial.Because the hook replaces the default behavior entirely, [`.worktreeinclude`](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees) is not processed. If you need to copy local configuration files like `.env` into the new worktree, do it inside your hook script.The hook must return the path to the created worktree directory. Claude Code uses this path as the working directory for the isolated session. See [WorktreeCreate output](https://code.claude.com/docs/en/hooks#worktreecreate-output) for how each hook type returns the path.This example creates an SVN working copy and prints the path for Claude Code to use. Replace the repository URL with your own:
 
 ```
 {
@@ -2273,12 +2273,12 @@ In addition to the [common input fields](https://code.claude.com/docs/en/hooks#c
 
 #### [​](https://code.claude.com/docs/en/hooks\#worktreecreate-output)  WorktreeCreate output
 
-WorktreeCreate hooks don’t use the standard allow/block decision model. Instead, the hook’s success or failure determines the outcome. The hook must return the absolute path to the created worktree directory:
+WorktreeCreate hooks don’t use the standard allow/block decision model. Instead, the hook’s success or failure determines the outcome. The hook must return the path to the created worktree directory:
 
-- **Command hooks** (`type: "command"`): print the path on stdout.
+- **Command hooks** (`type: "command"`): print the path as the last non-empty line of stdout. Claude Code strips ANSI escape codes before reading that line, so shell startup banners printed before your `echo` are ignored. Redirect any other hook output to stderr.
 - **HTTP hooks** (`type: "http"`): return `{ "hookSpecificOutput": { "hookEventName": "WorktreeCreate", "worktreePath": "/absolute/path" } }` in the response body.
 
-If the hook fails or produces no path, worktree creation fails with an error.
+If the hook fails or produces no path, worktree creation fails with an error.Claude Code resolves a relative path against the directory the hook ran in. If the resulting path isn’t a directory Claude Code can enter, the session prints an error naming the path and exits with code 1. Before v2.1.205, a relative path or a path that didn’t exist on disk crashed the session at startup, and with `-p` it stalled for about 30 seconds before exiting with code 0.
 
 ### [​](https://code.claude.com/docs/en/hooks\#worktreeremove)  WorktreeRemove
 
@@ -2718,7 +2718,7 @@ The `timeout` field sets the maximum time in seconds for the background process.
 
 ### [​](https://code.claude.com/docs/en/hooks\#how-async-hooks-execute)  How async hooks execute
 
-When an async hook fires, Claude Code starts the hook process and immediately continues without waiting for it to finish. The hook receives the same JSON input via stdin as a synchronous hook.After the background process exits, if the hook produced a JSON response with an `additionalContext` field, that content is delivered to Claude as context on the next conversation turn. A `systemMessage` field is shown to you, not to Claude.Async hook completion notifications are suppressed by default. To see them, enable verbose mode with `Ctrl+O` or start Claude Code with `--verbose`.
+When an async hook fires, Claude Code starts the hook process and immediately continues without waiting for it to finish. The hook receives the same JSON input via stdin as a synchronous hook.After the background process exits, if the hook produced a JSON response with an `additionalContext` field, that content is delivered to Claude as context on the next conversation turn. A `systemMessage` field is shown to you, not to Claude.Claude Code validates that JSON response against the same [output schema](https://code.claude.com/docs/en/hooks#json-output) as synchronous hooks, and drops any field whose value has the wrong type, such as a `systemMessage` that isn’t a string, instead of delivering it. Run with `--debug` to see a warning naming each dropped field. Before v2.1.202, malformed JSON output from an async hook could crash the session, and the crash recurred each time the session was resumed.Async hook completion notifications are suppressed by default. To see them, enable verbose mode with `Ctrl+O` or start Claude Code with `--verbose`.
 
 ### [​](https://code.claude.com/docs/en/hooks\#run-tests-after-file-changes)  Run tests after file changes
 
