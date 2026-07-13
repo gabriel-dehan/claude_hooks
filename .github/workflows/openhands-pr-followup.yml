@@ -1,0 +1,109 @@
+name: OpenHands PR Follow-up
+
+# Comment "@openhands <instructions>" on a PR to give the bot instructions:
+#   - "@openhands add error handling for nil config"  -> pushes commits to the PR branch
+#   - "@openhands why did you use a mutex here?"       -> replies in the thread
+# The bot works ON the PR's own branch (follow-up commits), and can also just
+# discuss without changing code.
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: openhands-pr-followup-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  followup:
+    # Only on PRs, when a comment mentions the bot but is NOT the "review" command
+    # (that's handled by openhands-pr-review.yml).
+    if: >
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '@openhands') &&
+      !contains(github.event.comment.body, '@openhands review')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # push follow-up commits to the PR branch
+      pull-requests: write   # comment / update PR
+      issues: write
+    steps:
+      - name: Get PR head ref
+        id: prref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # issue_comment doesn't carry PR branch info, so fetch it.
+          data=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
+            --jq '{ref: .head.ref, repo: .head.repo.full_name, base: .base.ref}')
+          echo "head_ref=$(echo "$data" | jq -r .ref)" >> "$GITHUB_OUTPUT"
+          echo "head_repo=$(echo "$data" | jq -r .repo)" >> "$GITHUB_OUTPUT"
+          echo "base_ref=$(echo "$data" | jq -r .base)" >> "$GITHUB_OUTPUT"
+
+      - name: Guard against fork PRs
+        if: steps.prref.outputs.head_repo != github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" \
+            --body "🤖 I can't push follow-up commits to a PR from a fork (secrets aren't available on fork PRs). A maintainer can run me on a same-repo branch instead."
+          echo "Fork PR — stopping."
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.prref.outputs.head_ref }}
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Run OpenHands agent
+        env:
+          LLM_API_KEY: ${{ secrets.OPENHANDS_LLM_API_KEY }}
+          LLM_MODEL: ${{ vars.OPENHANDS_LLM_MODEL }}
+          LLM_BASE_URL: ${{ vars.OPENHANDS_LLM_BASE_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_TITLE: ${{ github.event.issue.title }}
+          HEAD_REF: ${{ steps.prref.outputs.head_ref }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+        run: |
+          export AGENT_PROMPT="$(cat <<'EOF'
+          You are an autonomous coding agent working on a pull request branch that is
+          checked out in the current directory. This is the Ruby gem "claude_hooks".
+          The current branch is `${HEAD_REF}` and corresponds to PR #${PR_NUMBER}.
+
+          A maintainer left an instruction in a PR comment. Decide the intent:
+
+          - If they ask you to CHANGE the code: make the change on THIS branch, run the
+            tests with `ruby test/run_all_tests.rb` (after `bundle install`) until green, commit with a
+            clear message, and push to `${HEAD_REF}` (the existing PR updates automatically).
+            Then post a PR comment summarizing what you changed and how you verified it.
+          - If they only ask a QUESTION or for an explanation: do NOT change code. Investigate
+            the diff/code as needed and reply with a clear answer as a PR comment via `gh`.
+
+          Use the `gh` CLI for GitHub interactions (already authenticated). Keep changes
+          minimal and consistent with the existing codebase. Never force-push.
+          Do not modify CI secrets or workflow permissions.
+
+          --- PR #${PR_NUMBER}: ${PR_TITLE} ---
+          --- INSTRUCTION (by @${COMMENT_AUTHOR}) ---
+          ${COMMENT_BODY}
+          EOF
+          )"
+          python .github/openhands/agent_task.py
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" \
+            --body "⚠️ I couldn't complete that. See the [run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."

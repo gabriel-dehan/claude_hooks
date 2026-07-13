@@ -1,0 +1,51 @@
+name: OpenHands PR Review
+
+# Reviews PRs automatically when opened/updated, and on demand when a
+# maintainer comments "@openhands review" on the PR.
+on:
+  pull_request:
+    types: [opened, reopened]
+  issue_comment:
+    types: [created]
+
+# Only one review per PR at a time; newer runs cancel older ones.
+concurrency:
+  group: openhands-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Run on PR events, OR on an issue_comment that is on a PR and says "@openhands review".
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '@openhands review'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # post the review
+      issues: read
+    steps:
+      # For comment-triggered runs, resolve the PR number into the context the
+      # action expects (it reads github.event.pull_request.*).
+      - name: Resolve PR number
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: OpenHands PR review
+        uses: OpenHands/extensions/plugins/pr-review@main
+        with:
+          # --- Your OpenAI-compatible endpoint ---
+          llm-model: ${{ vars.OPENHANDS_LLM_MODEL }}        # e.g. openai/<your-model>
+          llm-base-url: ${{ vars.OPENHANDS_LLM_BASE_URL }}  # your endpoint
+          llm-api-key: ${{ secrets.OPENHANDS_LLM_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Pin the extensions ref for reproducibility once you're happy (e.g. a tag/SHA).
+          extensions-version: main
