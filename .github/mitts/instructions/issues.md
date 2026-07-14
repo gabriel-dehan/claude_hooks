@@ -35,4 +35,4 @@ permissions.
   must be SHA-pinned (`blob/<sha>/...`), not `blob/main/...`. Don't invent URLs;
   derive real IDs from `gh`/`git` output.
 - **Scan for sensitive content and placeholders before posting.** Never ship literal `<SHA>`, `<PR>`,
-  `TBD`, `XXX`, or an unresolved `${...}`. Grep your body for these first.
+  `TBD`, `XXX`, or an unresolved `${{...}}`. Grep your body for these first.
