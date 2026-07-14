@@ -6,6 +6,7 @@
 #   # SDK API but is under-documented, so pin to guard against a rename.
 #   "openhands-sdk==1.36.0",
 #   "openhands-tools==1.36.0",
+#   "fastapi",
 # ]
 # ///
 """
