@@ -64,7 +64,11 @@ jobs:
           PR_JSON="$(gh api "repos/${REPO}/pulls/${PR_NUMBER}")"
           echo "number=${PR_NUMBER}"                                       >> "$GITHUB_OUTPUT"
           echo "title=$(echo "$PR_JSON"   | jq -r '.title')"              >> "$GITHUB_OUTPUT"
-          echo "body=$(echo "$PR_JSON"    | jq -r '.body // ""')"         >> "$GITHUB_OUTPUT"
+          {
+            echo 'body<<EOF'
+            echo "$PR_JSON" | jq -r '.body // ""'
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
           echo "base=$(echo "$PR_JSON"    | jq -r '.base.ref')"           >> "$GITHUB_OUTPUT"
           echo "head=$(echo "$PR_JSON"    | jq -r '.head.ref')"           >> "$GITHUB_OUTPUT"
           echo "head_sha=$(echo "$PR_JSON" | jq -r '.head.sha')"          >> "$GITHUB_OUTPUT"
