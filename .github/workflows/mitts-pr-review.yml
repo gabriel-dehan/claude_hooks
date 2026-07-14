@@ -135,7 +135,7 @@ jobs:
           REVIEW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           cd pr-repo
-          uv run --no-project --with openhands-sdk --with openhands-tools --with lmnr \
+          uv run --no-project --with openhands-sdk --with openhands-tools --with lmnr --with fastapi \
             python ../extensions/plugins/pr-review/scripts/agent_script.py
 
       - name: Upload logs as artifact
