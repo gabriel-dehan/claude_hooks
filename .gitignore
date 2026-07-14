@@ -1,5 +1,8 @@
 *.gem
 *.rbc
+# Python bytecode from the OpenHands bot scripts (.github/mitts/*.py)
+__pycache__/
+*.pyc
 /.config
 /coverage/
 /InstalledFiles

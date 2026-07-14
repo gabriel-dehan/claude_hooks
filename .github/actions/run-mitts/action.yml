@@ -1,0 +1,109 @@
+name: Run Mitts agent
+description: >
+  Shared setup + run for the Mitts bots: checkout, toolchain setup, restore
+  prior conversation state, build the prompt via context_builder.py, run the agent,
+  and persist state as a per-thread artifact. Per-surface triggers, guards, and
+  comments stay in the caller workflow.
+
+inputs:
+  surface:
+    description: '"pr" or "issue" — selects the context_builder template and artifact name.'
+    required: true
+  number:
+    description: PR or issue number (also the artifact/thread key suffix).
+    required: true
+  head-ref:
+    description: PR head branch to check out. Omit for issues (checks out default).
+    required: false
+    default: ''
+  base-ref:
+    description: PR base branch (passed to the agent as BASE_REF). Optional for issues.
+    required: false
+    default: ''
+  title:
+    description: Issue or PR title, forwarded as ISSUE_TITLE/PR_TITLE.
+    required: false
+    default: ''
+  comment-body:
+    description: The triggering comment body.
+    required: false
+    default: ''
+  comment-author:
+    description: Login of the commenter.
+    required: false
+    default: ''
+  # Secrets/vars can't cross into a composite action implicitly — thread them in.
+  llm-api-key:
+    description: API key for the OpenAI-compatible endpoint.
+    required: true
+  llm-model:
+    description: LiteLLM model id.
+    required: true
+  llm-base-url:
+    description: Base URL of the OpenAI-compatible endpoint.
+    required: false
+    default: ''
+  github-token:
+    description: Token for gh/git inside the agent (contents+PR+issues write).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # NOTE: the caller must run actions/checkout BEFORE this action so this
+    # action.yml exists in the workspace. The caller checks out the correct
+    # ref/fetch-depth (PR head for the PR bot, default for the issue bot).
+    - name: Set OPENHANDS_PERSIST_DIR
+      shell: bash
+      run: echo "OPENHANDS_PERSIST_DIR=$RUNNER_TEMP/mitts-state" >> "$GITHUB_ENV"
+
+    # Ruby project: let the agent run the gem's tests.
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - uses: astral-sh/setup-uv@v6
+
+    # Restore this thread's prior conversation state (if any earlier run exists).
+    - name: Restore prior conversation state
+      uses: dawidd6/action-download-artifact@v6
+      with:
+        name: mitts-state-${{ inputs.surface }}-${{ inputs.number }}
+        path: ${{ env.OPENHANDS_PERSIST_DIR }}
+        search_artifacts: true
+        if_no_artifact_found: warn
+
+    - name: Run Mitts agent
+      shell: bash
+      env:
+        LLM_API_KEY: ${{ inputs.llm-api-key }}
+        LLM_MODEL: ${{ inputs.llm-model }}
+        LLM_BASE_URL: ${{ inputs.llm-base-url }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        OPENHANDS_CONVERSATION_KEY: ${{ inputs.surface }}-${{ inputs.number }}
+        NUMBER: ${{ inputs.number }}
+        ISSUE_TITLE: ${{ inputs.title }}
+        PR_TITLE: ${{ inputs.title }}
+        HEAD_REF: ${{ inputs.head-ref }}
+        BASE_REF: ${{ inputs.base-ref }}
+        COMMENT_BODY: ${{ inputs.comment-body }}
+        COMMENT_AUTHOR: ${{ inputs.comment-author }}
+      run: |
+        AGENT_PROMPT="$(python .github/mitts/context_builder.py --surface "${{ inputs.surface }}")"
+        export AGENT_PROMPT
+        uv run .github/mitts/agent_task.py
+
+    # Persist conversation state even on partial failure so memory accrues.
+    - name: Persist conversation state
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: mitts-state-${{ inputs.surface }}-${{ inputs.number }}
+        path: ${{ env.OPENHANDS_PERSIST_DIR }}
+        retention-days: 30
+        overwrite: true
+        if-no-files-found: ignore
