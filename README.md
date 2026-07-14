@@ -1,7 +1,7 @@
 # Ruby DSL for Claude Code hooks
 
 > [!IMPORTANT]
-> v1.0.0 just released and is introducing breaking changes. Please read the [CHANGELOG](CHANGELOG.md) for more information.
+> v1.2.0 just released and is introducing a great number of changes. Please read the [CHANGELOG](CHANGELOG.md) for more information.
 
 
 A Ruby DSL (Domain Specific Language) for creating Claude Code hooks. This will hopefully make creating and configuring new hooks way easier.
