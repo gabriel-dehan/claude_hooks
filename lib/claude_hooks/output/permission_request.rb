@@ -76,6 +76,8 @@ module ClaudeHooks
         behavior = 'allow'
         messages = []
         updated_inputs = []
+        interrupt = false
+        updated_permissions = nil
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
@@ -94,12 +96,21 @@ module ClaudeHooks
           updated = output_data.dig('hookSpecificOutput', 'decision', 'updatedInput') ||
                     output_data.dig('hookSpecificOutput', 'updatedInput')
           updated_inputs << updated if updated
+
+          # Propagate interrupt (OR logic — if any output has it, merged should too)
+          interrupt = true if output_data.dig('hookSpecificOutput', 'decision', 'interrupt') == true
+
+          # Propagate updatedPermissions (last writer wins)
+          perms = output_data.dig('hookSpecificOutput', 'decision', 'updatedPermissions')
+          updated_permissions = perms unless perms.nil?
         end
 
         merged_data['hookSpecificOutput'] ||= { 'hookEventName' => 'PermissionRequest' }
         decision = { 'behavior' => behavior }
         decision['message'] = messages.join('; ') if messages.any?
         decision['updatedInput'] = updated_inputs.last if updated_inputs.any?
+        decision['interrupt'] = interrupt
+        decision['updatedPermissions'] = updated_permissions unless updated_permissions.nil?
         merged_data['hookSpecificOutput']['decision'] = decision
 
         new(merged_data)

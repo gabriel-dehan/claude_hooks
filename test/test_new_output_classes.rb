@@ -74,6 +74,34 @@ class TestNewOutputClasses < Minitest::Test
     assert_equal(:stdout, out.output_stream)
   end
 
+  def test_permission_request_merge_propagates_interrupt
+    o1 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'deny', 'interrupt' => true } } })
+    o2 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'allow' } } })
+    merged = ClaudeHooks::Output::PermissionRequest.merge(o1, o2)
+    assert(merged.interrupt?)
+  end
+
+  def test_permission_request_merge_interrupt_false_by_default
+    o1 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'allow' } } })
+    o2 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'deny' } } })
+    merged = ClaudeHooks::Output::PermissionRequest.merge(o1, o2)
+    refute(merged.interrupt?)
+  end
+
+  def test_permission_request_merge_updated_permissions_last_wins
+    o1 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'allow', 'updatedPermissions' => { 'a' => true } } } })
+    o2 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'allow', 'updatedPermissions' => { 'b' => true } } } })
+    merged = ClaudeHooks::Output::PermissionRequest.merge(o1, o2)
+    assert_equal({ 'b' => true }, merged.updated_permissions)
+  end
+
+  def test_permission_request_merge_updated_permissions_nil_does_not_overwrite
+    o1 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'allow', 'updatedPermissions' => { 'a' => true } } } })
+    o2 = ClaudeHooks::Output::PermissionRequest.new({ 'hookSpecificOutput' => { 'decision' => { 'behavior' => 'allow' } } })
+    merged = ClaudeHooks::Output::PermissionRequest.merge(o1, o2)
+    assert_equal({ 'a' => true }, merged.updated_permissions)
+  end
+
   # === PreToolUse defer + merge precedence (B1) ===
 
   def test_pre_tool_use_deferred_accessor
