@@ -44,8 +44,7 @@ module ClaudeHooks
         handle_run_error("JSON parsing error: #{e.message}", on_error)
 
       rescue StandardError => e
-        STDERR.puts e.backtrace.join("\n") if e.backtrace
-        handle_run_error("Hook execution error: #{e.message}", on_error)
+        handle_run_error("Hook execution error: #{e.message}", on_error, backtrace: e.backtrace)
       end
 
       # @deprecated Use {run_hook} instead.
@@ -99,7 +98,7 @@ module ClaudeHooks
         exit 1
       end
 
-      def handle_run_error(message, on_error)
+      def handle_run_error(message, on_error, backtrace: nil)
         if on_error == :block
           # Exit 2: Claude Code shows stderr to the model as plain text (never
           # parsed as JSON), so emit just the message and block.
@@ -107,6 +106,7 @@ module ClaudeHooks
           exit 2
         else
           # Exit 1: non-blocking. stderr's first line surfaces in the transcript.
+          STDERR.puts backtrace.join("\n") if backtrace
           STDERR.puts JSON.generate({
             continue: false,
             stopReason: message,
