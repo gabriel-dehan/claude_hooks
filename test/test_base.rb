@@ -295,6 +295,65 @@ class TestBase < Minitest::Test
     assert_nil(hook.terminal_sequence)
   end
 
+  # === permission_mode reader (A1) ===
+
+  def test_permission_mode_defaults_to_default
+    hook = @test_hook_class.new(@input_data)
+    assert_equal('default', hook.permission_mode)
+  end
+
+  def test_permission_mode_snake_key
+    hook = @test_hook_class.new(@input_data.merge('permission_mode' => 'bypassPermissions'))
+    assert_equal('bypassPermissions', hook.permission_mode)
+  end
+
+  def test_permission_mode_camel_key_fallback
+    hook = @test_hook_class.new(@input_data.merge('permissionMode' => 'plan'))
+    assert_equal('plan', hook.permission_mode)
+  end
+
+  # === output_and_exit delegates to output object ===
+
+  def test_output_and_exit_exits_0_by_default
+    hook = @test_hook_class.new(@input_data)
+    exit_status = nil
+    begin
+      hook.output_and_exit
+    rescue SystemExit => e
+      exit_status = e.status
+    end
+    assert_equal(0, exit_status)
+  end
+
+  def test_output_and_exit_exits_2_when_prevent_continue
+    # Use Notification (non-JSON-API, exits 2 when continue:false)
+    hook = ClaudeHooks::Notification.new(@input_data.merge('hook_event_name' => 'Notification'))
+    hook.prevent_continue!('stop')
+    exit_status = nil
+    begin
+      hook.output_and_exit
+    rescue SystemExit => e
+      exit_status = e.status
+    end
+    assert_equal(2, exit_status)
+  end
+
+  # === Output#to_json matches stringify_output ===
+
+  def test_output_to_json_matches_stringify_output
+    hook = @test_hook_class.new(@input_data)
+    hook.add_additional_context!('some context')
+    assert_equal(hook.stringify_output, hook.output.to_json)
+  end
+
+  def test_output_to_json_reflects_blocked_state
+    hook = @test_hook_class.new(@input_data)
+    hook.block_prompt!('stop')
+    parsed = JSON.parse(hook.output.to_json)
+    assert_equal('block', parsed['decision'])
+    assert_equal('stop', parsed['reason'])
+  end
+
   # === Logger Tests ===
 
   def test_logger_initialization
