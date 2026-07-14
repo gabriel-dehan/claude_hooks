@@ -35,4 +35,4 @@ secrets or workflow permissions.
   Don't invent URLs; if you cite a run or file, derive its real ID from `gh`/`git`
   output, don't guess.
 - **Scan for sensitive content and placeholders before posting.** Never ship literal `<SHA>`, `<PR>`,
-  `TBD`, `XXX`, or an unresolved `${...}`. Grep your body for these first.
+  `TBD`, `XXX`, or an unresolved `${{...}}`. Grep your body for these first.
