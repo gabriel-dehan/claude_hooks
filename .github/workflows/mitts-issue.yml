@@ -1,8 +1,8 @@
-name: OpenHands Issue
+name: Mitts Issue
 
-# Comment "@openhands ..." on an ISSUE. The bot decides intent:
-#   - "@openhands implement ..."      -> writes code and opens a PR
-#   - "@openhands why / how / what?"  -> answers as an issue comment, no PR
+# Comment "@mitts ..." on an ISSUE. The bot decides intent:
+#   - "@mitts implement ..."      -> writes code and opens a PR
+#   - "@mitts why / how / what?"  -> answers as an issue comment, no PR
 on:
   issue_comment:
     types: [created]
@@ -10,7 +10,7 @@ on:
 concurrency:
   # Serialize runs on the same issue so implement + discussion don't race on the
   # shared conversation-state artifact.
-  group: openhands-issue-${{ github.event.issue.number }}
+  group: mitts-issue-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
@@ -18,12 +18,12 @@ jobs:
     # Only on issues (not PRs) where a comment mentions the bot AND the commenter
     # is a trusted maintainer. author_association gates who can trigger a
     # write-capable agent run: on a public repo, without this any stranger could
-    # comment "@openhands implement <prompt injection>" and drive an agent with
+    # comment "@mitts implement <prompt injection>" and drive an agent with
     # contents/PR write. OWNER = repo owner, MEMBER = org member, COLLABORATOR =
     # granted write access. Everyone else (CONTRIBUTOR/NONE/FIRST_TIMER) is ignored.
     if: >
       github.event.issue.pull_request == null &&
-      contains(github.event.comment.body, '@openhands') &&
+      contains(github.event.comment.body, '@mitts') &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     permissions:
@@ -44,7 +44,7 @@ jobs:
           fetch-depth: 0
 
       # Shared setup + run (toolchain, state restore/persist, agent).
-      - uses: ./.github/actions/run-openhands
+      - uses: ./.github/actions/run-mitts
         with:
           surface: issue
           number: ${{ github.event.issue.number }}

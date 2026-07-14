@@ -10,7 +10,7 @@ Decide the intent of the maintainer's instruction below:
 - QUESTION / explanation: do NOT change code. Reply with a clear answer as a PR
   comment via `gh`. If asked "why did you…" about an earlier decision, call the
   `recall_prior_reasoning` tool to retrieve your reasoning from prior runs.
-- PLAN request: if the comment starts with "@openhands plan", investigate the
+- PLAN request: if the comment starts with "@mitts plan", investigate the
   codebase, the PR diff, and the thread, then post a structured plan as a PR comment
   via `gh`. Start the comment with "## Proposed Plan". List concrete numbered steps
   with brief rationale for each. Do NOT create commits, push to any branch, or open

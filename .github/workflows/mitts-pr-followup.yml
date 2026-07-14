@@ -1,8 +1,8 @@
-name: OpenHands PR Follow-up
+name: Mitts PR Follow-up
 
-# Comment "@openhands <instructions>" on a PR to give the bot instructions:
-#   - "@openhands add error handling for nil config"  -> pushes commits to the PR branch
-#   - "@openhands why did you use a mutex here?"       -> replies in the thread
+# Comment "@mitts <instructions>" on a PR to give the bot instructions:
+#   - "@mitts add error handling for nil config"  -> pushes commits to the PR branch
+#   - "@mitts why did you use a mutex here?"       -> replies in the thread
 # The bot works ON the PR's own branch (follow-up commits), and can also just
 # discuss without changing code.
 on:
@@ -10,24 +10,24 @@ on:
     types: [created]
 
 concurrency:
-  # Serialize all STATEFUL work on the same PR (shares the openhands-state-pr-<n>
+  # Serialize all STATEFUL work on the same PR (shares the mitts-state-pr-<n>
   # artifact + pushes to the PR branch). Group is keyed on the PR number only, not
   # the workflow, so any future stateful PR workflow can share this queue. The
-  # read-only review workflow stays on its own group (openhands-review-<n>).
-  group: openhands-pr-${{ github.event.issue.number }}
+  # read-only review workflow stays on its own group (mitts-review-<n>).
+  group: mitts-pr-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
   followup:
     # Only on PRs, when a comment mentions the bot but is NOT the "review" command
-    # (that's handled by openhands-pr-review.yml). Gated on author_association so
+    # (that's handled by mitts-pr-review.yml). Gated on author_association so
     # only trusted maintainers (OWNER/MEMBER/COLLABORATOR) can push follow-up
     # commits — this bot writes to the PR branch, so an untrusted trigger is a
     # code-execution vector on a public repo.
     if: >
       github.event.issue.pull_request != null &&
-      contains(github.event.comment.body, '@openhands') &&
-      !contains(github.event.comment.body, '@openhands review') &&
+      contains(github.event.comment.body, '@mitts') &&
+      !contains(github.event.comment.body, '@mitts review') &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     permissions:
@@ -65,7 +65,7 @@ jobs:
           fetch-depth: 0
 
       # Shared setup + run (toolchain, state restore/persist, agent).
-      - uses: ./.github/actions/run-openhands
+      - uses: ./.github/actions/run-mitts
         with:
           surface: pr
           number: ${{ github.event.issue.number }}

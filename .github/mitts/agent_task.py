@@ -9,7 +9,7 @@
 # ]
 # ///
 """
-Generic OpenHands agent runner for GitHub Actions.
+Generic Mitts agent runner for GitHub Actions.
 
 Runs an OpenHands SDK agent inside the Actions runner with full repo access,
 using YOUR OpenAI-compatible LLM endpoint (LLM_BASE_URL / LLM_MODEL / LLM_API_KEY).
@@ -17,10 +17,10 @@ The agent uses bash + the `gh` CLI (authenticated via GITHUB_TOKEN) to read
 issues/PRs, make code changes, commit, push a branch, and open/update PRs.
 
 Dependencies are declared inline and resolved by `uv run` — the
-workflows invoke this via `uv run .github/openhands/agent_task.py`.
+workflows invoke this via `uv run .github/mitts/agent_task.py`.
 
 This is intentionally a single generic script: the WORKFLOW decides the task by
-setting AGENT_PROMPT. See the workflows in .github/workflows/openhands-*.yml.
+setting AGENT_PROMPT. See the workflows in .github/workflows/mitts-*.yml.
 
 Required env:
     LLM_API_KEY    API key for your OpenAI-compatible endpoint
@@ -294,7 +294,7 @@ def main() -> None:
         prompt_tok = getattr(usage, "prompt_tokens", 0) if usage else 0
         completion_tok = getattr(usage, "completion_tokens", 0) if usage else 0
         summary = (
-            "\n## OpenHands Agent Run\n\n"
+            "\n## Mitts Agent Run\n\n"
             "| Metric | Value |\n"
             "| --- | --- |\n"
             f"| Model | `{model}` |\n"

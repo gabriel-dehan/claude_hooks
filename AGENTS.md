@@ -1,6 +1,6 @@
 # Agent guidance — claude_hooks
 
-This file is loaded by the OpenHands agents that run in this repo's GitHub Actions
+This file is loaded by the coding agents that run in this repo's GitHub Actions
 bots. It is picked up via `load_available_skills` (which internally calls
 `load_project_skills`, the loader that ingests `AGENTS.md`) in
 `agent_task.py` (issue and PR bots) and by the `pr-review` composite action.
@@ -18,7 +18,7 @@ Pure Ruby, no Rails. Public repo: https://github.com/gabriel-dehan/claude_hooks
   `post_tool_use.rb`, `user_prompt_submit.rb`, `session_start.rb`, etc.), plus
   `base.rb`, `configuration.rb`, `cli.rb`, `logger.rb`, `version.rb`.
 - `test/` — plain Ruby tests (`test_*.rb`), no RSpec.
-- `docs/` — human docs, including `docs/openhands/` for the bot setup itself.
+- `docs/` — human docs, including `docs/mitts/` for the bot setup itself.
 
 ## Running tests
 

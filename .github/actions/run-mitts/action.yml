@@ -1,6 +1,6 @@
-name: Run OpenHands agent
+name: Run Mitts agent
 description: >
-  Shared setup + run for the OpenHands bots: checkout, toolchain setup, restore
+  Shared setup + run for the Mitts bots: checkout, toolchain setup, restore
   prior conversation state, build the prompt via context_builder.py, run the agent,
   and persist state as a per-thread artifact. Per-surface triggers, guards, and
   comments stay in the caller workflow.
@@ -55,7 +55,7 @@ runs:
     # ref/fetch-depth (PR head for the PR bot, default for the issue bot).
     - name: Set OPENHANDS_PERSIST_DIR
       shell: bash
-      run: echo "OPENHANDS_PERSIST_DIR=$RUNNER_TEMP/openhands-state" >> "$GITHUB_ENV"
+      run: echo "OPENHANDS_PERSIST_DIR=$RUNNER_TEMP/mitts-state" >> "$GITHUB_ENV"
 
     # Ruby project: let the agent run the gem's tests.
     - uses: ruby/setup-ruby@v1
@@ -71,12 +71,12 @@ runs:
     - name: Restore prior conversation state
       uses: dawidd6/action-download-artifact@v6
       with:
-        name: openhands-state-${{ inputs.surface }}-${{ inputs.number }}
+        name: mitts-state-${{ inputs.surface }}-${{ inputs.number }}
         path: ${{ env.OPENHANDS_PERSIST_DIR }}
         search_artifacts: true
         if_no_artifact_found: warn
 
-    - name: Run OpenHands agent
+    - name: Run Mitts agent
       shell: bash
       env:
         LLM_API_KEY: ${{ inputs.llm-api-key }}
@@ -93,16 +93,16 @@ runs:
         COMMENT_BODY: ${{ inputs.comment-body }}
         COMMENT_AUTHOR: ${{ inputs.comment-author }}
       run: |
-        AGENT_PROMPT="$(python .github/openhands/context_builder.py --surface "${{ inputs.surface }}")"
+        AGENT_PROMPT="$(python .github/mitts/context_builder.py --surface "${{ inputs.surface }}")"
         export AGENT_PROMPT
-        uv run .github/openhands/agent_task.py
+        uv run .github/mitts/agent_task.py
 
     # Persist conversation state even on partial failure so memory accrues.
     - name: Persist conversation state
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: openhands-state-${{ inputs.surface }}-${{ inputs.number }}
+        name: mitts-state-${{ inputs.surface }}-${{ inputs.number }}
         path: ${{ env.OPENHANDS_PERSIST_DIR }}
         retention-days: 30
         overwrite: true

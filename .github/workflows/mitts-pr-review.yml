@@ -1,7 +1,7 @@
-name: OpenHands PR Review
+name: Mitts PR Review
 
 # Reviews PRs automatically when opened/updated, and on demand when a
-# maintainer comments "@openhands review" on the PR.
+# maintainer comments "@mitts review" on the PR.
 on:
   pull_request:
     types: [opened, reopened]
@@ -10,19 +10,19 @@ on:
 
 # Only one review per PR at a time; newer runs cancel older ones.
 concurrency:
-  group: openhands-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  group: mitts-review-${{ github.event.pull_request.number || github.event.issue.number }}
   cancel-in-progress: true
 
 jobs:
   review:
     # Run on PR events (auto review — read-only, safe on untrusted PRs), OR on an
-    # issue_comment on a PR that says "@openhands review" from a trusted maintainer.
+    # issue_comment on a PR that says "@mitts review" from a trusted maintainer.
     # The comment path is gated on author_association so a stranger can't spam
     # on-demand reviews and burn LLM budget; the auto path stays open by design.
     if: >
       github.event_name == 'pull_request' ||
       (github.event.issue.pull_request != null &&
-       contains(github.event.comment.body, '@openhands review') &&
+       contains(github.event.comment.body, '@mitts review') &&
        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     permissions:
@@ -43,7 +43,7 @@ jobs:
             echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: OpenHands PR review
+      - name: Mitts PR review
         uses: OpenHands/extensions/plugins/pr-review@main
         with:
           # --- Your OpenAI-compatible endpoint ---

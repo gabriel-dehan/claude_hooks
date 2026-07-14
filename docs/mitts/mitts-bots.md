@@ -1,4 +1,4 @@
-# OpenHands Coding Bots (GitHub Actions)
+# Mitts Coding Bots (GitHub Actions)
 
 This repo runs AI coding-agent "bots" entirely inside GitHub Actions. You talk
 to them from issues and pull requests, and they read code, make changes, open
@@ -19,7 +19,7 @@ purely from GitHub, with these capabilities:
    commits to that PR's branch.
 3. **Discuss on a PR or issue** — ask questions and the bot replies (no code change).
 4. **Review PRs** — the bot posts a code review, automatically and on demand.
-5. **Plan / investigate** — ask `@openhands plan` and the bot proposes a
+5. **Plan / investigate** — ask `@mitts plan` and the bot proposes a
    structured plan as a comment, without touching any code.
 
 Two hard constraints shaped the design:
@@ -67,34 +67,34 @@ AGENTS.md                                # repo guidance — loaded by all bots
         └── SKILL.md                     # safe CI-wait pattern (ci/checks/green)
 .github/
 ├── actions/
-│   └── run-openhands/
+│   └── run-mitts/
 │       └── action.yml                  # composite action: shared setup + run for the issue/PR bots
-├── openhands/
+├── mitts/
 │   ├── agent_task.py                    # shared SDK agent runner (uses our endpoint)
 │   ├── context_builder.py               # assembles the full deterministic prompt (gh/git)
 │   ├── recall_tool.py                   # custom SDK tool: recall_prior_reasoning (cross-run memory)
 │   └── hooks/
 │       └── block_dangerous.sh           # PreToolUse guardrail (blocks force-push / CI edits)
 └── workflows/
-    ├── openhands-pr-review.yml          # review PRs (auto + "@openhands review")
-    ├── openhands-issue.yml              # "@openhands ..." on an issue → implements (PR), answers, or plans
-    └── openhands-pr-followup.yml        # "@openhands ..." on a PR → commits, answers, or plans
+    ├── mitts-pr-review.yml          # review PRs (auto + "@mitts review")
+    ├── mitts-issue.yml              # "@mitts ..." on an issue → implements (PR), answers, or plans
+    └── mitts-pr-followup.yml        # "@mitts ..." on a PR → commits, answers, or plans
 ```
 
 The two `agent_task.py`-based bots (issue + PR follow-up) share their runner
 steps — checkout, toolchain, state restore/persist, prompt build, agent run —
-via the **`.github/actions/run-openhands`** composite action, so each workflow
+via the **`.github/actions/run-mitts`** composite action, so each workflow
 keeps only its own triggers, guards, and comments. `pr-review` uses the external
 OpenHands action instead and doesn't share this.
 
-### PR review — `openhands-pr-review.yml`
+### PR review — `mitts-pr-review.yml`
 
 Uses OpenHands' official, ready-made composite action
 `OpenHands/extensions/plugins/pr-review@main`. We pass it our
 `llm-model` / `llm-base-url` / `llm-api-key`. It fetches the diff and any prior
 review context, then posts inline review comments via the GitHub API.
 
-Triggers: on PR `opened`/`reopened`, or when someone comments `@openhands review`
+Triggers: on PR `opened`/`reopened`, or when someone comments `@mitts review`
 on the PR. (It intentionally does **not** re-run on every push/`synchronize` — a
 review fires when the PR opens or when you explicitly ask.)
 
@@ -129,7 +129,7 @@ On each run the agent sees:
 
 - **CHANGE / IMPLEMENT** — makes code changes, runs tests, commits, pushes.
 - **QUESTION / DISCUSSION** — investigates and replies as a comment, no code change.
-- **PLAN** (triggered by `@openhands plan`) — investigates and posts a structured
+- **PLAN** (triggered by `@mitts plan`) — investigates and posts a structured
   proposed plan as a comment, no commits or branches.
 
 ### Skills and `AGENTS.md`
@@ -233,7 +233,7 @@ The bots don't rely on the model volunteering to fetch context. Two layers:
 
 2. **Cross-run memory (on demand).** Each SDK run persists its events to
    `${OPENHANDS_PERSIST_DIR}/<thread-key>/<conversation-id>/`, uploaded as a GitHub
-   **artifact** named `openhands-state-{pr,issue}-<N>` and restored by the next run
+   **artifact** named `mitts-state-{pr,issue}-<N>` and restored by the next run
    on the same thread. We deliberately give each run a **fresh** `conversation_id`
    so the SDK never auto-replays old state into the prompt (keeps it lean). Instead
    the custom **`recall_prior_reasoning`** tool reads *prior* run event dirs on
@@ -299,10 +299,10 @@ Without the second box, the issue→PR bot can push a branch but can't open the 
 
 ### 2b. Who can trigger the bots (author-association gating)
 
-The write-capable workflows (`openhands-issue`, `openhands-pr-followup`) and the
-on-demand `@openhands review` comment path only run when the triggering commenter's
+The write-capable workflows (`mitts-issue`, `mitts-pr-followup`) and the
+on-demand `@mitts review` comment path only run when the triggering commenter's
 `author_association` is `OWNER`, `MEMBER`, or `COLLABORATOR`. On a **public repo**
-this matters: without it, any stranger could comment `@openhands implement …` and
+this matters: without it, any stranger could comment `@mitts implement …` and
 drive an agent that runs with `contents`/`pull-requests` write and burns your LLM
 budget. If you want a non-collaborator to be able to trigger the bot, add them as a
 repo collaborator (or org member) rather than loosening the gate.
@@ -314,10 +314,10 @@ reviewing incoming contributions.
 ### 3. Commit the workflows
 
 ```bash
-git checkout -b add-openhands-bots
-git add AGENTS.md .agents/ .github/openhands .github/actions/run-openhands .github/workflows/openhands-*.yml docs/openhands/
-git commit -m "Add OpenHands GitHub Actions bots (review, issue, PR follow-up)"
-git push -u origin add-openhands-bots
+git checkout -b add-mitts-bots
+git add AGENTS.md .agents/ .github/mitts .github/actions/run-mitts .github/workflows/mitts-*.yml docs/mitts/
+git commit -m "Add Mitts GitHub Actions bots (review, issue, PR follow-up)"
+git push -u origin add-mitts-bots
 gh pr create --fill
 ```
 
@@ -327,7 +327,7 @@ gh pr create --fill
 
 ### 4. First run
 
-Trigger one (e.g. comment `@openhands review` on a PR) and watch it:
+Trigger one (e.g. comment `@mitts review` on a PR) and watch it:
 
 ```bash
 gh run watch
@@ -343,12 +343,12 @@ base URL, then re-trigger.
 
 | You want to… | Where | Comment |
 |---|---|---|
-| Review a PR | PR | automatic on open/reopen, or `@openhands review` |
-| Turn an issue into a PR | issue | `@openhands implement <optional detail>` |
-| Ask about an issue | issue | `@openhands what would this involve?` (answers, no PR) |
-| Change code on a PR | PR | `@openhands add error handling for nil config` |
-| Ask about a PR | PR | `@openhands why did you use a mutex here?` (uses cross-run memory) |
-| Propose a plan (no code) | issue or PR | `@openhands plan <optional detail>` |
+| Review a PR | PR | automatic on open/reopen, or `@mitts review` |
+| Turn an issue into a PR | issue | `@mitts implement <optional detail>` |
+| Ask about an issue | issue | `@mitts what would this involve?` (answers, no PR) |
+| Change code on a PR | PR | `@mitts add error handling for nil config` |
+| Ask about a PR | PR | `@mitts why did you use a mutex here?` (uses cross-run memory) |
+| Propose a plan (no code) | issue or PR | `@mitts plan <optional detail>` |
 
 ---
 
@@ -384,9 +384,9 @@ base URL, then re-trigger.
   each run keeps only the last `OPENHANDS_KEEP_RUNS` runs (default 5), so the bot
   "remembers" recent prior reasoning on a PR/issue within that window.
 - **Concurrency**: runs are serialized per surface so they don't race on the shared
-  state artifact — `openhands-issue-<n>` for the issue bot and `openhands-pr-<n>` for
+  state artifact — `mitts-issue-<n>` for the issue bot and `mitts-pr-<n>` for
   the PR follow-up bot (both queue; nothing is dropped). PR review is read-only (no
-  artifact, no branch push) and stays on its own `openhands-review-<n>` group where a
+  artifact, no branch push) and stays on its own `mitts-review-<n>` group where a
   newer review supersedes an in-flight one.
 - **Ruby project**: the write-capable workflows set up Ruby so the agent can run
   the suite with `ruby test/run_all_tests.rb` before committing.

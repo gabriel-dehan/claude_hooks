@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Deterministic context assembler for the OpenHands GitHub-Actions bots.
+Deterministic context assembler for the Mitts GitHub-Actions bots.
 
 Emits the ENTIRE AGENT_PROMPT body to stdout: a per-surface task template plus a
 "CURRENT STATE (authoritative)" block gathered from GitHub via `gh`/`git`. The
 workflow does one unquoted capture:
 
-    AGENT_PROMPT="$(python .github/openhands/context_builder.py --surface pr)"
+    AGENT_PROMPT="$(python .github/mitts/context_builder.py --surface pr)"
 
 Emitting the whole prompt here (instead of a bash heredoc) removes shell-escaping
 hazards and kills the drift between workflows.

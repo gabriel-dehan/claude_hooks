@@ -6,16 +6,16 @@
       — done. Deterministic context injection (context_builder.py) + on-demand cross-run
       memory via the recall_prior_reasoning custom tool (recall_tool.py) reading prior-run
       event dirs bridged across runs as GitHub artifacts. No auto-replay (fresh
-      conversation_id each run). See docs/openhands/openhands-bots.md → "Hybrid context system".
+      conversation_id each run). See docs/mitts/mitts-bots.md → "Hybrid context system".
 
 ## Done (harness feature additions)
 - [x] Load AGENTS.md + project skills in agent_task.py via `load_available_skills`
       (issue/PR bots now load AGENTS.md + .agents/skills/ on every run)
 - [x] AgentSkills: added `.agents/skills/run-tests/SKILL.md` as a progressive-disclosure example
 - [x] Sub-agent delegation: `enable_sub_agents=True` + `register_builtins_agents()` wired
-- [x] Guardrail hook: `.github/openhands/hooks/block_dangerous.sh` (force-push, CI, secrets)
+- [x] Guardrail hook: `.github/mitts/hooks/block_dangerous.sh` (force-push, CI, secrets)
 - [x] Cost/status reporting: metrics to $GITHUB_STEP_SUMMARY; ERROR/STUCK → exit 1
-- [x] Plan intent: `@openhands plan` branch in context_builder.py templates
+- [x] Plan intent: `@mitts plan` branch in context_builder.py templates
 
 ## Tools
 
@@ -24,7 +24,7 @@ https://github.com/OpenHands/software-agent-sdk/tree/main/openhands-tools/openha
 
 - Do we need any custom tools? 
 https://docs.openhands.dev/sdk/guides/custom-tools
-  - [x] Yes — built `recall_prior_reasoning` (.github/openhands/recall_tool.py). Chosen over a skill.
+  - [x] Yes — built `recall_prior_reasoning` (.github/mitts/recall_tool.py). Chosen over a skill.
 
 ## Skills
 
