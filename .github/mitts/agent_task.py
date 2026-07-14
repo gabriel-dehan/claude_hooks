@@ -268,7 +268,7 @@ def main() -> None:
         "agent": agent,
         "workspace": os.getcwd(),
         "secrets": secrets,
-        "max_iterations": max_iterations,
+        "max_iteration_per_run": max_iterations,
     }
     if hook_config is not None:
         conv_kwargs["hook_config"] = hook_config
