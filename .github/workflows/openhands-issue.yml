@@ -1,0 +1,60 @@
+name: OpenHands Issue
+
+# Comment "@openhands ..." on an ISSUE. The bot decides intent:
+#   - "@openhands implement ..."      -> writes code and opens a PR
+#   - "@openhands why / how / what?"  -> answers as an issue comment, no PR
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  # Serialize runs on the same issue so implement + discussion don't race on the
+  # shared conversation-state artifact.
+  group: openhands-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  respond:
+    # Only on issues (not PRs) where a comment mentions the bot.
+    if: >
+      github.event.issue.pull_request == null &&
+      contains(github.event.comment.body, '@openhands')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write         # push a branch (implement path)
+      pull-requests: write    # open the PR (implement path)
+      issues: write           # comment back / answer questions
+    steps:
+      - name: Acknowledge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" \
+            --repo "${{ github.repository }}" \
+            --body "🤖 On it — I'll reply here, or open a PR if you asked me to implement something. [Watch the run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Shared setup + run (toolchain, state restore/persist, agent).
+      - uses: ./.github/actions/run-openhands
+        with:
+          surface: issue
+          number: ${{ github.event.issue.number }}
+          title: ${{ github.event.issue.title }}
+          comment-body: ${{ github.event.comment.body }}
+          comment-author: ${{ github.event.comment.user.login }}
+          llm-api-key: ${{ secrets.OPENHANDS_LLM_API_KEY }}
+          llm-model: ${{ vars.OPENHANDS_LLM_MODEL }}
+          llm-base-url: ${{ vars.OPENHANDS_LLM_BASE_URL }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" \
+            --repo "${{ github.repository }}" \
+            --body "⚠️ I couldn't complete this task. See the [run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."

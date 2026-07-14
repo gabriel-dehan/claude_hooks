@@ -10,7 +10,11 @@ on:
     types: [created]
 
 concurrency:
-  group: openhands-pr-followup-${{ github.event.issue.number }}
+  # Serialize all STATEFUL work on the same PR (shares the openhands-state-pr-<n>
+  # artifact + pushes to the PR branch). Group is keyed on the PR number only, not
+  # the workflow, so any future stateful PR workflow can share this queue. The
+  # read-only review workflow stays on its own group (openhands-review-<n>).
+  group: openhands-pr-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
@@ -49,56 +53,27 @@ jobs:
           echo "Fork PR — stopping."
           exit 1
 
+      # Check out the PR head branch (same-repo only — reached after the fork
+      # guard). Also makes the local composite action available to `uses` below.
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.prref.outputs.head_ref }}
           fetch-depth: 0
 
-      - uses: ruby/setup-ruby@v1
+      # Shared setup + run (toolchain, state restore/persist, agent).
+      - uses: ./.github/actions/run-openhands
         with:
-          ruby-version: '3.3'
-          bundler-cache: true
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: astral-sh/setup-uv@v6
-
-      - name: Run OpenHands agent
-        env:
-          LLM_API_KEY: ${{ secrets.OPENHANDS_LLM_API_KEY }}
-          LLM_MODEL: ${{ vars.OPENHANDS_LLM_MODEL }}
-          LLM_BASE_URL: ${{ vars.OPENHANDS_LLM_BASE_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          PR_TITLE: ${{ github.event.issue.title }}
-          HEAD_REF: ${{ steps.prref.outputs.head_ref }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
-        run: |
-          export AGENT_PROMPT="$(cat <<'EOF'
-          You are an autonomous coding agent working on a pull request branch that is
-          checked out in the current directory. This is the Ruby gem "claude_hooks".
-          The current branch is `${HEAD_REF}` and corresponds to PR #${PR_NUMBER}.
-
-          A maintainer left an instruction in a PR comment. Decide the intent:
-
-          - If they ask you to CHANGE the code: make the change on THIS branch, run the
-            tests with `ruby test/run_all_tests.rb` (after `bundle install`) until green, commit with a
-            clear message, and push to `${HEAD_REF}` (the existing PR updates automatically).
-            Then post a PR comment summarizing what you changed and how you verified it.
-          - If they only ask a QUESTION or for an explanation: do NOT change code. Investigate
-            the diff/code as needed and reply with a clear answer as a PR comment via `gh`.
-
-          Use the `gh` CLI for GitHub interactions (already authenticated). Keep changes
-          minimal and consistent with the existing codebase. Never force-push.
-          Do not modify CI secrets or workflow permissions.
-
-          --- PR #${PR_NUMBER}: ${PR_TITLE} ---
-          --- INSTRUCTION (by @${COMMENT_AUTHOR}) ---
-          ${COMMENT_BODY}
-          EOF
-          )"
-          python .github/openhands/agent_task.py
+          surface: pr
+          number: ${{ github.event.issue.number }}
+          title: ${{ github.event.issue.title }}
+          head-ref: ${{ steps.prref.outputs.head_ref }}
+          base-ref: ${{ steps.prref.outputs.base_ref }}
+          comment-body: ${{ github.event.comment.body }}
+          comment-author: ${{ github.event.comment.user.login }}
+          llm-api-key: ${{ secrets.OPENHANDS_LLM_API_KEY }}
+          llm-model: ${{ vars.OPENHANDS_LLM_MODEL }}
+          llm-base-url: ${{ vars.OPENHANDS_LLM_BASE_URL }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Report failure
         if: failure()
