@@ -27,6 +27,13 @@ module ClaudeHooks
       end
     end
 
+    # === OUTPUT DATA HELPERS ===
+
+    def block!(reason = '')
+      @output_data['decision'] = 'block'
+      @output_data['reason'] = reason
+    end
+
     # === UTILITY HELPERS ===
 
     def backup_transcript!(backup_file_path)

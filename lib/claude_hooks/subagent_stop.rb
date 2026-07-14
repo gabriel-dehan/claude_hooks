@@ -7,5 +7,9 @@ module ClaudeHooks
     def self.hook_type
       'SubagentStop'
     end
+
+    def agent_transcript_path
+      @input_data['agent_transcript_path'] || @input_data['agentTranscriptPath']
+    end
   end
 end

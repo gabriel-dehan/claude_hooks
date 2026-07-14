@@ -23,7 +23,10 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `approve_tool!(reason)` | Explicitly approve tool usage |
 | `block_tool!(reason)` | Block tool usage with feedback |
 | `ask_for_permission!(reason)` | Request user permission |
+| `defer_permission!` | Defer the permission decision to a later hook in the chain |
 | `update_tool_input!(updated_input)` | Update the tool input and automatically approve the tool (sets `permissionDecision` to `'allow'`) |
+| `update_input!(updated_input)` | Update `updatedInput` without changing the permission decision |
+| `add_additional_context!(context)` | Add additional context visible to Claude |
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.
@@ -35,9 +38,10 @@ Output helpers provide access to the hook's output data and helper methods for w
 | `output.allowed?` | Check if the tool has been explicitly allowed (permission_decision == 'allow') |
 | `output.denied?` | Check if the tool has been denied (permission_decision == 'deny') |
 | `output.blocked?` | Alias for `denied?` |
+| `output.deferred?` | Check if the permission decision was deferred (permission_decision == 'defer') |
 | `output.should_ask_permission?` | Check if user permission is required (permission_decision == 'ask') |
 | `output.input_updated?` | Check if tool input has been updated |
-| `output.permission_decision` | Get the permission decision: 'allow', 'deny', or 'ask' |
+| `output.permission_decision` | Get the permission decision: `'allow'`, `'deny'`, `'ask'`, or `'defer'` |
 | `output.permission_reason` | Get the reason for the permission decision |
 | `output.updated_input` | Get the updated input (if provided) |
 

@@ -71,8 +71,25 @@ module ClaudeHooks
       @input_data['hook_event_name'] || @input_data['hookEventName'] || hook_type
     end
 
+    # Values: default|plan|acceptEdits|auto|dontAsk|bypassPermissions
     def permission_mode
       @input_data['permission_mode'] || @input_data['permissionMode'] || 'default'
+    end
+
+    def prompt_id
+      @input_data['prompt_id'] || @input_data['promptId']
+    end
+
+    def agent_id
+      @input_data['agent_id'] || @input_data['agentId']
+    end
+
+    def agent_type
+      @input_data['agent_type'] || @input_data['agentType']
+    end
+
+    def effort
+      @input_data.dig('effort', 'level')
     end
 
     def read_transcript
@@ -113,6 +130,14 @@ module ClaudeHooks
 
     def clear_specifics!
       @output_data['hookSpecificOutput'] = nil
+    end
+
+    def terminal_sequence!(seq)
+      @output_data['terminalSequence'] = seq
+    end
+
+    def terminal_sequence
+      @output_data['terminalSequence']
     end
 
     # System message shown to the user (not to Claude)

@@ -18,6 +18,10 @@ module ClaudeHooks
       end
       alias_method :continue_instructions, :reason
 
+      def additional_context
+        hook_specific_output['additionalContext'] || ''
+      end
+
       # === SEMANTIC HELPERS ===
 
       # Check if Claude should be forced to continue (decision == 'block')
@@ -61,6 +65,7 @@ module ClaudeHooks
 
         # A blocking reason is actually a "continue instructions"
         blocking_reasons = []
+        contexts = []
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
@@ -71,10 +76,20 @@ module ClaudeHooks
             reason = output_data['reason']
             blocking_reasons << reason if reason && !reason.empty?
           end
+
+          context = output_data.dig('hookSpecificOutput', 'additionalContext')
+          contexts << context if context && !context.empty?
         end
 
         # Combine all blocking reasons / continue instructions
         merged_data['reason'] = blocking_reasons.join('; ') unless blocking_reasons.empty?
+
+        unless contexts.empty?
+          merged_data['hookSpecificOutput'] = {
+            'hookEventName' => merged_data.dig('hookSpecificOutput', 'hookEventName') || 'Stop',
+            'additionalContext' => contexts.join("\n\n")
+          }
+        end
 
         new(merged_data)
       end

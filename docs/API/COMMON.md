@@ -12,7 +12,11 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `transcript_path` | Get path to the transcript file |
 | `cwd` | Get current working directory |
 | `hook_event_name` | Get the hook event name |
-| `permission_mode` | Get the permission mode: `'default'`, `'plan'`, `'acceptEdits'`, `'dontAsk'`, `'bypassPermissions'` (defaults to `'default'`) |
+| `permission_mode` | Get the permission mode: `'default'`, `'plan'`, `'acceptEdits'`, `'auto'`, `'dontAsk'`, `'bypassPermissions'` (defaults to `'default'`) |
+| `prompt_id` | Get the current prompt ID |
+| `agent_id` | Get the agent ID (present in subagent contexts) |
+| `agent_type` | Get the agent type (present in subagent contexts) |
+| `effort` | Get the effort level string (reads `effort.level`) |
 | `read_transcript` | Read the transcript file |
 | `transcript` | Alias for `read_transcript` |
 
@@ -28,6 +32,7 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `clear_specifics!` | Clear hook-specific output |
 | `system_message!(message)` | Set a system message shown to the user (not to Claude) |
 | `clear_system_message!` | Clear the system message |
+| `terminal_sequence!(seq)` | Emit an ANSI/terminal escape sequence in the output |
 
 ## Output Helpers
 
@@ -45,6 +50,7 @@ This object provides helpers to access output data, for merging multiple outputs
 | `output.suppress_output?` | Check if output should be suppressed from transcript |
 | `output.hook_specific_output` | Get the hook-specific output data |
 | `output.system_message` | Get the system message if any |
+| `output.terminal_sequence` | Get the terminal escape sequence (if set) |
 
 ### Output data merging
 For each hook type, the `output` object provides a **class method** `merge` that will try to intelligently merge multiple hook results, e.g. `ClaudeHooks::Output::UserPromptSubmit.merge(output1, output2, output3)`.

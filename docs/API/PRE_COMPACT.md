@@ -13,9 +13,12 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `custom_instructions` | Get custom instructions (only available for manual trigger) |
 
 ## Hook State Helpers
-No specific hook state methods are available to alter compaction behavior.
 
 [📚 Shared hook state methods](COMMON.md#hook-state-methods)
+
+| Method | Description |
+|--------|-------------|
+| `block!(reason)` | Block the compaction with a reason (top-level `decision: 'block'`) |
 
 ## Utility Methods
 Utility methods for transcript management.
@@ -26,9 +29,14 @@ Utility methods for transcript management.
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.
-PreCompact hooks don't have any specific hook state and thus doesn't have any specific output helpers.
 
 [📚 Shared output helpers](COMMON.md#output-helpers)
+
+| Method | Description |
+|--------|-------------|
+| `output.blocked?` | Check if the compaction was blocked |
+| `output.decision` | Get the decision (`'block'` or nil) |
+| `output.reason` | Get the block reason |
 
 ## Hook Exit Codes
 

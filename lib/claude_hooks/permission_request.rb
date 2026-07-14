@@ -26,30 +26,37 @@ module ClaudeHooks
       @input_data['tool_use_id'] || @input_data['toolUseId']
     end
 
+    def permission_suggestions
+      @input_data['permissionSuggestions'] || @input_data['permission_suggestions'] || []
+    end
+
     # === OUTPUT DATA HELPERS ===
 
     def allow_permission!(reason = '')
       @output_data['hookSpecificOutput'] = {
         'hookEventName' => hook_event_name,
-        'permissionDecision' => 'allow',
-        'permissionDecisionReason' => reason
+        'decision' => { 'behavior' => 'allow' }
+      }
+      @output_data['hookSpecificOutput']['decision']['message'] = reason unless reason.empty?
+    end
+
+    def deny_permission!(reason = '', interrupt: nil)
+      decision = { 'behavior' => 'deny' }
+      decision['message'] = reason unless reason.empty?
+      decision['interrupt'] = interrupt unless interrupt.nil?
+      @output_data['hookSpecificOutput'] = {
+        'hookEventName' => hook_event_name,
+        'decision' => decision
       }
     end
 
-    def deny_permission!(reason = '')
+    def update_input_and_allow!(updated_input, reason = '', updated_permissions: nil)
+      decision = { 'behavior' => 'allow', 'updatedInput' => updated_input }
+      decision['message'] = reason unless reason.empty?
+      decision['updatedPermissions'] = updated_permissions unless updated_permissions.nil?
       @output_data['hookSpecificOutput'] = {
         'hookEventName' => hook_event_name,
-        'permissionDecision' => 'deny',
-        'permissionDecisionReason' => reason
-      }
-    end
-
-    def update_input_and_allow!(updated_input, reason = '')
-      @output_data['hookSpecificOutput'] = {
-        'hookEventName' => hook_event_name,
-        'permissionDecision' => 'allow',
-        'permissionDecisionReason' => reason,
-        'updatedInput' => updated_input
+        'decision' => decision
       }
     end
   end

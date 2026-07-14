@@ -21,8 +21,8 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | Method | Description |
 |--------|-------------|
 | `allow_permission!(reason = '')` | Allow the permission request with optional reason |
-| `deny_permission!(reason = '')` | Deny the permission request with reason |
-| `update_input_and_allow!(updated_input, reason = '')` | Update tool input and allow (convenience method) |
+| `deny_permission!(reason = '', interrupt: nil)` | Deny the permission request with reason; pass `interrupt: true` to interrupt the current operation |
+| `update_input_and_allow!(updated_input, reason = '', updated_permissions: nil)` | Update tool input and allow |
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.
@@ -34,9 +34,12 @@ Output helpers provide access to the hook's output data and helper methods for w
 | `output.allowed?` | Check if permission has been allowed |
 | `output.denied?` | Check if permission has been denied |
 | `output.input_updated?` | Check if tool input has been updated |
-| `output.permission_decision` | Get the permission decision: 'allow' or 'deny' |
-| `output.permission_reason` | Get the reason for the permission decision |
-| `output.updated_input` | Get the updated input (if provided) |
+| `output.permission_decision` | Get the permission decision: `'allow'` or `'deny'` (reads nested `decision.behavior`; falls back to legacy flat key) |
+| `output.permission_reason` | Get the decision message (reads nested `decision.message`; falls back to legacy `permissionDecisionReason`) |
+| `output.updated_input` | Get the updated input (reads nested `decision.updatedInput`; falls back to legacy flat key) |
+| `output.behavior` | Get the raw `decision.behavior` value |
+| `output.updated_permissions` | Get the `decision.updatedPermissions` array (if provided) |
+| `output.interrupt?` | Check if `decision.interrupt` was set to true |
 
 ## Hook Exit Codes
 
@@ -167,8 +170,8 @@ end
 When multiple PermissionRequest hooks are executed, their outputs merge with these rules:
 
 - **Decision**: `deny` > `allow` (most restrictive wins)
-- **Reasons**: All reasons are concatenated with `'; '`
-- **Updated Input**: Last updated input wins (most recent transformation)
+- **Reasons**: All `decision.message` values are concatenated with `'; '`
+- **Updated Input**: Last `decision.updatedInput` wins (most recent transformation)
 
 ```ruby
 # Hook 1
@@ -193,4 +196,4 @@ merged.permission_reason # => "Reason 1; Reason 2"
 - It can automatically allow or deny on behalf of the user
 - Uses the same JSON API pattern as PreToolUse hooks
 - Supports modifying tool inputs before execution
-- Works with all permission modes: `default`, `plan`, `acceptEdits`, `dontAsk`, `bypassPermissions`
+- Works with all permission modes: `default`, `plan`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`
