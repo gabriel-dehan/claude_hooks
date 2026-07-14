@@ -42,13 +42,13 @@ jobs:
       - name: Acknowledge comment
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request_review_comment" ]; then
-            ENDPOINT="repos/${{ github.repository }}/pulls/comments/${{ github.event.comment.id }}/reactions"
-          else
-            ENDPOINT="repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions"
-          fi
-          gh api -X POST "$ENDPOINT" -f content='eyes'
+          COMMENT_REACTIONS_ENDPOINT: >-
+            ${{
+              github.event_name == 'pull_request_review_comment'
+              && format('repos/{0}/pulls/comments/{1}/reactions', github.repository, github.event.comment.id)
+              || format('repos/{0}/issues/comments/{1}/reactions', github.repository, github.event.comment.id)
+            }}
+        run: gh api -X POST "$COMMENT_REACTIONS_ENDPOINT" -f content='eyes'
 
       - name: Get PR head ref
         id: prref
