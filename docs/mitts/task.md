@@ -1,12 +1,11 @@
 
 ## TODO:
 - [x] Add an AGENTS.md — done (repo root; loaded by all bots via `load_available_skills`)
-- [ ] Use OpenHandsAgentSettings
 - [x] Idea: persistence but hybrid with a custom tool where it can fetch its own history if it needs to.
-      — done. Deterministic context injection (context_builder.py) + on-demand cross-run
-      memory via the recall_prior_reasoning custom tool (recall_tool.py) reading prior-run
-      event dirs bridged across runs as GitHub artifacts. No auto-replay (fresh
-      conversation_id each run). See docs/mitts/mitts-bots.md → "Hybrid context system".
+  — done. Deterministic context injection (context_builder.py) + on-demand cross-run
+  memory via the recall_prior_reasoning custom tool (recall_tool.py) reading prior-run
+  event dirs bridged across runs as GitHub artifacts. No auto-replay (fresh
+  conversation_id each run). See docs/mitts/mitts-bots.md → "Hybrid context system".
 
 ## Done (harness feature additions)
 - [x] Load AGENTS.md + project skills in agent_task.py via `load_available_skills`
@@ -43,15 +42,3 @@ https://docs.openhands.dev/sdk/guides/iterative-refinement
 - [x] TaskToolSet enabled (enable_sub_agents=True)
 - Source: https://github.com/OpenHands/software-agent-sdk/tree/main/openhands-tools/openhands/tools/preset/subagents
 
-### Triage
-
-#### Issue triage on issues: opened
-
-We have no automatic triage. max-sixty/tend auto-labels, checks duplicates, attempts reproduction, and may even open a fix PR for obvious bugs. A simpler version would just be: classify + look for duplicates + ask clarifying questions.
-
-#### Meta review
-
-review-reviewers — meta-quality loop
-
-max-sixty/tend operates a hourly job that reviews the bot's own behavior on adopter repos, accumulating evidence in a gist over a month before acting. This is an interesting quality-assurance
-layer we have nothing equivalent to.
