@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-07-15
+
+### Added
+
+- **`CLI.run_hook` — new primary entrypoint method** replacing `CLI.entrypoint`. Reads JSON from STDIN, runs the hook, and exits with the correct code and stream for the hook type.
+  - Accepts `on_error: :allow` (default, exit 1 — non-blocking) or `on_error: :block` (exit 2 — blocking). Use `:block` for security/policy hooks where a crash should never silently pass through.
+  - Supports a class form (`CLI.run_hook(MyHook)`) and a block form for multi-handler merging.
+
+### Changed
+
+- **`CLI.entrypoint` deprecated** in favour of `CLI.run_hook`. It remains as a delegating alias with a deprecation warning and will be removed in a future minor version.
+- **`CLI.run_hook` (old)** — the previous public `run_hook(hook_class, input_data)` helper used internally by `test_runner`/`run_with_sample_data` has been renamed to `run_hook_with_data` and made private. It was never intended as part of the public API.
+- **Error output stream** — `CLI.run_hook` / `CLI.entrypoint` now write errors exclusively to stderr (previously the `:allow` path also wrote to stdout). On the `on_error: :block` (exit 2) path the message is written as **plain text**, not JSON, since Claude Code shows exit-2 stderr to the model verbatim and never parses it as JSON. The `:allow` (exit 1) path still writes the JSON error object to stderr.
+- **README and examples** updated throughout to use `CLI.run_hook`.
+
+### Notes
+
+- No hook class or output class changes — existing hook scripts continue to work without modification
+- `CLI.entrypoint` still works; only a deprecation warning is emitted
+- 3 new tests covering `on_error: :block` (hook error → exit 2, invalid JSON → exit 2) and the deprecation warning
+
 ## [1.2.0] - 2026-07-14
 
 ### Added

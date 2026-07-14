@@ -238,16 +238,10 @@ class GithubGuard < ClaudeHooks::PreToolUse
   end
 end
 
-# When running this file directly (for debugging)
-if __FILE__ == $PROGRAM_NAME
-  ClaudeHooks::CLI.run_with_sample_data(GithubGuard) do |data|
-    data.merge!(
-      'session_id' => 'GithubGuardTest',
-      'transcript_path' => '',
-      'cwd' => Dir.pwd,
-      'hook_event_name' => 'PreToolUse',
-      'tool_name' => 'mcp__github__create_pull_request',
-      'tool_input' => { 'draft' => false },
-    )
-  end
-end
+# Registered directly in settings.json under PreToolUse. Claude Code runs this file
+# with the hook payload on STDIN. on_error: :block makes the guard fail-closed — a
+# crash blocks the tool instead of silently allowing it.
+#
+# Debug it by piping sample JSON:
+#   echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git push --force"}}' | ruby github_guard.rb
+ClaudeHooks::CLI.run_hook(GithubGuard, on_error: :block)

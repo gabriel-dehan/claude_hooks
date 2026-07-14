@@ -50,10 +50,8 @@ Here's how to create a simple command hook with this DSL:
 1. **Create a simple hook script**
 ```ruby
 #!/usr/bin/env ruby
-require 'json'
 require 'claude_hooks'
 
-# Inherit from the right hook type class to get access to helper methods
 class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
   def call
     log "User asked: #{prompt}"
@@ -62,18 +60,7 @@ class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
   end
 end
 
-# Run the hook
-if __FILE__ == $0
-  # Read Claude Code's input data from STDIN
-  input_data = JSON.parse(STDIN.read)
-
-  hook = AddContextAfterPrompt.new(input_data)
-  hook.call
-
-  # Handles output and exit code depending on the hook state.
-  # In this case, uses exit code 0 (success) and prints output to STDOUT
-  hook.output_and_exit
-end
+ClaudeHooks::CLI.run_hook(AddContextAfterPrompt)
 ```
 
 3. ⚠️ **Make it executable**
@@ -102,7 +89,7 @@ echo '{"session_id":"test","prompt":"Hello!"}' | ./add_context_after_prompt.rb
 That's it! Your hook will now add context to every user prompt. 🎉
 
 > [!TIP]
-> This was a very simple example but we recommend using the entrypoints/handlers architecture [described below](#recommended-structure-for-your-claudehooks-directory) to create more complex hook systems.
+> Need to run multiple hooks for the same event and merge their outputs? See [Multi-hook structure](#multi-hook-structure) below.
 
 ## 📦 Installation
 
@@ -232,33 +219,46 @@ end
 ### Core Components
 
 1. **`ClaudeHooks::Base`** - Base class with common functionality (logging, config, validation)
-2. **Hook Handler Classes** - Self-contained classes (`ClaudeHooks::UserPromptSubmit`, `ClaudeHooks::PreToolUse`, etc.)
-3. **Output Classes** - `ClaudeHooks::Output::UserPromptSubmit`, etc... are output objects that handle intelligent merging of multiple outputs, as well as using the right exit codes and outputting to the proper stream (`STDIN` or `STDERR`) depending on the the hook state.
-4. **Configuration** - Shared configuration management via `ClaudeHooks::Configuration`
-5. **Logger** - Dedicated logging class with multiline block support
+2. **Hook Classes** - One class per event type (`ClaudeHooks::UserPromptSubmit`, `ClaudeHooks::PreToolUse`, etc.) that you can inherit from in your hook scripts
+3. **Output Classes**: those hook classes return instances of output objects (`ClaudeHooks::Output::UserPromptSubmit`, etc.) that handle intelligent merging of multiple outputs, correct exit codes, and routing to `STDOUT` or `STDERR` depending on hook state
+4. **`ClaudeHooks::CLI`** - Entrypoint helpers: `CLI.run_hook` for production, `CLI.test_runner`/`CLI.run_with_sample_data` for local testing
+5. **Configuration** - Shared configuration management via `ClaudeHooks::Configuration`
+6. **Logger** - Dedicated logging class with multiline block support
 
-### Recommended structure for your .claude/hooks/ directory
+### Hook file structure
+
+For simple cases like one hook class per event, a single file is all you need. Name each file after what it does — the event it runs on comes from where you register it in `settings.json`, not from the filename:
 
 ```
 .claude/hooks/
-├── entrypoints/                # Main entry points
-│   ├── notification.rb
-│   ├── pre_tool_use.rb
-│   ├── post_tool_use.rb
-│   ├── pre_compact.rb
-│   ├── session_start.rb
-│   ├── stop.rb
-│   └── subagent_stop.rb
-|
-└── handlers/                    # Hook handlers for specific hook type
-    ├── user_prompt_submit/
-    │   ├── append_rules.rb
-    │   └── log_user_prompt.rb
-    ├── pre_tool_use/
-    │   ├── github_guard.rb
-    │   └── tool_monitor.rb
-    └── ...
+├── github_guard.rb       # PreToolUse   — ClaudeHooks::CLI.run_hook(GithubGuard, on_error: :block)
+├── format_on_write.rb    # PostToolUse  — ClaudeHooks::CLI.run_hook(FormatOnWrite)
+├── load_project_rules.rb # SessionStart — ClaudeHooks::CLI.run_hook(LoadProjectRules)
+└── append_rules.rb       # UserPromptSubmit — ClaudeHooks::CLI.run_hook(AppendRules)
 ```
+
+See [`example_dotclaude/hooks/github_guard.rb`](example_dotclaude/hooks/github_guard.rb) for a complete, self-contained `PreToolUse` hook wired up this way.
+
+### Multi-hook structure
+
+When you need to run multiple hooks for the same event and merge their outputs, split into entrypoints and handlers:
+
+```
+.claude/hooks/
+├── entrypoints/                 # Coordinates multiple handlers per event
+│   ├── session_end.rb
+│   └── user_prompt_submit.rb
+│
+└── handlers/                    # One class per concern
+    ├── session_end/
+    │   ├── cleanup_handler.rb
+    │   └── log_session_stats.rb
+    └── user_prompt_submit/
+        ├── append_rules.rb
+        └── log_user_prompt.rb
+```
+
+Use this structure only when you need `Output.merge` across multiple handlers — a single-handler entrypoint is just noise; register the hook class directly instead (see [Hook file structure](#hook-file-structure) above). See [`example_dotclaude/hooks/entrypoints/session_end.rb`](example_dotclaude/hooks/entrypoints/session_end.rb) for a working two-handler entrypoint.
 
 ## 🪝 Hook Types
 
@@ -314,16 +314,44 @@ graph LR
   A[Hook triggers] --> B[JSON from STDIN] --> C[Hook does its thing] --> D[JSON to STDOUT or STDERR<br />Exit Code] --> E[Yields back to Claude Code] --> A
 ```
 
-The main issue is that there are many different types of hooks and they each have different expectations regarding the data outputted to `STDIN` or `STDERR` and Claude Code will react differently for each specific exit code used depending on the hook type.
+The main issue is that there are many different types of hooks and they each have different expectations regarding the data outputted to `STDOUT` or `STDERR` and Claude Code will react differently for each specific exit code used depending on the hook type. This DSL handles all of that for you.
 
-### 🔄 Proposal: a more robust Claude Hook execution flow
+### Basic hook structure
 
-1. An entrypoint for a hook is set in `~/.claude/settings.json`
-2. Claude Code calls the entrypoint script (e.g., `hooks/entrypoints/pre_tool_use.rb`)
-3. The entrypoint script reads STDIN and coordinates multiple **hook handlers**
-4. Each **hook handler** executes and returns its output data
-5. The entrypoint script combines/processes outputs from multiple **hook handlers**
-6. And then returns final response to Claude Code with the correct exit code
+The simplest pattern is a single file: define your hook class, call `CLI.run_hook`. It handles STDIN parsing, error handling, and correct exit codes.
+
+```ruby
+#!/usr/bin/env ruby
+
+require 'claude_hooks'
+
+class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
+  def call
+    log "session_id: #{session_id}, prompt: #{prompt}"
+    log "Full conversation transcript: #{read_transcript}"
+
+    add_additional_context!("Some custom context")
+
+    if prompt.include?("bad word")
+      block_prompt!("Hmm no no no!")
+    end
+
+    output
+  end
+end
+
+ClaudeHooks::CLI.run_hook(AddContextAfterPrompt)
+```
+
+### Multi-handler flow
+
+When multiple hook classes need to respond to the same event, use an entrypoint file to coordinate them:
+
+1. A hook is registered in `~/.claude/settings.json`
+2. Claude Code calls an entrypoint script
+3. The entrypoint instantiates each handler and calls them
+4. Outputs are merged with `Output.merge` (most restrictive behavior wins)
+5. The merged output is returned to Claude Code with the correct exit code
 
 ```mermaid
 graph TD
@@ -333,8 +361,8 @@ graph TD
   C --> D[📋 Entrypoint<br />Parses JSON from STDIN]
   D --> E[📋 Entrypoint<br />Calls hook handlers]
 
-  E --> F[📝 Handler<br />AppendContextRules.call<br/><em>Returns output</em>]
-  E --> G[📝 Handler<br />PromptGuard.call<br/><em>Returns output</em>]
+  E --> F[📝 Handler<br />AppendRules.call<br/><em>Returns output</em>]
+  E --> G[📝 Handler<br />LogUserPrompt.call<br/><em>Returns output</em>]
 
   F --> J[📋 Entrypoint<br />Calls _ClaudeHooks::Output::UserPromptSubmit.merge_ to 🔀 merge outputs]
   G --> J
@@ -344,55 +372,7 @@ graph TD
   L --> B
 ```
 
-### Basic Hook Handler Structure
-
-```ruby
-#!/usr/bin/env ruby
-
-require 'claude_hooks'
-
-class AddContextAfterPrompt < ClaudeHooks::UserPromptSubmit
-  def call
-    # Access input data
-    log do
-      "--- INPUT DATA ---"
-      "session_id: #{session_id}"
-      "cwd: #{cwd}"
-      "hook_event_name: #{hook_event_name}"
-      "prompt: #{current_prompt}"
-      "---"
-    end
-
-    log "Full conversation transcript: #{read_transcript}"
-
-    # Use a Hook state method to modify what's sent back to Claude Code
-    add_additional_context!("Some custom context")
-
-    # Control execution, for instance: block the prompt
-    if current_prompt.include?("bad word")
-      block_prompt!("Hmm no no no!")
-      log "Prompt blocked: #{current_prompt} because of bad word"
-    end
-
-    # Return output if you need it
-    output
-  end
-end
-
-# Use your handler (usually from an entrypoint file, but this is an example)
-if __FILE__ == $0
-  # Read Claude Code's input data from STDIN
-  input_data = JSON.parse(STDIN.read)
-
-  hook = AddContextAfterPrompt.new(input_data)
-  # Call the hook
-  hook.call
-
-  # Uses exit code 0 (success) and outputs to STDIN if the prompt wasn't blocked
-  # Uses exit code 2 (blocking error) and outputs to STDERR if the prompt was blocked
-  hook.output_and_exit
-end
-```
+See [Hook Output Merging](#-hook-output-merging) below for the entrypoint code that implements this flow, and [`example_dotclaude/hooks/entrypoints/user_prompt_submit.rb`](example_dotclaude/hooks/entrypoints/user_prompt_submit.rb) for a working `AppendRules` + `LogUserPrompt` example.
 
 ## 📚 API Reference
 
@@ -522,7 +502,7 @@ Logs are written to session-specific files in the configured log directory:
 
 Let's create a hook that will monitor tool usage and ask for permission before using dangerous tools.
 
-First, register an entrypoint in `~/.claude/settings.json`:
+First, register your hook in `~/.claude/settings.json`:
 
 ```json
 "hooks": {
@@ -532,7 +512,7 @@ First, register an entrypoint in `~/.claude/settings.json`:
       "hooks": [
         {
           "type": "command",
-          "command": "~/.claude/hooks/entrypoints/pre_tool_use.rb"
+          "command": "~/.claude/hooks/tool_monitor.rb"
         }
       ]
     }
@@ -540,43 +520,11 @@ First, register an entrypoint in `~/.claude/settings.json`:
 }
 ```
 
-Then, create your main entrypoint script and _don't forget to make it executable_:
-```bash
-touch ~/.claude/hooks/entrypoints/pre_tool_use.rb
-chmod +x ~/.claude/hooks/entrypoints/pre_tool_use.rb
-```
-
-```ruby
-#!/usr/bin/env ruby
-
-require 'json'
-require_relative '../handlers/pre_tool_use/tool_monitor'
-
-begin
-  # Read input from stdin
-  input_data = JSON.parse(STDIN.read)
-
-  tool_monitor = ToolMonitor.new(input_data)
-  tool_monitor.call
-
-  # You could also call any other handler here and then merge the outputs
-
-  tool_monitor.output_and_exit
-rescue StandardError => e
-  STDERR.puts JSON.generate({
-    continue: false,
-    stopReason: "Hook execution error: #{e.message}",
-    suppressOutput: false
-  })
-  # Non-blocking error
-  exit 1
-end
-```
-
-Finally, create the handler that will be used to monitor tool usage.
+Then create the hook script and make it executable:
 
 ```bash
-touch ~/.claude/hooks/handlers/pre_tool_use/tool_monitor.rb
+touch ~/.claude/hooks/tool_monitor.rb
+chmod +x ~/.claude/hooks/tool_monitor.rb
 ```
 
 ```ruby
@@ -592,17 +540,16 @@ class ToolMonitor < ClaudeHooks::PreToolUse
 
     if DANGEROUS_TOOLS.include?(tool_name)
       log "Dangerous tool detected: #{tool_name}", level: :warn
-      # Use one of the ClaudeHooks::PreToolUse methods to modify the hook state and block the tool
       ask_for_permission!("The tool '#{tool_name}' can impact your system. Allow?")
     else
-      # Use one of the ClaudeHooks::PreToolUse methods to modify the hook state and allow the tool
       approve_tool!("Safe tool usage")
     end
 
-    # Accessor provided by ClaudeHooks::PreToolUse
     output
   end
 end
+
+ClaudeHooks::CLI.run_hook(ToolMonitor, on_error: :block)
 ```
 
 ## 🔄 Hook Output
@@ -620,24 +567,24 @@ This method will return an output object based on the hook's type class (e.g: `C
 
 ### 🔄 Hook Output Merging
 
-Often, you will want to call multiple hooks from a same entrypoint.
-Each hook type's `output` provides a `merge` method that will try to intelligently merge multiple hook results.
-Merged outputs always inherit the **most restrictive behavior**.
+When running multiple hooks for the same event, each hook type's `output` provides a `merge` method that intelligently combines results. Merged outputs always inherit the **most restrictive behavior**.
 
 ```ruby
+#!/usr/bin/env ruby
 
 require 'json'
+require 'claude_hooks'
 require_relative '../handlers/user_prompt_submit/hook1'
 require_relative '../handlers/user_prompt_submit/hook2'
 require_relative '../handlers/user_prompt_submit/hook3'
 
 begin
-# Read input from stdin
+  # Read input from stdin
   input_data = JSON.parse(STDIN.read)
 
   hook1 = Hook1.new(input_data)
-  hook2 = Hook1.new(input_data)
-  hook3 = Hook1.new(input_data)
+  hook2 = Hook2.new(input_data)
+  hook3 = Hook3.new(input_data)
 
   # Execute the multiple hooks
   hook1.call
@@ -659,6 +606,14 @@ begin
 
   # Automatically handles outputting to the right stream (STDOUT or STDERR) and uses the right exit code depending on hook state
   merged_output.output_and_exit
+rescue StandardError => e
+  # This is exactly what CLI.run_hook does for you (non-blocking / fail-open):
+  STDERR.puts JSON.generate({
+    continue: false,
+    stopReason: "Hook execution error: #{e.message}",
+    suppressOutput: false
+  })
+  exit 1
 end
 ```
 
@@ -781,12 +736,7 @@ class PluginFormatter < ClaudeHooks::PostToolUse
   end
 end
 
-if __FILE__ == $0
-  input_data = JSON.parse(STDIN.read)
-  hook = PluginFormatter.new(input_data)
-  hook.call
-  hook.output_and_exit
-end
+ClaudeHooks::CLI.run_hook(PluginFormatter)
 ```
 
 **Environment variables available in plugins:**
@@ -822,7 +772,7 @@ You can use matchers to target specific MCP tools or all tools from a server:
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/entrypoints/github_guard.rb"
+            "command": "~/.claude/hooks/github_guard.rb"
           }
         ]
       },
@@ -831,7 +781,7 @@ You can use matchers to target specific MCP tools or all tools from a server:
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/entrypoints/destructive_operation_guard.rb"
+            "command": "~/.claude/hooks/destructive_operation_guard.rb"
           }
         ]
       }
@@ -867,124 +817,103 @@ See the [official MCP documentation](https://modelcontextprotocol.io/) for more 
 
 ## ⚠️ Troubleshooting
 
-### Make your entrypoint scripts executable
+### Make your hook scripts executable
 
 Don't forget to make the scripts called from `settings.json` executable:
 
 ```bash
-chmod +x ~/.claude/hooks/entrypoints/user_prompt_submit.rb
+chmod +x ~/.claude/hooks/my_hook.rb
 ```
 
 
 ## 🧪 CLI Debugging
 
-The `ClaudeHooks::CLI` module provides utilities to simplify testing hooks in isolation. Instead of writing repetitive JSON parsing and error handling code, you can use the CLI test runner.
+`ClaudeHooks::CLI` provides two helpers: `run_hook` (for production use) and `test_runner`/`run_with_sample_data` (for local testing with custom input).
 
-### Basic Usage
+### CLI.run_hook
 
-Replace the traditional testing boilerplate:
+`CLI.run_hook` is what you put at the bottom of every simple hook script. It reads JSON from STDIN, runs your hook, handles errors, and calls `output_and_exit` with the right exit code.
 
 ```ruby
-# Old way (15+ lines of repetitive code)
-if __FILE__ == $0
-  begin
-    require 'json'
-    input_data = JSON.parse(STDIN.read)
-    hook = MyHook.new(input_data)
-    result = hook.call
-    puts JSON.generate(result)
-  rescue StandardError => e
-    STDERR.puts "Error: #{e.message}"
-    puts JSON.generate({
-      continue: false,
-      stopReason: "Error: #{e.message}",
-      suppressOutput: false
-    })
-    exit 1
-  end
+# Single hook (most common)
+ClaudeHooks::CLI.run_hook(MyHook)
+```
+
+It replaces the more verbose
+
+```ruby
+begin
+  # Read input from stdin
+  input_data = JSON.parse(STDIN.read)
+
+  hook = MyHook.new(input_data)
+  hook.call
+  hook.output_and_exit
+rescue StandardError => e
+  # Non-blocking by default (fail-open): Claude continues as if the hook didn't run.
+  # Pass `on_error: :block` to CLI.run_hook to exit 2 (fail-closed) instead.
+  STDERR.puts JSON.generate({
+    continue: false,
+    stopReason: "Hook execution error: #{e.message}",
+    suppressOutput: false
+  })
+  exit 1
 end
 ```
 
-With the simple CLI test runner:
+#### on_error: fail-open vs fail-closed
+
+By default, if your hook raises an unexpected exception, `CLI.run_hook` exits 1 (non-blocking) — Claude continues as if the hook didn't run. This is **fail-open**.
+
+For security or policy hooks (`PreToolUse` guards, prompt filters, etc.) you almost certainly want **fail-closed** instead — a crash should block the action, not silently pass it through:
 
 ```ruby
-# New way (1 line!)
-if __FILE__ == $0
-  ClaudeHooks::CLI.test_runner(MyHook)
+# Default: hook crash is non-blocking — Claude continues anyway (exit 1)
+ClaudeHooks::CLI.run_hook(MyHook)
+
+# Fail-closed: hook crash blocks the action (exit 2)
+ClaudeHooks::CLI.run_hook(MyHook, on_error: :block)
+
+# Also works with block form
+ClaudeHooks::CLI.run_hook(on_error: :block) do |input_data|
+  # ...
 end
 ```
 
-### Customization with Blocks
+> [!WARNING]
+> If you're writing a `PreToolUse` or `UserPromptSubmit` hook that enforces security policy, use `on_error: :block`. Without it, a Ruby exception (network timeout, nil reference, etc.) will silently allow the action through.
 
-You can customize the input data for testing using blocks:
+### CLI.test_runner — local testing
+
+Use `test_runner` when running the script directly (outside of Claude Code) to inject custom input data:
 
 ```ruby
+# At the bottom of your hook file, guarded so it only runs directly:
 if __FILE__ == $0
   ClaudeHooks::CLI.test_runner(MyHook) do |input_data|
     input_data['debug_mode'] = true
-    input_data['custom_field'] = 'test_value'
-    input_data['user_name'] = 'TestUser'
-  end
-end
-```
-
-### Testing Methods
-
-#### 1. Test with STDIN (default)
-```ruby
-ClaudeHooks::CLI.test_runner(MyHook)
-# Usage: echo '{"session_id":"test","prompt":"Hello"}' | ruby my_hook.rb
-```
-
-#### 2. Test with default sample data instead of STDIN
-```ruby
-ClaudeHooks::CLI.run_with_sample_data(MyHook, { 'prompt' => 'test prompt' })
-# Provides default values, no STDIN needed
-```
-
-#### 3. Test with Sample Data + Customization
-```ruby
-ClaudeHooks::CLI.run_with_sample_data(MyHook) do |input_data|
-  input_data['prompt'] = 'Custom test prompt'
-  input_data['debug'] = true
-end
-```
-
-### Example Hook with CLI Testing
-
-```ruby
-#!/usr/bin/env ruby
-
-require 'claude_hooks'
-
-class MyTestHook < ClaudeHooks::UserPromptSubmit
-  def call
-    log "Debug mode: #{input_data['debug_mode']}"
-    log "Processing: #{prompt}"
-
-    if input_data['debug_mode']
-      log "All input keys: #{input_data.keys.join(', ')}"
-    end
-
-    output
+    input_data['prompt'] = 'Test prompt'
   end
 end
 
-# Test runner with customization
+# Or test with synthetic data (no STDIN needed):
 if __FILE__ == $0
-  ClaudeHooks::CLI.test_runner(MyTestHook) do |input_data|
-    input_data['debug_mode'] = true
-  end
+  ClaudeHooks::CLI.run_with_sample_data(MyHook, { 'prompt' => 'test prompt' })
 end
+```
+
+Test with real STDIN:
+```bash
+echo '{"session_id":"test","prompt":"Hello"}' | ruby my_hook.rb
 ```
 
 ## 🐛 Debugging
 
-### Test an individual entrypoint
+### Test a hook script directly
 
 ```bash
 # Test with sample data
-echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | CLAUDE_PROJECT_DIR=$(pwd) ruby ~/.claude/hooks/entrypoints/user_prompt_submit.rb
+echo '{"session_id": "test", "transcript_path": "/tmp/transcript", "cwd": "/tmp", "hook_event_name": "UserPromptSubmit", "user_prompt": "Hello Claude"}' | CLAUDE_PROJECT_DIR=$(pwd) ruby ~/.claude/hooks/user_prompt_submit.rb
 ```
 
 ## 🧪 Development & Contributing

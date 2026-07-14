@@ -3,190 +3,125 @@
 require 'json'
 
 module ClaudeHooks
-  # CLI utility for testing hook handlers in isolation
-  # This module provides a standardized way to run hooks directly from the command line
-  # for testing and debugging purposes.
   module CLI
     class << self
-      # Run a hook class directly from command line
-      # Usage: 
-      #   ClaudeHooks::CLI.run_hook(YourHookClass)
-      #   ClaudeHooks::CLI.run_hook(YourHookClass, custom_input_data)
-      #   
-      #   # With customization block:
-      #   ClaudeHooks::CLI.run_hook(YourHookClass) do |input_data|
-      #     input_data['debug_mode'] = true
-      #   end
-      def run_hook(hook_class, input_data = nil, &block)
-        # If no input data provided, read from STDIN
-        input_data ||= read_stdin_input
-        
-        # Apply customization block if provided
-        if block_given?
-          yield(input_data)
-        end
-        
-        # Create and execute the hook
-        hook = hook_class.new(input_data)
-        result = hook.call
-        
-        # Output the result as JSON (same format as production hooks)
-        puts JSON.generate(result) if result
-        
-        result
-      rescue StandardError => e
-        handle_error(e, hook_class)
-      end
-
-      # Create a test runner block for a hook class
-      # This generates the common if __FILE__ == $0 block content
-      # 
-      # Usage: 
-      #   ClaudeHooks::CLI.test_runner(YourHookClass)
-      #   
-      #   # With customization block:
-      #   ClaudeHooks::CLI.test_runner(YourHookClass) do |input_data|
-      #     input_data['custom_field'] = 'test_value'
-      #     input_data['user_name'] = 'TestUser'
-      #   end
-      def test_runner(hook_class, &block)
-        input_data = read_stdin_input
-        
-        # Apply customization block if provided
-        if block_given?
-          yield(input_data)
-        end
-        
-        run_hook(hook_class, input_data)
-      end
-
-      # Run hook with sample data (useful for development)
-      # Usage:
-      #   ClaudeHooks::CLI.run_with_sample_data(YourHookClass)
-      #   ClaudeHooks::CLI.run_with_sample_data(YourHookClass, { 'prompt' => 'test prompt' })
-      #   
-      #   # With customization block:
-      #   ClaudeHooks::CLI.run_with_sample_data(YourHookClass) do |input_data|
-      #     input_data['prompt'] = 'Custom test prompt'
-      #     input_data['debug'] = true
-      #   end
-      def run_with_sample_data(hook_class, sample_data = {}, &block)
-        default_sample = {
-          'session_id' => 'test-session',
-          'transcript_path' => '/tmp/test_transcript.md',
-          'cwd' => Dir.pwd,
-          'hook_event_name' => hook_class.hook_type
-        }
-
-        # Merge with hook-specific sample data
-        merged_data = default_sample.merge(sample_data)
-        
-        # Apply customization block if provided
-        if block_given?
-          yield(merged_data)
-        end
-        
-        run_hook(hook_class, merged_data)
-      end
-
-      # Simplified entrypoint helper for hook scripts
-      # This handles all the STDIN reading, JSON parsing, error handling, and output execution
-      # 
+      # Run a hook script from the command line.
+      # Reads JSON from STDIN, calls hook.call, and exits with the correct code.
+      #
+      # on_error controls what happens when the hook raises an unexpected exception:
+      #   :allow (default) — exit 1, non-blocking; Claude continues as if the hook didn't run.
+      #   :block           — exit 2, blocking; Claude stops and shows the error. Use this for
+      #                      security/policy hooks where a crash should never silently pass through.
+      #
       # Usage patterns:
-      # 
-      # 1. Block form - custom logic:
-      #    ClaudeHooks::CLI.entrypoint do |input_data|
-      #      hook = MyHook.new(input_data)
-      #      hook.call
-      #      hook.output_and_exit
-      #    end
       #
-      # 2. Simple form - single hook class:
-      #    ClaudeHooks::CLI.entrypoint(MyHook)
+      # 1. Single hook class:
+      #    ClaudeHooks::CLI.run_hook(MyHook)
+      #    ClaudeHooks::CLI.run_hook(MyHook, on_error: :block)  # fail-closed
       #
-      # 3. Multiple hooks with merging:
-      #    ClaudeHooks::CLI.entrypoint do |input_data|
+      # 2. Multiple hooks with merging:
+      #    ClaudeHooks::CLI.run_hook(on_error: :block) do |input_data|
       #      hook1 = Hook1.new(input_data)
       #      hook2 = Hook2.new(input_data)
-      #      result1 = hook1.call
-      #      result2 = hook2.call
-      #      
-      #      # Use the appropriate output class for merging
-      #      merged = ClaudeHooks::Output::PreToolUse.merge(
-      #        hook1.output,
-      #        hook2.output
-      #      )
-      #      merged.output_and_exit
+      #      hook1.call
+      #      hook2.call
+      #      ClaudeHooks::Output::PreToolUse.merge(hook1.output, hook2.output).output_and_exit
       #    end
-      def entrypoint(hook_class = nil, &block)
-        # Read and parse input from STDIN
+      def run_hook(hook_class = nil, on_error: :allow, &block)
         input_data = JSON.parse(STDIN.read)
-        
+
         if block_given?
-          # Custom block form
           yield(input_data)
         elsif hook_class
-          # Simple single hook form
           hook = hook_class.new(input_data)
           hook.call
           hook.output_and_exit
         else
           raise ArgumentError, "Either provide a hook_class or a block"
         end
-        
+
       rescue JSON::ParserError => e
-        STDERR.puts "JSON parsing error: #{e.message}"
-        error_response = {
-          continue: false,
-          stopReason: "JSON parsing error: #{e.message}",
-          suppressOutput: false
-        }
-        response = JSON.generate(error_response)
-        puts response
-        STDERR.puts response
-        exit 1
-        
+        handle_run_error("JSON parsing error: #{e.message}", on_error)
+
       rescue StandardError => e
-        STDERR.puts "Hook execution error: #{e.message}"
-        STDERR.puts e.backtrace.join("\n") if e.backtrace
-        
-        error_response = {
-          continue: false,
-          stopReason: "Hook execution error: #{e.message}",
-          suppressOutput: false
-        }
-        response = JSON.generate(error_response)
-        puts response
-        STDERR.puts response
-        exit 1
+        handle_run_error("Hook execution error: #{e.message}", on_error, backtrace: e.backtrace)
+      end
+
+      # @deprecated Use {run_hook} instead.
+      def entrypoint(hook_class = nil, on_error: :allow, &block)
+        warn "[ClaudeHooks] CLI.entrypoint is deprecated — use CLI.run_hook instead."
+        run_hook(hook_class, on_error: on_error, &block)
+      end
+
+      # Testing helpers — use these inside `if __FILE__ == $0` blocks, not in production.
+
+      # Run a hook with input read from STDIN, with optional block to mutate input_data before running.
+      def test_runner(hook_class, &block)
+        input_data = read_stdin_input
+        yield(input_data) if block_given?
+        run_hook_with_data(hook_class, input_data)
+      end
+
+      # Run a hook with synthetic sample data (no STDIN needed).
+      def run_with_sample_data(hook_class, sample_data = {}, &block)
+        input_data = {
+          'session_id' => 'test-session',
+          'transcript_path' => '/tmp/test_transcript.md',
+          'cwd' => Dir.pwd,
+          'hook_event_name' => hook_class.hook_type
+        }.merge(sample_data)
+
+        yield(input_data) if block_given?
+        run_hook_with_data(hook_class, input_data)
       end
 
       private
 
-      def read_stdin_input
-        stdin_content = STDIN.read.strip
-        return {} if stdin_content.empty?
-        
-        JSON.parse(stdin_content)
-      rescue JSON::ParserError => e
-        raise "Invalid JSON input: #{e.message}"
-      end
-
-      def handle_error(error, hook_class)
-        STDERR.puts "Error in #{hook_class.name} hook: #{error.message}"
-        STDERR.puts error.backtrace.join("\n") if error.backtrace
-
-        # Output error response in Claude Code format
-        error_response = {
+      # Runs a hook with already-parsed input_data. Returns the result without exiting.
+      # Used internally by test_runner and run_with_sample_data.
+      def run_hook_with_data(hook_class, input_data)
+        hook = hook_class.new(input_data)
+        result = hook.call
+        puts JSON.generate(result) if result
+        result
+      rescue StandardError => e
+        hook_name = hook_class.name || hook_class.to_s
+        STDERR.puts "Error in #{hook_name} hook: #{e.message}"
+        STDERR.puts e.backtrace.join("\n") if e.backtrace
+        response = JSON.generate({
           continue: false,
-          stopReason: "#{hook_class.name} execution error: #{error.message}",
+          stopReason: "#{hook_name} execution error: #{e.message}",
           suppressOutput: false
-        }
-
-        response = JSON.generate(error_response)
+        })
         puts response
         STDERR.puts response
         exit 1
+      end
+
+      def handle_run_error(message, on_error, backtrace: nil)
+        if on_error == :block
+          # Exit 2: Claude Code shows stderr to the model as plain text (never
+          # parsed as JSON), so emit just the message and block.
+          STDERR.puts message
+          exit 2
+        else
+          # Exit 1: non-blocking. stderr's first line surfaces in the transcript.
+          STDERR.puts backtrace.join("\n") if backtrace
+          STDERR.puts JSON.generate({
+            continue: false,
+            stopReason: message,
+            suppressOutput: false
+          })
+          exit 1
+        end
+      end
+
+      def read_stdin_input
+        stdin_content = STDIN.read.strip
+        return {} if stdin_content.empty?
+        JSON.parse(stdin_content)
+      rescue JSON::ParserError => e
+        raise "Invalid JSON input: #{e.message}"
       end
     end
   end
