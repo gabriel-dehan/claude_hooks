@@ -8,13 +8,15 @@ name: Mitts PR Follow-up
 on:
   issue_comment:
     types: [created]
+  pull_request_review_comment:
+    types: [created]
 
 concurrency:
   # Serialize all STATEFUL work on the same PR (shares the mitts-state-pr-<n>
   # artifact + pushes to the PR branch). Group is keyed on the PR number only, not
   # the workflow, so any future stateful PR workflow can share this queue. The
   # read-only review workflow stays on its own group (mitts-review-<n>).
-  group: mitts-pr-${{ github.event.issue.number }}
+  group: mitts-pr-${{ github.event.issue.number || github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
@@ -25,11 +27,13 @@ jobs:
     # commits — this bot writes to the PR branch, so an untrusted trigger is a
     # code-execution vector on a public repo.
     if: >
-      github.event.issue.pull_request != null &&
       contains(github.event.comment.body, '@mitts') &&
       !contains(github.event.comment.body, '@mitts review') &&
+      (github.event.issue.pull_request != null || github.event_name == 'pull_request_review_comment') &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
     permissions:
       contents: write        # push follow-up commits to the PR branch
       pull-requests: write   # comment / update PR
@@ -50,7 +54,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # issue_comment doesn't carry PR branch info, so fetch it.
-          data=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
+          data=$(gh api "repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}" \
             --jq '{ref: .head.ref, repo: .head.repo.full_name, base: .base.ref}')
           echo "head_ref=$(echo "$data" | jq -r .ref)" >> "$GITHUB_OUTPUT"
           echo "head_repo=$(echo "$data" | jq -r .repo)" >> "$GITHUB_OUTPUT"
@@ -61,7 +65,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" \
+          gh pr comment "${{ env.PR_NUMBER }}" --repo "${{ github.repository }}" \
             --body "🤖 I can't push follow-up commits to a PR from a fork (secrets aren't available on fork PRs). A maintainer can run me on a same-repo branch instead."
           echo "Fork PR — stopping."
           exit 1
@@ -77,8 +81,8 @@ jobs:
       - uses: ./.github/actions/run-mitts
         with:
           surface: pr
-          number: ${{ github.event.issue.number }}
-          title: ${{ github.event.issue.title }}
+          number: ${{ env.PR_NUMBER }}
+          title: ${{ github.event.issue.title || github.event.pull_request.title }}
           head-ref: ${{ steps.prref.outputs.head_ref }}
           base-ref: ${{ steps.prref.outputs.base_ref }}
           comment-body: ${{ github.event.comment.body }}
@@ -93,5 +97,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" \
+          gh pr comment "${{ env.PR_NUMBER }}" --repo "${{ github.repository }}" \
             --body "⚠️ I couldn't complete that. See the [run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
