@@ -35,6 +35,15 @@ jobs:
       pull-requests: write   # comment / update PR
       issues: write
     steps:
+      - name: Acknowledge comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api \
+            -X POST \
+            "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
+            -f content='eyes'
+
       - name: Get PR head ref
         id: prref
         env:

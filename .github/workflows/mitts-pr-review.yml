@@ -1,6 +1,6 @@
 name: Mitts PR Review
 
-# Reviews PRs automatically when opened/updated, and on demand when a
+# Reviews PRs automatically when opened/reopened, and on demand when a
 # maintainer comments "@mitts review" on the PR.
 on:
   pull_request:
@@ -30,26 +30,120 @@ jobs:
       pull-requests: write   # post the review
       issues: read
     steps:
-      # For comment-triggered runs, resolve the PR number into the context the
-      # action expects (it reads github.event.pull_request.*).
-      - name: Resolve PR number
-        id: pr
+      - name: Acknowledge comment
+        if: github.event_name == 'issue_comment'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          gh api \
+            -X POST \
+            "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
+            -f content='eyes'
+
+      # Checkout extensions repo (provides the review script).
+      - name: Checkout extensions repository
+        uses: actions/checkout@v4
+        with:
+          repository: OpenHands/extensions
+          ref: main
+          path: extensions
+
+      # Fetch PR metadata — works for both pull_request and issue_comment triggers.
+      - name: Resolve PR metadata
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            PR_NUMBER="${{ github.event.pull_request.number }}"
           else
-            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+            PR_NUMBER="${{ github.event.issue.number }}"
           fi
 
-      - name: Mitts PR review
-        uses: OpenHands/extensions/plugins/pr-review@main
+          PR_JSON="$(gh api "repos/${REPO}/pulls/${PR_NUMBER}")"
+          echo "number=${PR_NUMBER}"                                       >> "$GITHUB_OUTPUT"
+          echo "title=$(echo "$PR_JSON"   | jq -r '.title')"              >> "$GITHUB_OUTPUT"
+          echo "body=$(echo "$PR_JSON"    | jq -r '.body // ""')"         >> "$GITHUB_OUTPUT"
+          echo "base=$(echo "$PR_JSON"    | jq -r '.base.ref')"           >> "$GITHUB_OUTPUT"
+          echo "head=$(echo "$PR_JSON"    | jq -r '.head.ref')"           >> "$GITHUB_OUTPUT"
+          echo "head_sha=$(echo "$PR_JSON" | jq -r '.head.sha')"          >> "$GITHUB_OUTPUT"
+          echo "head_repo=$(echo "$PR_JSON" | jq -r '.head.repo.full_name')" >> "$GITHUB_OUTPUT"
+
+      # Checkout the PR branch so the review script has the full codebase.
+      - name: Checkout PR repository
+        uses: actions/checkout@v4
         with:
-          # --- Your OpenAI-compatible endpoint ---
-          llm-model: ${{ vars.OPENHANDS_LLM_MODEL }}        # e.g. openai/<your-model>
-          llm-base-url: ${{ vars.OPENHANDS_LLM_BASE_URL }}  # your endpoint
-          llm-api-key: ${{ secrets.OPENHANDS_LLM_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          # Pin the extensions ref for reproducibility once you're happy (e.g. a tag/SHA).
-          extensions-version: main
+          repository: ${{ steps.pr.outputs.head_repo }}
+          ref: ${{ steps.pr.outputs.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: pr-repo
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: 'false'
+
+      - name: Preflight review permission smoke test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if ! REVIEW_ID="$(
+            gh api \
+              -X POST \
+              "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
+              -f body='Preflight review permission smoke test. This pending review will be deleted immediately.' \
+              --jq '.id'
+          )"; then
+            echo "Failed to create pending review during preflight smoke test"
+            echo "The GITHUB_TOKEN lacks 'pull_requests: write' permission."
+            exit 1
+          fi
+          if [ -z "$REVIEW_ID" ]; then
+            echo "Preflight smoke test returned an empty review id"
+            exit 1
+          fi
+          gh api -X DELETE "repos/${REPOSITORY}/pulls/${PR_NUMBER}/reviews/${REVIEW_ID}" || true
+
+      - name: Run PR review
+        env:
+          UV_PYTHON: '3.12'
+          AGENT_KIND: openhands
+          LLM_MODEL: ${{ vars.OPENHANDS_LLM_MODEL }}
+          LLM_BASE_URL: ${{ vars.OPENHANDS_LLM_BASE_URL }}
+          LLM_API_KEY: ${{ secrets.OPENHANDS_LLM_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_TITLE: ${{ steps.pr.outputs.title }}
+          PR_BODY: ${{ steps.pr.outputs.body }}
+          PR_BASE_BRANCH: ${{ steps.pr.outputs.base }}
+          PR_HEAD_BRANCH: ${{ steps.pr.outputs.head }}
+          REPO_NAME: ${{ github.repository }}
+          REQUIRE_EVIDENCE: 'false'
+          COLLECT_FEEDBACK: 'false'
+          USE_SUB_AGENTS: 'false'
+          LOAD_PUBLIC_SKILLS: 'false'
+          REVIEW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          cd pr-repo
+          uv run --no-project --with openhands-sdk --with openhands-tools --with lmnr \
+            python ../extensions/plugins/pr-review/scripts/agent_script.py
+
+      - name: Upload logs as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openhands-pr-review-logs
+          path: |
+            *.log
+            output/
+          retention-days: 7

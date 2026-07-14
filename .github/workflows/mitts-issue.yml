@@ -31,13 +31,14 @@ jobs:
       pull-requests: write    # open the PR (implement path)
       issues: write           # comment back / answer questions
     steps:
-      - name: Acknowledge
+      - name: Acknowledge comment
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue comment "${{ github.event.issue.number }}" \
-            --repo "${{ github.repository }}" \
-            --body "🤖 On it — I'll reply here, or open a PR if you asked me to implement something. [Watch the run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          gh api \
+            -X POST \
+            "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
+            -f content='eyes'
 
       - uses: actions/checkout@v4
         with:
