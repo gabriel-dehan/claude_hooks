@@ -146,7 +146,11 @@ def main() -> None:
     api_key = require("LLM_API_KEY")
     model = require("LLM_MODEL")           # e.g. openai/<your-model>
     base_url = os.getenv("LLM_BASE_URL")   # your OpenAI-compatible endpoint
-    prompt = require("AGENT_PROMPT")
+    prompt_file = os.getenv("AGENT_PROMPT_FILE")
+    if prompt_file:
+        prompt = Path(prompt_file).read_text(encoding="utf-8")
+    else:
+        prompt = require("AGENT_PROMPT")
     require("GITHUB_TOKEN")
     repo = require("GITHUB_REPOSITORY")
 
