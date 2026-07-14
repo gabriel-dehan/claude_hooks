@@ -93,8 +93,9 @@ runs:
         COMMENT_BODY: ${{ inputs.comment-body }}
         COMMENT_AUTHOR: ${{ inputs.comment-author }}
       run: |
-        AGENT_PROMPT="$(python .github/mitts/context_builder.py --surface "${{ inputs.surface }}")"
-        export AGENT_PROMPT
+        python .github/mitts/context_builder.py --surface "${{ inputs.surface }}" > "$RUNNER_TEMP/agent_prompt.txt"
+        AGENT_PROMPT_FILE="$RUNNER_TEMP/agent_prompt.txt"
+        export AGENT_PROMPT_FILE
         uv run .github/mitts/agent_task.py
 
     # Persist conversation state even on partial failure so memory accrues.
