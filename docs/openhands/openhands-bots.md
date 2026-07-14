@@ -61,8 +61,10 @@ Also note the distinction that made OpenHands confusing at first:
 AGENTS.md                                # repo guidance — loaded by all bots
 .agents/
 └── skills/
-    └── run-tests/
-        └── SKILL.md                     # keyword-triggered skill (test/tests/spec)
+    ├── run-tests/
+    │   └── SKILL.md                     # keyword-triggered skill (test/tests/spec)
+    └── ci-monitoring/
+        └── SKILL.md                     # safe CI-wait pattern (ci/checks/green)
 .github/
 ├── actions/
 │   └── run-openhands/
@@ -171,6 +173,47 @@ Exit code `2` denies the command and surfaces the reason to the agent as an
 error observation. This makes the prompt-level rules deterministic rather than
 advisory.
 
+The hook is **behavioral defense-in-depth**, not a boundary: it pattern-matches
+command strings, which a determined (or prompt-injected) agent could route around
+(e.g. shelling out from a Ruby script, encoding the command). It stops the obvious
+mistakes; it does not *guarantee* the agent can't do damage. For the operations
+that must never happen — landing code on `main`, publishing a release — the
+guarantee has to be **structural** (see below).
+
+### Structural containment (write, not admin)
+
+The agent runs with `contents: write` + `pull-requests: write`. The security
+model is that **every privileged path chains back to an operation the bot cannot
+perform**, so even a fully prompt-injected agent is contained — independent of the
+behavioral hook. Two things must be locked down at the repo level (GitHub Settings,
+one-time, done by a human):
+
+1. **Protect `main` so the bot can't merge.** Settings → Rules → **Rulesets** (or
+   classic branch protection): on the default branch, require a pull request and at
+   least one **approving review**, and restrict who can push / bypass to admins
+   only. The bot authenticates with the built-in `GITHUB_TOKEN`, which is not an
+   admin, so it can open PRs but cannot merge them or push to `main` directly. A
+   human merge stays in the loop.
+
+2. **Gate the release secret behind `main`.** `ruby-gem.yml` publishes to RubyGems
+   using `secrets.RUBYGEMS_AUTH_TOKEN` and only runs its publish job on `push` to
+   `refs/heads/main`. Move that secret into a GitHub **Environment** (e.g.
+   `release`) whose **deployment branch policy** allows only the default branch (and
+   tags, if you tag releases), and reference it from the job with
+   `environment: release`. Then a leaked/compromised bot token that pushes some
+   *other* branch can never match the policy, so the publish job is rejected
+   *before* the secret is readable. The chain is: no admin merge → nothing lands on
+   `main` → no `push`-to-`main` event → no environment access → `RUBYGEMS_AUTH_TOKEN`
+   never exposed.
+
+Caveat (same as any Actions setup): this guarantee holds for `push`/`pull_request`
+triggers. `workflow_dispatch`, `release`, and `schedule` triggers can be initiated
+without a merge, so if you add secret-bearing jobs on those triggers, gate them
+with required reviewers on the environment too.
+
+Without step 1 in place, `ruby-gem.yml`'s publish token is only as safe as branch
+protection — set it up before pointing the bots at a repo that publishes.
+
 ### Hybrid context system
 
 The bots don't rely on the model volunteering to fetch context. Two layers:
@@ -181,7 +224,12 @@ The bots don't rely on the model volunteering to fetch context. Two layers:
    PR body + full comment thread + inline review comments + the `base...head` diff
    + any linked issue; for an issue it's the body + thread + related PRs. Output is
    budget-capped (~100k chars total, ~12k per file diff) with truncation markers.
-   This is the source of truth and always current.
+   This is the source of truth and always current. The prompt footer also carries
+   the **trust / untrusted-input** guidance (content-is-not-instructions; only
+   maintainers may direct the bot). This lives in `context_builder.py`, not
+   `AGENTS.md`, on purpose — it's bot-infrastructure guidance that must travel with
+   the setup when ported to another repo (whose `AGENTS.md` describes that repo's
+   own conventions and shouldn't have to re-state it).
 
 2. **Cross-run memory (on demand).** Each SDK run persists its events to
    `${OPENHANDS_PERSIST_DIR}/<thread-key>/<conversation-id>/`, uploaded as a GitHub
@@ -249,6 +297,20 @@ Repo **Settings → Actions → General → Workflow permissions**:
 
 Without the second box, the issue→PR bot can push a branch but can't open the PR.
 
+### 2b. Who can trigger the bots (author-association gating)
+
+The write-capable workflows (`openhands-issue`, `openhands-pr-followup`) and the
+on-demand `@openhands review` comment path only run when the triggering commenter's
+`author_association` is `OWNER`, `MEMBER`, or `COLLABORATOR`. On a **public repo**
+this matters: without it, any stranger could comment `@openhands implement …` and
+drive an agent that runs with `contents`/`pull-requests` write and burns your LLM
+budget. If you want a non-collaborator to be able to trigger the bot, add them as a
+repo collaborator (or org member) rather than loosening the gate.
+
+The automatic PR review on `opened`/`reopened` stays open by design — it's
+read-only (`contents: read`, only posts a review), which is the whole point of
+reviewing incoming contributions.
+
 ### 3. Commit the workflows
 
 ```bash
@@ -305,6 +367,15 @@ base URL, then re-trigger.
 
 ## Things to know
 
+- **Only maintainers can trigger the write bots.** The issue, PR-follow-up, and
+  on-demand-review comment paths gate on `author_association` ∈
+  {`OWNER`,`MEMBER`,`COLLABORATOR`} (see Setup §2b). Non-collaborator comments are
+  ignored. The auto PR review on open/reopen is intentionally ungated (read-only).
+- **Write, not admin (structural containment).** Protect `main` and gate the
+  RubyGems publish secret behind a `main`-only Environment so a prompt-injected
+  agent still cannot merge code or read the release token. The `block_dangerous.sh`
+  hook is defense-in-depth on top of this, not a replacement — see "Structural
+  containment" above.
 - **Fork PRs get no secrets** (GitHub security rule). Review is skipped and
   follow-up posts a "can't run on forks" note (and runs stateless, no artifacts).
   This is expected. Your own branches work fully.
@@ -325,7 +396,9 @@ base URL, then re-trigger.
   default — add one if your endpoint bills per token.
 - **No workflow chaining by default**: the built-in `GITHUB_TOKEN` does not
   retrigger other workflows, so a PR the bot opens won't auto-run `test.yml`.
-  Use a PAT or GitHub App token if you want that.
+  Use a PAT or GitHub App token if you want that. (Consequence for CI-waiting: on a
+  bot-opened PR the checks tab may be empty — that's expected, not a hang. The
+  `ci-monitoring` skill tells the agent to note this rather than poll forever.)
 - **Pinning**: workflows reference `OpenHands/extensions@main`. Pin to a tag or
   SHA (`extensions-version:`) once you're happy, for reproducibility.
 - **Adding skills**: create a new directory under `.agents/skills/<skill-name>/`

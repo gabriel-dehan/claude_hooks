@@ -20,3 +20,19 @@ Decide the intent:
 Use the `gh` CLI for GitHub interactions (already authenticated). Keep changes
 minimal and consistent with the codebase. Do not modify CI secrets or workflow
 permissions.
+
+## Before you post a comment
+
+- **Re-fetch the thread first.** This run may have been queued behind other
+  comments. Re-read the issue comments (`gh issue view {number} --json comments`)
+  and check for a PR you already opened that references this issue (`gh pr list
+  --search "{number} in:body" --state all`); if the work is already done or
+  answered, exit silently rather than duplicating it.
+- **Compose with a file, not an inline `--body`.** Write the comment body to a file
+  and post with `gh issue comment {number} --body-file <file>`. Inline `--body`
+  with shell quoting corrupts backticks and `$`-sequences.
+- **Verify every link resolves and pin line numbers.** Any `blob/.../#L<n>` link
+  must be SHA-pinned (`blob/<sha>/...`), not `blob/main/...`. Don't invent URLs;
+  derive real IDs from `gh`/`git` output.
+- **Scan for sensitive content and placeholders before posting.** Never ship literal `<SHA>`, `<PR>`,
+  `TBD`, `XXX`, or an unresolved `${...}`. Grep your body for these first.

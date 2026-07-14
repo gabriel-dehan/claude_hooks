@@ -20,11 +20,15 @@ concurrency:
 jobs:
   followup:
     # Only on PRs, when a comment mentions the bot but is NOT the "review" command
-    # (that's handled by openhands-pr-review.yml).
+    # (that's handled by openhands-pr-review.yml). Gated on author_association so
+    # only trusted maintainers (OWNER/MEMBER/COLLABORATOR) can push follow-up
+    # commits — this bot writes to the PR branch, so an untrusted trigger is a
+    # code-execution vector on a public repo.
     if: >
       github.event.issue.pull_request != null &&
       contains(github.event.comment.body, '@openhands') &&
-      !contains(github.event.comment.body, '@openhands review')
+      !contains(github.event.comment.body, '@openhands review') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     permissions:
       contents: write        # push follow-up commits to the PR branch

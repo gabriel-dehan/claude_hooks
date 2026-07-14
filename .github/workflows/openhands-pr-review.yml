@@ -15,11 +15,15 @@ concurrency:
 
 jobs:
   review:
-    # Run on PR events, OR on an issue_comment that is on a PR and says "@openhands review".
+    # Run on PR events (auto review — read-only, safe on untrusted PRs), OR on an
+    # issue_comment on a PR that says "@openhands review" from a trusted maintainer.
+    # The comment path is gated on author_association so a stranger can't spam
+    # on-demand reviews and burn LLM budget; the auto path stays open by design.
     if: >
       github.event_name == 'pull_request' ||
       (github.event.issue.pull_request != null &&
-       contains(github.event.comment.body, '@openhands review'))
+       contains(github.event.comment.body, '@openhands review') &&
+       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     permissions:
       contents: read

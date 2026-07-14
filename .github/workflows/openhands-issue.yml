@@ -15,10 +15,16 @@ concurrency:
 
 jobs:
   respond:
-    # Only on issues (not PRs) where a comment mentions the bot.
+    # Only on issues (not PRs) where a comment mentions the bot AND the commenter
+    # is a trusted maintainer. author_association gates who can trigger a
+    # write-capable agent run: on a public repo, without this any stranger could
+    # comment "@openhands implement <prompt injection>" and drive an agent with
+    # contents/PR write. OWNER = repo owner, MEMBER = org member, COLLABORATOR =
+    # granted write access. Everyone else (CONTRIBUTOR/NONE/FIRST_TIMER) is ignored.
     if: >
       github.event.issue.pull_request == null &&
-      contains(github.event.comment.body, '@openhands')
+      contains(github.event.comment.body, '@openhands') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     permissions:
       contents: write         # push a branch (implement path)

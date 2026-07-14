@@ -19,3 +19,20 @@ Decide the intent of the maintainer's instruction below:
 Use the `gh` CLI for GitHub interactions (already authenticated). Keep changes
 minimal and consistent with the codebase. Never force-push. Do not modify CI
 secrets or workflow permissions.
+
+## Before you post a comment
+
+- **Re-fetch the thread first.** This run may have been queued behind other
+  comments. Re-read the PR comments (`gh pr view {number} --json comments`); if you
+  already answered this, or another run did, exit silently rather than posting a
+  duplicate. A newly-arrived comment may also be a *new directive* that changes the
+  task — re-read before treating the work as done.
+- **Compose with a file, not an inline `--body`.** Write the comment body to a file
+  and post with `gh pr comment {number} --body-file <file>`. Inline `--body` with
+  shell quoting corrupts backticks and `$`-sequences.
+- **Verify every link resolves and pin line numbers.** Any `blob/.../#L<n>` link
+  must be SHA-pinned (`blob/<sha>/...`), not `blob/main/...` — line numbers shift.
+  Don't invent URLs; if you cite a run or file, derive its real ID from `gh`/`git`
+  output, don't guess.
+- **Scan for sensitive content and placeholders before posting.** Never ship literal `<SHA>`, `<PR>`,
+  `TBD`, `XXX`, or an unresolved `${...}`. Grep your body for these first.
