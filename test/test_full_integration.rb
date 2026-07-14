@@ -467,8 +467,7 @@ class TestFullIntegration < Minitest::Test
       end
     end
     
-    # Test the CLI functionality without using entrypoint which calls exit
-    result = ClaudeHooks::CLI.run_hook(notification_handler, JSON.parse(input_json))
+    result = notification_handler.new(JSON.parse(input_json)).call
     
     assert_kind_of(Hash, result)
     assert(result['continue'])

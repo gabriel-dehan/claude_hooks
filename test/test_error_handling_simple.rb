@@ -50,7 +50,7 @@ class TestErrorHandlingSimple < Minitest::Test
     
     # Should exit with status 1 on hook execution error
     assert_raises(SystemExit) do
-      ClaudeHooks::CLI.run_hook(@error_hook, input_data)
+      ClaudeHooks::CLI.run_with_sample_data(@error_hook)
     end
   end
 
