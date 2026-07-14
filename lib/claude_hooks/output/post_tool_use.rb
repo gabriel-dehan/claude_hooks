@@ -19,10 +19,22 @@ module ClaudeHooks
         hook_specific_output['additionalContext'] || ''
       end
 
+      def updated_tool_output
+        hook_specific_output['updatedToolOutput']
+      end
+
+      def updated_mcp_tool_output
+        hook_specific_output['updatedMCPToolOutput']
+      end
+
       # === SEMANTIC HELPERS ===
 
       def blocked?
         decision == 'block'
+      end
+
+      def output_updated?
+        !updated_tool_output.nil? || !updated_mcp_tool_output.nil?
       end
 
       # === EXIT CODE LOGIC ===

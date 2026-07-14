@@ -266,16 +266,36 @@ The framework supports the following hook types:
 
 | Hook Type | Class | Description |
 |-----------|-------|-------------|
-| **[SessionStart](docs/API/SESSION_START.md)** | `ClaudeHooks::SessionStart` | Hooks that run when Claude Code starts a new session, resumes, or compacts |
-| **[UserPromptSubmit](docs/API/USER_PROMPT_SUBMIT.md)** | `ClaudeHooks::UserPromptSubmit` | Hooks that run before the user's prompt is processed |
-| **[Notification](docs/API/NOTIFICATION.md)** | `ClaudeHooks::Notification` | Hooks that run when Claude Code sends notifications |
-| **[PreToolUse](docs/API/PRE_TOOL_USE.md)** | `ClaudeHooks::PreToolUse` | Hooks that run before a tool is used |
-| **[PermissionRequest](docs/API/PERMISSION_REQUEST.md)** | `ClaudeHooks::PermissionRequest` | Hooks that run when Claude requests permission |
-| **[PostToolUse](docs/API/POST_TOOL_USE.md)** | `ClaudeHooks::PostToolUse` | Hooks that run after a tool is used |
-| **[Stop](docs/API/STOP.md)** | `ClaudeHooks::Stop` | Hooks that run when Claude Code finishes responding |
-| **[SubagentStop](docs/API/SUBAGENT_STOP.md)** | `ClaudeHooks::SubagentStop` | Hooks that run when subagent tasks complete |
-| **[SessionEnd](docs/API/SESSION_END.md)** | `ClaudeHooks::SessionEnd` | Hooks that run when Claude Code sessions end |
-| **[PreCompact](docs/API/PRE_COMPACT.md)** | `ClaudeHooks::PreCompact` | Hooks that run before transcript compaction |
+| **[SessionStart](docs/API/SESSION_START.md)** | `ClaudeHooks::SessionStart` | Runs when Claude Code starts, resumes, or compacts a session |
+| **[Setup](docs/API/SETUP.md)** | `ClaudeHooks::Setup` | Runs once on Claude Code startup before any session |
+| **[UserPromptSubmit](docs/API/USER_PROMPT_SUBMIT.md)** | `ClaudeHooks::UserPromptSubmit` | Runs before the user's prompt is processed |
+| **[UserPromptExpansion](docs/API/USER_PROMPT_EXPANSION.md)** | `ClaudeHooks::UserPromptExpansion` | Runs when a slash command or prompt expansion is triggered |
+| **[Notification](docs/API/NOTIFICATION.md)** | `ClaudeHooks::Notification` | Runs when Claude Code sends a notification |
+| **[MessageDisplay](docs/API/MESSAGE_DISPLAY.md)** | `ClaudeHooks::MessageDisplay` | Runs when a message is about to be displayed |
+| **[PreToolUse](docs/API/PRE_TOOL_USE.md)** | `ClaudeHooks::PreToolUse` | Runs before a tool is used; can allow, deny, defer or ask |
+| **[PermissionRequest](docs/API/PERMISSION_REQUEST.md)** | `ClaudeHooks::PermissionRequest` | Runs when Claude requests an explicit permission |
+| **[PermissionDenied](docs/API/PERMISSION_DENIED.md)** | `ClaudeHooks::PermissionDenied` | Runs when a permission request is denied; can request a retry |
+| **[PostToolUse](docs/API/POST_TOOL_USE.md)** | `ClaudeHooks::PostToolUse` | Runs after a tool is used; can rewrite output |
+| **[PostToolBatch](docs/API/POST_TOOL_BATCH.md)** | `ClaudeHooks::PostToolBatch` | Runs after a full batch of tool calls completes |
+| **[PostToolUseFailure](docs/API/POST_TOOL_USE_FAILURE.md)** | `ClaudeHooks::PostToolUseFailure` | Runs when a tool call fails |
+| **[Stop](docs/API/STOP.md)** | `ClaudeHooks::Stop` | Runs when Claude Code finishes responding; can force continuation |
+| **[StopFailure](docs/API/STOP_FAILURE.md)** | `ClaudeHooks::StopFailure` | Runs when the stop phase itself errors; logging only |
+| **[SubagentStart](docs/API/SUBAGENT_START.md)** | `ClaudeHooks::SubagentStart` | Runs when a subagent task starts |
+| **[SubagentStop](docs/API/SUBAGENT_STOP.md)** | `ClaudeHooks::SubagentStop` | Runs when a subagent task completes |
+| **[TaskCreated](docs/API/TASK_CREATED.md)** | `ClaudeHooks::TaskCreated` | Runs when a teammate task is created |
+| **[TaskCompleted](docs/API/TASK_COMPLETED.md)** | `ClaudeHooks::TaskCompleted` | Runs when a teammate task completes |
+| **[TeammateIdle](docs/API/TEAMMATE_IDLE.md)** | `ClaudeHooks::TeammateIdle` | Runs when a teammate goes idle |
+| **[PreCompact](docs/API/PRE_COMPACT.md)** | `ClaudeHooks::PreCompact` | Runs before transcript compaction; can block it |
+| **[PostCompact](docs/API/POST_COMPACT.md)** | `ClaudeHooks::PostCompact` | Runs after transcript compaction completes |
+| **[ConfigChange](docs/API/CONFIG_CHANGE.md)** | `ClaudeHooks::ConfigChange` | Runs when Claude Code configuration changes; can block it |
+| **[CwdChanged](docs/API/CWD_CHANGED.md)** | `ClaudeHooks::CwdChanged` | Runs when the working directory changes |
+| **[FileChanged](docs/API/FILE_CHANGED.md)** | `ClaudeHooks::FileChanged` | Runs when a watched file is created, modified, or deleted |
+| **[InstructionsLoaded](docs/API/INSTRUCTIONS_LOADED.md)** | `ClaudeHooks::InstructionsLoaded` | Runs when a CLAUDE.md instructions file is loaded |
+| **[Elicitation](docs/API/ELICITATION.md)** | `ClaudeHooks::Elicitation` | Runs when an MCP server requests user input |
+| **[ElicitationResult](docs/API/ELICITATION_RESULT.md)** | `ClaudeHooks::ElicitationResult` | Runs after an elicitation response is provided |
+| **[WorktreeCreate](docs/API/WORKTREE_CREATE.md)** | `ClaudeHooks::WorktreeCreate` | Runs when Claude Code creates a git worktree |
+| **[WorktreeRemove](docs/API/WORKTREE_REMOVE.md)** | `ClaudeHooks::WorktreeRemove` | Runs when a git worktree is removed |
+| **[SessionEnd](docs/API/SESSION_END.md)** | `ClaudeHooks::SessionEnd` | Runs when a Claude Code session ends |
 
 ## 🚀 Claude Hook Flow
 
@@ -393,16 +413,36 @@ The framework supports all existing hook types with their respective input field
 
 | Hook Type | Input Fields |
 |-----------|--------------|
-| **Common**  | `session_id`, `transcript_path`, `cwd`, `hook_event_name`, `permission_mode` |
+| **Common (all hooks)**  | `session_id`, `transcript_path`, `cwd`, `hook_event_name`, `permission_mode`, `prompt_id`, `agent_id`, `agent_type`, `effort` |
+| **SessionStart**  | `source`, `model`, `session_title` |
+| **Setup**  | `source` |
 | **UserPromptSubmit**  | `prompt` |
-| **PreToolUse**  | `tool_name`, `tool_input`, `tool_use_id` |
-| **PermissionRequest**  | `tool_name`, `tool_input`, `tool_use_id` |
-| **PostToolUse**  | `tool_name`, `tool_input`, `tool_response`, `tool_use_id` |
+| **UserPromptExpansion**  | `expansion_type`, `command_name`, `command_args`, `command_source`, `prompt` |
 | **Notification**  | `message`, `notification_type` |
-| **Stop**  | `stop_hook_active` |
-| **SubagentStop**  | `stop_hook_active` |
+| **MessageDisplay**  | `turn_id`, `message_id`, `index`, `final`, `delta` |
+| **PreToolUse**  | `tool_name`, `tool_input`, `tool_use_id` |
+| **PermissionRequest**  | `tool_name`, `tool_input`, `tool_use_id`, `permission_suggestions` |
+| **PermissionDenied**  | `tool_name`, `tool_input`, `tool_use_id`, `reason` |
+| **PostToolUse**  | `tool_name`, `tool_input`, `tool_response`, `tool_use_id` |
+| **PostToolBatch**  | `tool_calls` |
+| **PostToolUseFailure**  | `tool_name`, `tool_input`, `tool_use_id`, `error`, `is_interrupt`, `duration_ms` |
+| **Stop**  | `stop_hook_active`, `last_assistant_message`, `background_tasks`, `session_crons` |
+| **StopFailure**  | `error`, `error_details`, `last_assistant_message` |
+| **SubagentStart**  | *(common only: `agent_id`, `agent_type`)* |
+| **SubagentStop**  | `stop_hook_active`, `agent_transcript_path` + common `agent_id`/`agent_type` |
+| **TaskCreated**  | `task_id`, `task_subject`, `task_description`, `teammate_name`, `team_name` |
+| **TaskCompleted**  | `task_id`, `task_subject`, `task_description`, `teammate_name`, `team_name` |
+| **TeammateIdle**  | `teammate_name`, `team_name` |
 | **PreCompact**  | `trigger`, `custom_instructions` |
-| **SessionStart**  | `source` |
+| **PostCompact**  | `trigger`, `compact_summary` |
+| **ConfigChange**  | `source`, `file_path` |
+| **CwdChanged**  | `old_cwd`, `new_cwd` |
+| **FileChanged**  | `file_path`, `event` |
+| **InstructionsLoaded**  | `file_path`, `load_reason` |
+| **Elicitation**  | `mcp_server_name`, `message`, `mode`, `url`, `elicitation_id`, `requested_schema` |
+| **ElicitationResult**  | `mcp_server_name`, `action`, `mode`, `elicitation_id`, `content` |
+| **WorktreeCreate**  | `name` |
+| **WorktreeRemove**  | `worktree_path` |
 | **SessionEnd**  | `reason` |
 
 ### Hooks API
@@ -410,15 +450,35 @@ The framework supports all existing hook types with their respective input field
 **All hook types** inherit from `ClaudeHooks::Base` and share a common API, as well as hook specific APIs.
 
 - [📚 Common API Methods](docs/API/COMMON.md)
-- [🔔 Notification Hooks](docs/API/NOTIFICATION.md)
 - [🚀 Session Start Hooks](docs/API/SESSION_START.md)
+- [⚙️ Setup Hooks](docs/API/SETUP.md)
 - [🖋️ User Prompt Submit Hooks](docs/API/USER_PROMPT_SUBMIT.md)
+- [🔀 User Prompt Expansion Hooks](docs/API/USER_PROMPT_EXPANSION.md)
+- [🔔 Notification Hooks](docs/API/NOTIFICATION.md)
+- [💬 Message Display Hooks](docs/API/MESSAGE_DISPLAY.md)
 - [🛠️ Pre-Tool Use Hooks](docs/API/PRE_TOOL_USE.md)
 - [🔐 Permission Request Hooks](docs/API/PERMISSION_REQUEST.md)
+- [🚫 Permission Denied Hooks](docs/API/PERMISSION_DENIED.md)
 - [🔧 Post-Tool Use Hooks](docs/API/POST_TOOL_USE.md)
-- [📝 Pre-Compact Hooks](docs/API/PRE_COMPACT.md)
+- [📦 Post-Tool Batch Hooks](docs/API/POST_TOOL_BATCH.md)
+- [❌ Post-Tool Use Failure Hooks](docs/API/POST_TOOL_USE_FAILURE.md)
 - [⏹️ Stop Hooks](docs/API/STOP.md)
+- [💥 Stop Failure Hooks](docs/API/STOP_FAILURE.md)
+- [▶️ Subagent Start Hooks](docs/API/SUBAGENT_START.md)
 - [⏹️ Subagent Stop Hooks](docs/API/SUBAGENT_STOP.md)
+- [✅ Task Created Hooks](docs/API/TASK_CREATED.md)
+- [✅ Task Completed Hooks](docs/API/TASK_COMPLETED.md)
+- [💤 Teammate Idle Hooks](docs/API/TEAMMATE_IDLE.md)
+- [📝 Pre-Compact Hooks](docs/API/PRE_COMPACT.md)
+- [📄 Post-Compact Hooks](docs/API/POST_COMPACT.md)
+- [🔩 Config Change Hooks](docs/API/CONFIG_CHANGE.md)
+- [📂 Cwd Changed Hooks](docs/API/CWD_CHANGED.md)
+- [📄 File Changed Hooks](docs/API/FILE_CHANGED.md)
+- [📋 Instructions Loaded Hooks](docs/API/INSTRUCTIONS_LOADED.md)
+- [💬 Elicitation Hooks](docs/API/ELICITATION.md)
+- [💬 Elicitation Result Hooks](docs/API/ELICITATION_RESULT.md)
+- [🌳 Worktree Create Hooks](docs/API/WORKTREE_CREATE.md)
+- [🗑️ Worktree Remove Hooks](docs/API/WORKTREE_REMOVE.md)
 - [🔚 Session End Hooks](docs/API/SESSION_END.md)
 
 ### 📝 Logging
@@ -629,6 +689,13 @@ Claude Code hooks support multiple exit codes with different behaviors depending
 | PreCompact       | Operation continues<br/><br />`STDOUT` shown to user in transcript mode | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
 | SessionStart     | Operation continues<br/><br />**`STDOUT` added as context to Claude**       | Non-blocking error<br/><br />`STDERR` shown to user                | N/A<br/><br />`STDERR` shown to user only                                   |
 | SessionEnd       | Operation continues<br/><br />Logged to debug only (`--debug`) | Non-blocking error<br/><br />Logged to debug only (`--debug`)                | N/A<br/><br />Logged to debug only (`--debug`)                                   |
+
+> [!NOTE]
+> The 20 events added in `1.2.0` follow the same families. Their per-event exit-code behavior is documented on each API page under [`docs/API/`](docs/API/):
+> - **Blocking via top-level `decision`** (behave like `PreToolUse`/`Stop`): `UserPromptExpansion`, `PostToolBatch`, `ConfigChange`.
+> - **Blocking via `exit 2` / `continue: false`** (no `decision` field): `TaskCreated`, `TaskCompleted`, `TeammateIdle`.
+> - **JSON-API special** (always `exit 0`, decision in `hookSpecificOutput`): `PermissionDenied`, `Elicitation`, `ElicitationResult`, `WorktreeCreate` (bare-path stdout).
+> - **Non-blocking / context-only** (exit code effectively ignored): `Setup`, `SubagentStart`, `PostToolUseFailure`, `StopFailure`, `PostCompact`, `CwdChanged`, `FileChanged`, `InstructionsLoaded`, `WorktreeRemove`, `MessageDisplay`.
 
 
 #### Manually outputing and exiting example with success

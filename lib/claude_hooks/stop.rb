@@ -26,6 +26,18 @@ module ClaudeHooks
       @input_data['stop_hook_active']
     end
 
+    def last_assistant_message
+      @input_data['last_assistant_message'] || @input_data['lastAssistantMessage']
+    end
+
+    def background_tasks
+      @input_data['background_tasks'] || @input_data['backgroundTasks'] || []
+    end
+
+    def session_crons
+      @input_data['session_crons'] || @input_data['sessionCrons'] || []
+    end
+
     # === OUTPUT DATA HELPERS ===
 
     # Block Claude from stopping (force it to continue)
@@ -39,6 +51,11 @@ module ClaudeHooks
     def ensure_stopping!
       @output_data.delete('decision')
       @output_data.delete('reason')
+    end
+
+    def add_additional_context!(context)
+      @output_data['hookSpecificOutput'] ||= { 'hookEventName' => hook_event_name }
+      @output_data['hookSpecificOutput']['additionalContext'] = context
     end
   end
 end

@@ -38,6 +38,10 @@ module ClaudeHooks
         !updated_input.nil?
       end
 
+      def deferred?
+        permission_decision == 'defer'
+      end
+
       # === EXIT CODE LOGIC ===
       #
       # PreToolUse hooks use the advanced JSON API with exit code 0.
@@ -66,7 +70,7 @@ module ClaudeHooks
         merged = super(*outputs)
         merged_data = merged.data
 
-        # PreToolUse specific merge: deny > ask > allow (most restrictive wins)
+        # PreToolUse specific merge: deny > defer > ask > allow (most restrictive wins)
         permission_decision = 'allow'
         permission_reasons = []
 
@@ -79,8 +83,10 @@ module ClaudeHooks
           case current_decision
           when 'deny'
             permission_decision = 'deny'
+          when 'defer'
+            permission_decision = 'defer' unless permission_decision == 'deny'
           when 'ask'
-            permission_decision = 'ask' unless permission_decision == 'deny'
+            permission_decision = 'ask' unless %w[deny defer].include?(permission_decision)
           end
 
           reason = output_data.dig('hookSpecificOutput', 'permissionDecisionReason')

@@ -7,16 +7,33 @@ module ClaudeHooks
     class PermissionRequest < Base
       # === PERMISSION DECISION ACCESSORS ===
 
+      def behavior
+        hook_specific_output.dig('decision', 'behavior')
+      end
+
+      # Read nested decision.behavior with flat legacy fallback
       def permission_decision
-        hook_specific_output['permissionDecision']
+        behavior || hook_specific_output['permissionDecision']
       end
 
+      # Read decision.message with legacy permissionDecisionReason fallback
       def permission_reason
-        hook_specific_output['permissionDecisionReason'] || ''
+        hook_specific_output.dig('decision', 'message') ||
+          hook_specific_output['permissionDecisionReason'] || ''
       end
 
+      # Read decision.updatedInput with flat legacy fallback
       def updated_input
-        hook_specific_output['updatedInput']
+        hook_specific_output.dig('decision', 'updatedInput') ||
+          hook_specific_output['updatedInput']
+      end
+
+      def updated_permissions
+        hook_specific_output.dig('decision', 'updatedPermissions')
+      end
+
+      def interrupt?
+        hook_specific_output.dig('decision', 'interrupt') == true
       end
 
       # === SEMANTIC HELPERS ===
@@ -34,16 +51,13 @@ module ClaudeHooks
       end
 
       # === EXIT CODE LOGIC ===
-      #
-      # PermissionRequest hooks use the advanced JSON API with exit code 0.
-      # Following the same pattern as PreToolUse (permission-based hooks).
+
       def exit_code
         0
       end
 
       # === OUTPUT STREAM LOGIC ===
-      #
-      # PermissionRequest hooks always output to stdout when using the JSON API.
+
       def output_stream
         :stdout
       end
@@ -58,35 +72,35 @@ module ClaudeHooks
         merged = super(*outputs)
         merged_data = merged.data
 
-        # PermissionRequest specific merge: deny > allow (most restrictive wins)
-        permission_decision = 'allow'
-        permission_reasons = []
+        # deny > allow (most restrictive wins)
+        behavior = 'allow'
+        messages = []
         updated_inputs = []
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
 
-          next unless output_data.dig('hookSpecificOutput', 'permissionDecision')
+          # Support both nested and legacy flat shapes
+          current_behavior = output_data.dig('hookSpecificOutput', 'decision', 'behavior') ||
+                             output_data.dig('hookSpecificOutput', 'permissionDecision')
+          next unless current_behavior
 
-          current_decision = output_data['hookSpecificOutput']['permissionDecision']
-          permission_decision = 'deny' if current_decision == 'deny'
+          behavior = 'deny' if current_behavior == 'deny'
 
-          reason = output_data.dig('hookSpecificOutput', 'permissionDecisionReason')
-          permission_reasons << reason if reason && !reason.empty?
+          msg = output_data.dig('hookSpecificOutput', 'decision', 'message') ||
+                output_data.dig('hookSpecificOutput', 'permissionDecisionReason')
+          messages << msg if msg && !msg.empty?
 
-          updated = output_data.dig('hookSpecificOutput', 'updatedInput')
+          updated = output_data.dig('hookSpecificOutput', 'decision', 'updatedInput') ||
+                    output_data.dig('hookSpecificOutput', 'updatedInput')
           updated_inputs << updated if updated
         end
 
         merged_data['hookSpecificOutput'] ||= { 'hookEventName' => 'PermissionRequest' }
-        merged_data['hookSpecificOutput']['permissionDecision'] = permission_decision
-        merged_data['hookSpecificOutput']['permissionDecisionReason'] = if permission_reasons.any?
-                                                                          permission_reasons.join('; ')
-                                                                        else
-                                                                          ''
-                                                                        end
-        # Last updated input wins
-        merged_data['hookSpecificOutput']['updatedInput'] = updated_inputs.last if updated_inputs.any?
+        decision = { 'behavior' => behavior }
+        decision['message'] = messages.join('; ') if messages.any?
+        decision['updatedInput'] = updated_inputs.last if updated_inputs.any?
+        merged_data['hookSpecificOutput']['decision'] = decision
 
         new(merged_data)
       end

@@ -11,6 +11,22 @@ module ClaudeHooks
         hook_specific_output['additionalContext'] || ''
       end
 
+      def session_title
+        hook_specific_output['sessionTitle']
+      end
+
+      def initial_user_message
+        hook_specific_output['initialUserMessage']
+      end
+
+      def watch_paths
+        hook_specific_output['watchPaths'] || []
+      end
+
+      def reload_skills?
+        hook_specific_output['reloadSkills'] == true
+      end
+
       # === EXIT CODE LOGIC ===
 
       def exit_code
@@ -27,19 +43,25 @@ module ClaudeHooks
         merged = super(*outputs)
         merged_data = merged.data
         contexts = []
-        
+        specific = {}
+
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
-          context = output_data.dig('hookSpecificOutput', 'additionalContext')
+          hso = output_data['hookSpecificOutput'] || {}
+
+          context = hso['additionalContext']
           contexts << context if context && !context.empty?
+
+          # Last-non-nil wins for the scalar/array session fields.
+          %w[sessionTitle initialUserMessage watchPaths reloadSkills].each do |key|
+            specific[key] = hso[key] unless hso[key].nil?
+          end
         end
 
-        # Set merged additional context
-        unless contexts.empty?
-          merged_data['hookSpecificOutput'] = {
-            'hookEventName' => 'SessionStart',
-            'additionalContext' => contexts.join("\n\n")
-          }
+        specific['additionalContext'] = contexts.join("\n\n") unless contexts.empty?
+
+        unless specific.empty?
+          merged_data['hookSpecificOutput'] = { 'hookEventName' => 'SessionStart' }.merge(specific)
         end
 
         new(merged_data)

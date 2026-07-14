@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-07-14
+
+### Added
+
+- **20 new hook event classes** bringing full parity with the Claude Code Hooks spec v1.2.0 (30 events total):
+  - **Context-only**: `Setup`, `SubagentStart`
+  - **Blocking (top-level `decision`)**: `UserPromptExpansion`, `PostToolBatch`, `ConfigChange`
+  - **Blocking (exit-2 / `continue:false`)**: `TaskCreated`, `TaskCompleted`, `TeammateIdle`
+  - **Non-blocking**: `PostToolUseFailure`, `StopFailure`, `PostCompact`, `CwdChanged`, `FileChanged`, `InstructionsLoaded`, `WorktreeRemove`
+  - **JSON-API special**: `PermissionDenied`, `Elicitation`, `ElicitationResult`, `WorktreeCreate`
+  - **Display**: `MessageDisplay`
+
+- **New common input readers** (available on all hook instances):
+  - `prompt_id`, `agent_id`, `agent_type`, `effort`
+  - `permission_mode` now documents `'auto'` as a valid value
+
+- **`terminal_sequence!(seq)`** builder on all hooks; `terminal_sequence` accessor on output objects; `terminalSequence` (last non-nil wins) in `Output::Base.merge`
+
+- **`PreToolUse` additions**: `defer_permission!`, `update_input!(hash)`, `add_additional_context!`; new output accessor `deferred?`
+
+- **`PostToolUse` additions**: `update_tool_output!(value)`, `update_mcp_tool_output!(value)`; output accessors `updated_tool_output`, `updated_mcp_tool_output`, `output_updated?`
+
+- **`SessionStart` additions**: builders `session_title!`, `initial_user_message!`, `watch_paths!(array)`, `reload_skills!(bool)`; matching output accessors `session_title`, `initial_user_message`, `watch_paths`, `reload_skills?`; input readers `model`, `session_title`
+
+- **`Stop` / `SubagentStop` additions**: input readers `last_assistant_message`, `background_tasks`, `session_crons`; `add_additional_context!` builder + `output.additional_context` accessor; `SubagentStop` gains `agent_transcript_path`
+
+- **`PreCompact` additions**: `block!(reason)` builder; `Output::PreCompact` gains `decision`, `reason`, `blocked?` accessors
+
+- **`PostToolBatch` convenience**: `succeeded_calls` / `failed_calls` partitions over `tool_calls` (success derived from the entry's `tool_response`)
+
+### Changed
+
+- **`PermissionRequest` emitted JSON shape** — builders now emit `hookSpecificOutput.decision = { behavior, message?, updatedInput?, updatedPermissions?, interrupt? }` instead of flat `permissionDecision`/`permissionDecisionReason` keys. **Backward-compatible: no hook code changes required** — builder signatures (`allow_permission!`, `deny_permission!`, `update_input_and_allow!`) are unchanged; read-side accessors (`permission_decision`, `allowed?`, `denied?`, etc.) retain legacy fallback for any stored flat JSON.
+
+- **`PreToolUse` merge precedence** corrected to `deny > defer > ask > allow` (was `deny > ask > allow`).
+
+### Notes
+
+- All changes are additive — existing hooks continue to work without modification
+- Ships as minor `1.2.0` (no source-level breaks for users)
+- Total hook event classes: 30 (added 20 new classes, including `MessageDisplay`)
+- All 13 test files pass (0 failures, 0 errors)
+
 ## [1.1.0] - 2026-01-04
 
 ### Added

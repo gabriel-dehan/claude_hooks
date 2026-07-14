@@ -12,10 +12,13 @@ test_files = [
   'test_output_classes.rb',
   'test_hook_classes.rb',
   'test_base.rb',
-  'test_cli_simple.rb',  
+  'test_cli_simple.rb',
   'test_full_integration.rb',
   'test_logger.rb',
-  'test_error_handling_simple.rb'
+  'test_error_handling_simple.rb',
+  'test_new_hooks.rb',
+  'test_new_output_classes.rb',
+  'test_backward_compat.rb'
 ]
 
 test_files.each do |test_file|

@@ -58,9 +58,27 @@ module ClaudeHooks
         'permissionDecision' => 'allow'
       }
       @output_data['hookSpecificOutput']['updatedInput'] = updated_input
-
-      # Ensure permission decision is 'allow' when updating input
       @output_data['hookSpecificOutput']['permissionDecision'] = 'allow'
+    end
+
+    def defer_permission!
+      @output_data['hookSpecificOutput'] = {
+        'hookEventName' => hook_event_name,
+        'permissionDecision' => 'defer'
+      }
+    end
+
+    def update_input!(updated_input)
+      @output_data['hookSpecificOutput'] ||= {
+        'hookEventName' => hook_event_name,
+        'permissionDecision' => 'allow'
+      }
+      @output_data['hookSpecificOutput']['updatedInput'] = updated_input
+    end
+
+    def add_additional_context!(context)
+      @output_data['hookSpecificOutput'] ||= { 'hookEventName' => hook_event_name }
+      @output_data['hookSpecificOutput']['additionalContext'] = context
     end
   end
 end

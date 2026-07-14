@@ -243,8 +243,60 @@ class TestBase < Minitest::Test
     assert_equal('Test', output.stop_reason)
   end
 
+  # === New Common Input Readers (A1) ===
+
+  def test_prompt_id_reader
+    hook = @test_hook_class.new(@input_data.merge('prompt_id' => 'pid-123'))
+    assert_equal('pid-123', hook.prompt_id)
+  end
+
+  def test_prompt_id_camel_fallback
+    hook = @test_hook_class.new(@input_data.merge('promptId' => 'pid-camel'))
+    assert_equal('pid-camel', hook.prompt_id)
+  end
+
+  def test_agent_id_reader
+    hook = @test_hook_class.new(@input_data.merge('agent_id' => 'agent-42'))
+    assert_equal('agent-42', hook.agent_id)
+  end
+
+  def test_agent_type_reader
+    hook = @test_hook_class.new(@input_data.merge('agent_type' => 'subagent'))
+    assert_equal('subagent', hook.agent_type)
+  end
+
+  def test_effort_reader
+    hook = @test_hook_class.new(@input_data.merge('effort' => { 'level' => 'high' }))
+    assert_equal('high', hook.effort)
+  end
+
+  def test_effort_returns_nil_when_absent
+    hook = @test_hook_class.new(@input_data)
+    assert_nil(hook.effort)
+  end
+
+  # === terminal_sequence! builder (A2) ===
+
+  def test_terminal_sequence_builder
+    hook = @test_hook_class.new(@input_data)
+    hook.terminal_sequence!("\e[2J")
+    output_data = JSON.parse(hook.stringify_output)
+    assert_equal("\e[2J", output_data['terminalSequence'])
+  end
+
+  def test_terminal_sequence_accessor
+    hook = @test_hook_class.new(@input_data)
+    hook.terminal_sequence!("seq")
+    assert_equal("seq", hook.terminal_sequence)
+  end
+
+  def test_terminal_sequence_nil_by_default
+    hook = @test_hook_class.new(@input_data)
+    assert_nil(hook.terminal_sequence)
+  end
+
   # === Logger Tests ===
-  
+
   def test_logger_initialization
     hook = @test_hook_class.new(@input_data)
     assert_instance_of(ClaudeHooks::Logger, hook.logger)

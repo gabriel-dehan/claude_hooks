@@ -49,5 +49,15 @@ module ClaudeHooks
       }
     end
     alias_method :add_context!, :add_additional_context!
+
+    def update_tool_output!(value)
+      @output_data['hookSpecificOutput'] ||= { 'hookEventName' => hook_event_name }
+      @output_data['hookSpecificOutput']['updatedToolOutput'] = value
+    end
+
+    def update_mcp_tool_output!(value)
+      @output_data['hookSpecificOutput'] ||= { 'hookEventName' => hook_event_name }
+      @output_data['hookSpecificOutput']['updatedMCPToolOutput'] = value
+    end
   end
 end
