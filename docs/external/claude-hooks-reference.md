@@ -99,13 +99,11 @@ else
 fi
 ```
 
-Now suppose Claude Code decides to run `Bash "rm -rf /tmp/build"`. Here’s what happens:
+This script and the Bash examples on this page that parse JSON input use `jq`, so install `jq` and make sure it is on your `PATH` before trying them.Now suppose Claude Code decides to run `Bash "rm -rf /tmp/build"`. Here’s what happens:
 
 ![Diagram of hook resolution: PreToolUse fires, the matcher checks for a Bash match, then the if condition checks for a Bash(rm *) match. If both match, the hook command runs and returns permissionDecision deny, so the tool call is blocked and Claude Code continues. If either check fails to match, the hook is skipped and the tool call is allowed to proceed.](https://mintcdn.com/claude-code/ikqp3_70mqIahteV/images/hook-resolution.svg?fit=max&auto=format&n=ikqp3_70mqIahteV&q=85&s=be0bf3053550c26de5f54cd64674c197)
 
 1
-
-[Navigate to header](https://code.claude.com/docs/en/hooks#)
 
 Event fires
 
@@ -117,23 +115,17 @@ The `PreToolUse` event fires. Claude Code sends the tool input as JSON on stdin 
 
 2
 
-[Navigate to header](https://code.claude.com/docs/en/hooks#)
-
 Matcher checks
 
 The matcher `"Bash"` matches the tool name, so this hook group activates. If you omit the matcher or use `"*"`, the group activates on every occurrence of the event.
 
 3
 
-[Navigate to header](https://code.claude.com/docs/en/hooks#)
-
 If condition checks
 
 The `if` condition `"Bash(rm *)"` matches because `rm -rf /tmp/build` is a subcommand matching `rm *`, so this handler spawns. If the command had been `npm test`, the `if` check would fail and `block-rm.sh` would never run, avoiding the process spawn overhead. The `if` field is optional; without it, every handler in the matched group runs.
 
 4
-
-[Navigate to header](https://code.claude.com/docs/en/hooks#)
 
 Hook handler runs
 
@@ -152,8 +144,6 @@ The script inspects the full command and finds `rm -rf`, so it prints a decision
 If the command had been a safer `rm` variant like `rm file.txt`, the script would hit `exit 0` instead. Exit code 0 with no output means the hook has no decision to report, so the tool call continues through the normal [permission flow](https://code.claude.com/docs/en/permissions). The hook can deny the call, but staying silent doesn’t approve it.
 
 5
-
-[Navigate to header](https://code.claude.com/docs/en/hooks#)
 
 Claude Code acts on the result
 
@@ -358,7 +348,7 @@ The equivalent shell form needs quoting to handle paths with spaces or special c
 }
 ```
 
-Both forms support the same [path placeholders](https://code.claude.com/docs/en/hooks#reference-scripts-by-path), and both export them as the environment variables `CLAUDE_PROJECT_DIR`, `CLAUDE_PLUGIN_ROOT`, and `CLAUDE_PLUGIN_DATA` on the spawned process, so a script can read `process.env.CLAUDE_PLUGIN_ROOT` regardless of how it was launched. Plugin hooks additionally substitute `${user_config.*}` values; see [User configuration](https://code.claude.com/docs/en/plugins-reference#user-configuration).
+Both forms support the same [path placeholders](https://code.claude.com/docs/en/hooks#reference-scripts-by-path), and both export them as the environment variables `CLAUDE_PROJECT_DIR`, `CLAUDE_PLUGIN_ROOT`, and `CLAUDE_PLUGIN_DATA` on the spawned process, so a script can read `process.env.CLAUDE_PLUGIN_ROOT` regardless of how it was launched.Plugin hooks additionally substitute [`${user_config.*}`](https://code.claude.com/docs/en/plugins-reference#user-configuration) values, in exec form only: the value is substituted into `command` and into each `args` element as a plain string, so no shell re-parses it.A shell-form plugin hook whose `command` references `${user_config.*}` fails with an [error](https://code.claude.com/docs/en/errors#plugin-command-references-user-config) instead of running. To use an option value from a shell-form hook, read the `$CLAUDE_PLUGIN_OPTION_<KEY>` environment variable, such as `$CLAUDE_PLUGIN_OPTION_WEBHOOK_URL` for a `webhook_url` option, or set `args` to switch the hook to exec form. Before v2.1.207, shell-form plugin hook commands also substituted `${user_config.*}`.
 
 In exec form, `command` is the executable name or path only. If `command` is a bare name with no path separator and contains whitespace alongside `args`, Claude Code logs a warning because the spawn will fail: there is no executable named `node script.js`. Move the extra tokens into `args`. Absolute paths with spaces, such as `C:\Program Files\nodejs\node.exe`, are a single valid executable and don’t trigger the warning.
 
@@ -560,7 +550,7 @@ When running with `--agent` or inside a subagent, two additional fields are incl
 | `agent_id` | Unique identifier for the subagent. Present only when the hook fires inside a subagent call. Use this to distinguish subagent hook calls from main-thread calls. |
 | `agent_type` | Agent name (for example, `"Explore"` or `"security-reviewer"`). Present when the session uses `--agent` or the hook fires inside a subagent. For subagents, the subagent’s type takes precedence over the session’s `--agent` value. For [custom subagents](https://code.claude.com/docs/en/sub-agents), this is the `name` field from the agent’s frontmatter, not the filename. For subagents shipped by a [plugin](https://code.claude.com/docs/en/plugins), this is the plugin-scoped identifier such as `my-plugin:reviewer`, not the bare frontmatter name. See [SubagentStart](https://code.claude.com/docs/en/hooks#subagentstart) for how to write a matcher against a plugin-scoped name. |
 
-Only [`SessionStart`](https://code.claude.com/docs/en/hooks#sessionstart) hooks can receive a `model` field, and it is not guaranteed to be present. There is no `$CLAUDE_MODEL` environment variable. A hook process inherits the parent environment, so it can read `$ANTHROPIC_MODEL` if you set it in your shell, but that value doesn’t change when you switch models with `/model` during a session.For example, a `PreToolUse` hook for a Bash command receives this on stdin:
+Only [`SessionStart`](https://code.claude.com/docs/en/hooks#sessionstart) hooks can receive a `model` field, and it is not guaranteed to be present. There is no `$CLAUDE_MODEL` environment variable. A hook process inherits the parent environment, so it can read `$ANTHROPIC_MODEL` if you set it in your shell, but that value doesn’t change when you switch models with `/model` during a session. One set of variables is not inherited: Claude Code [removes `OTEL_*` exporter variables from every subprocess it spawns](https://code.claude.com/docs/en/monitoring-usage#administrator-configuration), including hooks.For example, a `PreToolUse` hook for a Bash command receives this on stdin:
 
 ```
 {
@@ -674,6 +664,8 @@ To stop Claude entirely regardless of event type:
 ```
 { "continue": false, "stopReason": "Build failed, fix errors before continuing" }
 ```
+
+For `PreToolUse` and `PostToolUse` hooks, the stop applies even when the tool call fails or completes while Claude is still streaming a response.
 
 #### [​](https://code.claude.com/docs/en/hooks\#emit-terminal-notifications)  Emit terminal notifications
 
@@ -872,6 +864,8 @@ git -C ~/.claude/skills/team-skills pull --quiet 2>/dev/null || \
 echo '{"hookSpecificOutput": {"hookEventName": "SessionStart", "reloadSkills": true}}'
 ```
 
+The repository URL is a placeholder; replace it with your own skills repository. With the placeholder, the clone fails and prints a `fatal:` message to stderr. Stderr from a SessionStart hook that exits 0 is informational only, so the `reloadSkills` request still applies.
+
 #### [​](https://code.claude.com/docs/en/hooks\#persist-environment-variables)  Persist environment variables
 
 SessionStart hooks have access to the `CLAUDE_ENV_FILE` environment variable, which provides a file path where you can persist environment variables for subsequent Bash commands.To set individual environment variables, write `export` statements to `CLAUDE_ENV_FILE`. Use append (`>>`) to preserve variables set by other hooks:
@@ -920,7 +914,7 @@ Fires only when you launch Claude Code with `--init-only`, or with `--init` or `
 | `init` | `claude --init-only` or `claude -p --init` |
 | `maintenance` | `claude -p --maintenance` |
 
-`--init-only` runs Setup hooks and `SessionStart` hooks with the `startup` matcher, then exits without starting a conversation. `--init` and `--maintenance` fire Setup hooks only when combined with `-p`; in an interactive session those two flags don’t currently fire Setup hooks.Because Setup doesn’t fire on every launch, a plugin that needs a dependency installed can’t rely on Setup alone. The practical pattern is to check for the dependency on first use and install on miss, for example a hook or skill that tests for `${CLAUDE_PLUGIN_DATA}/node_modules` and runs `npm install` if absent. See the [persistent data directory](https://code.claude.com/docs/en/plugins-reference#persistent-data-directory) for where to store installed dependencies.
+`--init-only` runs Setup hooks and `SessionStart` hooks with the `startup` matcher, then exits without starting a conversation. `--init` and `--maintenance` fire Setup hooks only when combined with `-p`; in an interactive session those two flags don’t currently fire Setup hooks.On success, `--init-only` prints nothing to the terminal. To confirm the hooks ran, start with `claude --debug-file <path> --init-only`, replacing `<path>` with a log file location, and check the log for the Setup and SessionStart hook entries.Because Setup doesn’t fire on every launch, a plugin that needs a dependency installed can’t rely on Setup alone. The practical pattern is to check for the dependency on first use and install on miss, for example a hook or skill that tests for `${CLAUDE_PLUGIN_DATA}/node_modules` and runs `npm install` if absent. See the [persistent data directory](https://code.claude.com/docs/en/plugins-reference#persistent-data-directory) for where to store installed dependencies.
 
 #### [​](https://code.claude.com/docs/en/hooks\#setup-input)  Setup input
 
@@ -992,7 +986,7 @@ InstructionsLoaded hooks have no decision control. They can’t block or modify 
 
 Runs when the user submits a prompt, before Claude processes it. This allows you
 to add additional context based on the prompt/conversation, validate prompts, or
-block certain types of prompts.`UserPromptSubmit` hooks have a default timeout of 30 seconds for `command`, `http`, and `mcp_tool` types, shorter than the 600-second default for those types on most other events. Because this hook runs before every prompt and blocks model processing until it completes, a stuck hook stalls the session. If your hook needs more time, set the `timeout` field in the hook entry.A `UserPromptSubmit` hook that reaches its timeout is canceled and its output, including any `additionalContext`, is discarded. The prompt still reaches Claude without that context. As of v2.1.196, the transcript shows a notice naming the hook, the timeout that fired, and that the output was discarded. Earlier versions cancel the hook with no notice.
+block certain types of prompts.`UserPromptSubmit` hooks have a default timeout of 30 seconds for `command`, `http`, and `mcp_tool` types, shorter than the 600-second default for those types on most other events. Because this hook runs before every prompt and blocks model processing until it completes, a stuck hook stalls the session. If your hook needs more time, set the `timeout` field in the hook entry.A `UserPromptSubmit` command, HTTP, or MCP tool hook that reaches its timeout is canceled and its output, including any `additionalContext`, is discarded. The prompt still reaches Claude without that context. As of v2.1.196, the transcript shows a notice naming the hook, the timeout that fired, and that the output was discarded. Earlier versions cancel the hook with no notice.An [Agent SDK callback hook](https://code.claude.com/docs/en/agent-sdk/hooks) on `UserPromptSubmit` that reaches its timeout blocks the prompt with a message naming the hook and the timeout, because a callback there can be acting as a policy gate that must not fail open. The session continues. Before v2.1.208, a callback timeout on that event ended the turn with an execution error.
 
 #### [​](https://code.claude.com/docs/en/hooks\#userpromptsubmit-input)  UserPromptSubmit input
 
@@ -1209,7 +1203,7 @@ Runs after Claude creates tool parameters and before processing the tool call. M
 
 PreToolUse runs only when Claude calls a tool. Files you [reference with `@` in your prompt](https://code.claude.com/docs/en/common-workflows#reference-files-and-directories) are added without any tool call: Claude Code inserts their contents while building the prompt, so no PreToolUse hook fires for them, including hooks matching `Read`. To block specific paths from `@` references, use a [`Read` deny rule](https://code.claude.com/docs/en/permissions#read-and-edit) instead.
 
-Use [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control) to allow, deny, ask, or defer the tool call.
+Use [PreToolUse decision control](https://code.claude.com/docs/en/hooks#pretooluse-decision-control) to allow, deny, ask, or defer the tool call.An [Agent SDK callback hook](https://code.claude.com/docs/en/agent-sdk/hooks) on `PreToolUse` that exceeds its timeout blocks the tool call, and Claude receives an error result naming the timeout. An explicit deny returned by another hook still takes precedence.
 
 #### [​](https://code.claude.com/docs/en/hooks\#pretooluse-input)  PreToolUse input
 
@@ -1223,7 +1217,7 @@ Executes shell commands.
 | --- | --- | --- | --- |
 | `command` | string | `"npm test"` | The shell command to execute |
 | `description` | string | `"Run test suite"` | Optional description of what the command does |
-| `timeout` | number | `120000` | Optional timeout in milliseconds |
+| `timeout` | number | `120000` | Optional timeout in milliseconds. Values above the [maximum](https://code.claude.com/docs/en/tools-reference#bash-tool-behavior) are reduced to the maximum rather than rejected |
 | `run_in_background` | boolean | `false` | Whether to run the command in background |
 
 ##### Write
@@ -1350,12 +1344,12 @@ In `PostToolUse`, `tool_response` is an object with `plan` and `filePath` fields
 
 | Field | Description |
 | --- | --- |
-| `permissionDecision` | `"allow"` skips the permission prompt, except for [tools that require user interaction](https://code.claude.com/docs/en/hooks#pretooluse-decision-control). `"deny"` prevents the tool call. `"ask"` prompts the user to confirm. `"defer"` exits gracefully so the tool can be resumed later. [Deny and ask rules](https://code.claude.com/docs/en/permissions#manage-permissions) are still evaluated regardless of what the hook returns |
+| `permissionDecision` | `"allow"` skips the permission prompt, except for [tools that require user interaction](https://code.claude.com/docs/en/hooks#pretooluse-decision-control) and connector tools [your organization set to `ask`](https://code.claude.com/docs/en/mcp#organization-controls-on-connector-tools). `"deny"` prevents the tool call. `"ask"` prompts the user to confirm. `"defer"` exits gracefully so the tool can be resumed later. [Deny and ask rules](https://code.claude.com/docs/en/permissions#manage-permissions) are still evaluated regardless of what the hook returns |
 | `permissionDecisionReason` | For `"allow"` and `"ask"`, shown to the user but not Claude. For `"deny"`, shown to Claude. For `"defer"`, ignored |
 | `updatedInput` | Modifies the tool’s input parameters before execution. Replaces the entire input object, so include unchanged fields alongside modified ones. Combine with `"allow"` to auto-approve, or `"ask"` to show the modified input to the user. For `"defer"`, ignored |
 | `additionalContext` | String added to Claude’s context alongside the tool result. Ignored when `permissionDecision` is `"defer"`. See [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude) |
 
-When multiple PreToolUse hooks return different decisions, precedence is `deny` \> `defer` \> `ask` \> `allow`.When a hook returns `"ask"`, the permission prompt displayed to the user includes a label identifying where the hook came from: for example, `[User]`, `[Project]`, `[Plugin]`, or `[Local]`. This helps users understand which configuration source is requesting confirmation.
+When multiple PreToolUse hooks return different decisions, precedence is `deny` \> `defer` \> `ask` \> `allow`.When a hook returns `"ask"`, the permission prompt displayed to the user includes a label identifying where the hook came from: for example, `[User]`, `[Project]`, `[Plugin]`, or `[Local]`. This helps users understand which configuration source is requesting confirmation.A hook’s `"ask"` also forces a permission prompt in [auto mode](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode): the classifier can still deny the tool call, but it can’t approve the call silently. Before v2.1.211, the classifier could approve a Bash command running outside the [sandbox](https://code.claude.com/docs/en/sandboxing) without showing the prompt the hook requested; the classifier still applied its own safety rules to that command, and a hook `"deny"` was always honored.
 
 ```
 {
@@ -1371,17 +1365,13 @@ When multiple PreToolUse hooks return different decisions, precedence is `deny` 
 }
 ```
 
-`AskUserQuestion` and `ExitPlanMode` require user interaction and normally block in [non-interactive mode](https://code.claude.com/docs/en/headless) with the `-p` flag. Returning `permissionDecision: "allow"` together with `updatedInput` satisfies that requirement: the hook reads the tool’s input from stdin, collects the answer through your own UI, and returns it in `updatedInput` so the tool runs without prompting. Returning `"allow"` alone is not sufficient for these tools. For `AskUserQuestion`, echo back the original `questions` array and add an [`answers`](https://code.claude.com/docs/en/hooks#askuserquestion) object mapping each question’s text to the chosen answer.As of v2.1.199, an MCP tool whose server marks it with [`_meta["anthropic/requiresUserInteraction"]`](https://code.claude.com/docs/en/mcp#require-approval-for-a-specific-tool) is stricter: a hook can’t skip its approval prompt with `"allow"`, with or without `updatedInput`, because Claude Code can’t confirm the hook collected the interaction the tool needs.
+`AskUserQuestion` and `ExitPlanMode` require user interaction and normally block in [non-interactive mode](https://code.claude.com/docs/en/headless) with the `-p` flag. Returning `permissionDecision: "allow"` together with `updatedInput` satisfies that requirement: the hook reads the tool’s input from stdin, collects the answer through your own UI, and returns it in `updatedInput` so the tool runs without prompting. Returning `"allow"` alone is not sufficient for these tools. For `AskUserQuestion`, echo back the original `questions` array and add an [`answers`](https://code.claude.com/docs/en/hooks#askuserquestion) object mapping each question’s text to the chosen answer.Connector tools [your organization set to `ask`](https://code.claude.com/docs/en/mcp#organization-controls-on-connector-tools) prompt even when a hook returns `"allow"`.As of v2.1.199, an MCP tool whose server marks it with [`_meta["anthropic/requiresUserInteraction"]`](https://code.claude.com/docs/en/mcp#require-approval-for-a-specific-tool) is stricter: a hook can’t skip its approval prompt with `"allow"`, with or without `updatedInput`, because Claude Code can’t confirm the hook collected the interaction the tool needs.
 
 PreToolUse previously used top-level `decision` and `reason` fields, but these are deprecated for this event. Use `hookSpecificOutput.permissionDecision` and `hookSpecificOutput.permissionDecisionReason` instead. The deprecated values `"approve"` and `"block"` map to `"allow"` and `"deny"` respectively. Other events like PostToolUse and Stop continue to use top-level `decision` and `reason` as their current format.
 
 #### [​](https://code.claude.com/docs/en/hooks\#defer-a-tool-call-for-later)  Defer a tool call for later
 
-`"defer"` is for integrations that run `claude -p` as a subprocess and read its JSON output, such as an Agent SDK app or a custom UI built on top of Claude Code. It lets that calling process pause Claude at a tool call, collect input through its own interface, and resume where it left off. Claude Code honors this value only in [non-interactive mode](https://code.claude.com/docs/en/headless) with the `-p` flag. In interactive sessions it logs a warning and ignores the hook result.
-
-The `defer` value requires Claude Code v2.1.89 or later. Earlier versions don’t recognize it and the tool proceeds through the normal permission flow.
-
-The `AskUserQuestion` tool is the typical case: Claude wants to ask the user something, but there is no terminal to answer in. The round trip works like this:
+`"defer"` is for integrations that run `claude -p` as a subprocess and read its JSON output, such as an Agent SDK app or a custom UI built on top of Claude Code. It lets that calling process pause Claude at a tool call, collect input through its own interface, and resume where it left off. Claude Code honors this value only in [non-interactive mode](https://code.claude.com/docs/en/headless) with the `-p` flag. In interactive sessions it logs a warning and ignores the hook result.The `AskUserQuestion` tool is the typical case: Claude wants to ask the user something, but there is no terminal to answer in. The round trip works like this:
 
 1. Claude calls `AskUserQuestion`. The `PreToolUse` hook fires.
 2. The hook returns `permissionDecision: "defer"`. The tool doesn’t execute. The process exits with `stop_reason: "tool_deferred"` and the pending tool call preserved in the transcript.
@@ -1407,7 +1397,7 @@ The `deferred_tool_use` field carries the tool’s `id`, `name`, and `input`. Th
 
 There is no timeout or retry limit. The session remains on disk until you resume it, subject to the [`cleanupPeriodDays`](https://code.claude.com/docs/en/settings#available-settings) retention sweep that deletes session files after 30 days by default. If the answer is not ready when you resume, the hook can return `"defer"` again and the process exits the same way. The calling process controls when to break the loop by eventually returning `"allow"` or `"deny"` from the hook.`"defer"` only works when Claude makes a single tool call in the turn. If Claude makes several tool calls at once, `"defer"` is ignored with a warning and the tool proceeds through the normal permission flow. The constraint exists because resume can only re-run one tool: there is no way to defer one call from a batch without leaving the others unresolved.If the deferred tool is no longer available when you resume, the process exits with `stop_reason: "tool_deferred_unavailable"` and `is_error: true` before the hook fires. This happens when an MCP server that provided the tool is not connected for the resumed session. The `deferred_tool_use` payload is still included so you can identify which tool went missing.
 
-`--resume` restores the permission mode that was active when the tool was deferred, so you don’t need to pass `--permission-mode` again. The exceptions are `plan` and `bypassPermissions`, which are never carried over. Passing `--permission-mode` explicitly on resume overrides the restored value.
+`--resume` restores the permission mode that was active when the tool was deferred, so you don’t need to pass `--permission-mode` again. The exceptions are `plan` and `bypassPermissions`, which are never carried over, and `auto`, which is restored only when your account still meets the [auto mode requirements](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode). Passing `--permission-mode` explicitly on resume overrides the restored value.
 
 ### [​](https://code.claude.com/docs/en/hooks\#permissionrequest)  PermissionRequest
 
@@ -1559,7 +1549,9 @@ The example below replaces the output of a `Bash` call. The replacement value ma
 
 ### [​](https://code.claude.com/docs/en/hooks\#posttoolusefailure)  PostToolUseFailure
 
-Runs when a tool execution fails. This event fires for tool calls that throw errors or return failure results. Use this to log failures, send alerts, or provide corrective feedback to Claude.Matches on tool name, same values as PreToolUse.
+Runs when a tool that started executing fails: the tool threw an error, or an MCP tool returned an error result. Use this to log failures, send alerts, or provide corrective feedback to Claude.Matches on tool name, same values as PreToolUse.
+
+This event doesn’t fire for tool calls rejected before execution: an unknown tool name, input that fails schema or tool-specific validation, or a permission denial. Validation rejections are returned as `tool_use_error` results and happen before hooks run, so they fire neither `PreToolUse` nor `PostToolUseFailure`. Permission denials fire `PreToolUse` but not this event; see [PermissionDenied](https://code.claude.com/docs/en/hooks#permissiondenied).
 
 #### [​](https://code.claude.com/docs/en/hooks\#posttoolusefailure-input)  PostToolUseFailure input
 
