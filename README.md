@@ -289,6 +289,7 @@ The framework supports the following hook types:
 | **[PostCompact](docs/API/POST_COMPACT.md)** | `ClaudeHooks::PostCompact` | Runs after transcript compaction completes |
 | **[ConfigChange](docs/API/CONFIG_CHANGE.md)** | `ClaudeHooks::ConfigChange` | Runs when Claude Code configuration changes; can block it |
 | **[CwdChanged](docs/API/CWD_CHANGED.md)** | `ClaudeHooks::CwdChanged` | Runs when the working directory changes |
+| **[DirectoryAdded](docs/API/DIRECTORY_ADDED.md)** | `ClaudeHooks::DirectoryAdded` | Runs when a working directory is added mid-session |
 | **[FileChanged](docs/API/FILE_CHANGED.md)** | `ClaudeHooks::FileChanged` | Runs when a watched file is created, modified, or deleted |
 | **[InstructionsLoaded](docs/API/INSTRUCTIONS_LOADED.md)** | `ClaudeHooks::InstructionsLoaded` | Runs when a CLAUDE.md instructions file is loaded |
 | **[Elicitation](docs/API/ELICITATION.md)** | `ClaudeHooks::Elicitation` | Runs when an MCP server requests user input |
@@ -417,6 +418,7 @@ The framework supports all existing hook types with their respective input field
 | **PostCompact**  | `trigger`, `compact_summary` |
 | **ConfigChange**  | `source`, `file_path` |
 | **CwdChanged**  | `old_cwd`, `new_cwd` |
+| **DirectoryAdded**  | `directory`, `source` |
 | **FileChanged**  | `file_path`, `event` |
 | **InstructionsLoaded**  | `file_path`, `load_reason` |
 | **Elicitation**  | `mcp_server_name`, `message`, `mode`, `url`, `elicitation_id`, `requested_schema` |
@@ -650,7 +652,7 @@ Claude Code hooks support multiple exit codes with different behaviors depending
 > - **Blocking via top-level `decision`** (behave like `PreToolUse`/`Stop`): `UserPromptExpansion`, `PostToolBatch`, `ConfigChange`.
 > - **Blocking via `exit 2` / `continue: false`** (no `decision` field): `TaskCreated`, `TaskCompleted`, `TeammateIdle`.
 > - **JSON-API special** (always `exit 0`, decision in `hookSpecificOutput`): `PermissionDenied`, `Elicitation`, `ElicitationResult`, `WorktreeCreate` (bare-path stdout).
-> - **Non-blocking / context-only** (exit code effectively ignored): `Setup`, `SubagentStart`, `PostToolUseFailure`, `StopFailure`, `PostCompact`, `CwdChanged`, `FileChanged`, `InstructionsLoaded`, `WorktreeRemove`, `MessageDisplay`.
+> - **Non-blocking / context-only** (exit code effectively ignored): `Setup`, `SubagentStart`, `PostToolUseFailure`, `StopFailure`, `PostCompact`, `CwdChanged`, `DirectoryAdded`, `FileChanged`, `InstructionsLoaded`, `WorktreeRemove`, `MessageDisplay`.
 
 
 #### Manually outputing and exiting example with success

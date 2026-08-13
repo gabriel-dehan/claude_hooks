@@ -180,6 +180,8 @@ module ClaudeHooks
           ElicitationResult.new(data)
         when 'WorktreeCreate'
           WorktreeCreate.new(data)
+        when 'DirectoryAdded'
+          DirectoryAdded.new(data)
         else
           raise ArgumentError, "Unknown hook type: #{hook_type}"
         end

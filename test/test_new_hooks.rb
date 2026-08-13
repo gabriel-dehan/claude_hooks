@@ -383,6 +383,34 @@ class TestNewHooks < Minitest::Test
                        ClaudeHooks::Output::Base.for_hook_type('FileChanged', {}))
   end
 
+  # === C4: DirectoryAdded ===
+
+  def test_directory_added_hook_type
+    assert_equal('DirectoryAdded', ClaudeHooks::DirectoryAdded.hook_type)
+  end
+
+  def test_directory_added_input_fields
+    assert_equal(%w[directory source], ClaudeHooks::DirectoryAdded.input_fields)
+  end
+
+  def test_directory_added_readers
+    hook = ClaudeHooks::DirectoryAdded.new(@common.merge('directory' => '/other/repo', 'source' => 'slash_command'))
+    assert_equal('/other/repo', hook.directory)
+    assert_equal('slash_command', hook.source)
+  end
+
+  def test_directory_added_system_message_builder
+    hook = ClaudeHooks::DirectoryAdded.new(@common)
+    hook.system_message!('prepared dependencies')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('prepared dependencies', data['systemMessage'])
+  end
+
+  def test_directory_added_for_hook_type
+    assert_instance_of(ClaudeHooks::Output::DirectoryAdded,
+                       ClaudeHooks::Output::Base.for_hook_type('DirectoryAdded', {}))
+  end
+
   # === C4: InstructionsLoaded ===
 
   def test_instructions_loaded_hook_type

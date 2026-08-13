@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`DirectoryAdded` hook event** (`ClaudeHooks::DirectoryAdded` / `ClaudeHooks::Output::DirectoryAdded`): non-blocking hook that runs after a working directory is added mid-session via `/add-dir` or the SDK `register_repo_root` control request. Exposes `directory` and `source` readers plus a `system_message!` builder.
+
 ## [1.2.1] - 2026-07-15
 
 ### Added
