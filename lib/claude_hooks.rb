@@ -37,6 +37,7 @@ require_relative "claude_hooks/permission_denied"
 require_relative "claude_hooks/elicitation"
 require_relative "claude_hooks/elicitation_result"
 require_relative "claude_hooks/worktree_create"
+require_relative "claude_hooks/directory_added"
 
 # Output classes
 require_relative "claude_hooks/output/base"
@@ -70,6 +71,7 @@ require_relative "claude_hooks/output/permission_denied"
 require_relative "claude_hooks/output/elicitation"
 require_relative "claude_hooks/output/elicitation_result"
 require_relative "claude_hooks/output/worktree_create"
+require_relative "claude_hooks/output/directory_added"
 
 module ClaudeHooks
   class Error < StandardError; end

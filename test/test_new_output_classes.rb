@@ -311,6 +311,27 @@ class TestNewOutputClasses < Minitest::Test
     assert_equal(0, out.exit_code)
   end
 
+  # === DirectoryAdded always exits 0 ===
+
+  def test_directory_added_exit_code_always_zero
+    out = ClaudeHooks::Output::DirectoryAdded.new({ 'continue' => false })
+    assert_equal(0, out.exit_code)
+    assert_equal(:stdout, out.output_stream)
+  end
+
+  def test_directory_added_system_message_accessor
+    out = ClaudeHooks::Output::DirectoryAdded.new({ 'systemMessage' => 'prepared' })
+    assert_equal('prepared', out.system_message)
+  end
+
+  def test_directory_added_merge_joins_system_messages
+    o1 = ClaudeHooks::Output::DirectoryAdded.new({ 'systemMessage' => 'a' })
+    o2 = ClaudeHooks::Output::DirectoryAdded.new({ 'systemMessage' => 'b' })
+    merged = ClaudeHooks::Output::DirectoryAdded.merge(o1, o2)
+    assert_includes(merged.system_message, 'a')
+    assert_includes(merged.system_message, 'b')
+  end
+
   # === PermissionDenied retry accessor ===
 
   def test_permission_denied_retry_true
