@@ -58,7 +58,7 @@ The table below summarizes when each event fires. The [Hook events](https://code
 
 ### [​](https://code.claude.com/docs/en/hooks\#how-a-hook-resolves)  How a hook resolves
 
-To see how these pieces fit together, consider this `PreToolUse` hook that blocks destructive shell commands.
+To see how the event, the matcher, and the handler fit together, consider this `PreToolUse` hook that blocks destructive shell commands.
 
 - macOS/Linux
 
@@ -250,10 +250,10 @@ Where you define a hook determines its scope:
 Cloud sessions on [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web) don’t read your local `~/.claude/settings.json`; hooks there come from the repo and from your organization’s server-managed settings. See [what carries over from your setup](https://code.claude.com/docs/en/cloud-environments#what-carries-over-from-your-setup) for which files reach a cloud session.For details on settings file resolution, see [settings](https://code.claude.com/docs/en/settings).Hooks from settings files, managed policy settings, and plugins also run inside [subagents](https://code.claude.com/docs/en/sub-agents). When a subagent calls a tool, tool events such as `PreToolUse` and `PostToolUse` fire the same configured hooks as in the main conversation, and the input carries the `agent_id` and `agent_type` [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields) that identify the subagent.Enterprise administrators can use `allowManagedHooksOnly` to restrict which hooks run:
 
 - Your user, project, local, and plugin hooks are blocked. Hooks from plugins force-enabled in managed settings `enabledPlugins` are exempt
-- Claude Code also narrows your [`statusLine`](https://code.claude.com/docs/en/statusline), [`fileSuggestion`](https://code.claude.com/docs/en/settings#file-suggestion-settings), and [`subagentStatusLine`](https://code.claude.com/docs/en/statusline#subagent-status-lines) settings to managed settings
-- Claude Code also disables plugins with a [`command` source](https://code.claude.com/docs/en/plugin-marketplaces#command-sources), including plugins force-enabled in managed settings `enabledPlugins`, unless [`disableCommandPluginSources`](https://code.claude.com/docs/en/settings#available-settings) is explicitly set to `false`
+- Claude Code also narrows your [`statusLine`](https://code.claude.com/docs/en/statusline), [`fileSuggestion`](https://code.claude.com/docs/en/settings-reference#filesuggestion), and [`subagentStatusLine`](https://code.claude.com/docs/en/statusline#subagent-status-lines) settings to managed settings
+- Claude Code also disables plugins with a [`command` source](https://code.claude.com/docs/en/plugin-marketplaces#command-sources), including plugins force-enabled in managed settings `enabledPlugins`, unless [`disableCommandPluginSources`](https://code.claude.com/docs/en/settings-reference#disablecommandpluginsources) is explicitly set to `false`
 
-See [Hook configuration](https://code.claude.com/docs/en/settings#hook-configuration).Hook entries merge across settings levels rather than replacing each other: user, project, and local settings add their own hooks without removing managed ones, and the [`disableAllHooks`](https://code.claude.com/docs/en/hooks#disable-or-remove-hooks) setting can’t disable managed hooks from outside managed settings.The [HTTP hook allowlists](https://code.claude.com/docs/en/settings#hook-configuration) apply to hooks from every source, including managed policy settings:
+See [what runs under `allowManagedHooksOnly`](https://code.claude.com/docs/en/settings-reference#what-runs-under-allowmanagedhooksonly).Hook entries merge across settings levels rather than replacing each other: user, project, and local settings add their own hooks without removing managed ones, and the [`disableAllHooks`](https://code.claude.com/docs/en/hooks#disable-or-remove-hooks) setting can’t disable managed hooks from outside managed settings.The [HTTP hook allowlists](https://code.claude.com/docs/en/settings-reference#hook-and-skill-settings) apply to hooks from every source, including managed policy settings:
 
 - `allowedHttpHookUrls`: when defined at any settings level, Claude Code runs an HTTP hook handler only if its URL matches the merged allowlist
 - `httpHookAllowedEnvVars`: when defined, Claude Code interpolates only the environment variables on that list into hook headers
@@ -275,7 +275,7 @@ A matcher on the regular-expression path is tested with JavaScript’s `RegExp.p
 | `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, `PermissionDenied` | tool name | `Bash`, `Edit|Write`, `mcp__.*` |
 | `SessionStart` | how the session started | `startup`, `resume`, `clear`, `compact`, `fork` |
 | `Setup` | which CLI flag triggered setup | `init`, `maintenance` |
-| `SessionEnd` | why the session ended | `clear`, `resume`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |
+| `SessionEnd` | why the session ended | `clear`, `resume`, `logout`, `prompt_input_exit`, `other` |
 | `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_url_dialog`, `elicitation_complete`, `elicitation_response`, `agent_needs_input`, `agent_completed` |
 | `SubagentStart` | agent type | `general-purpose`, `Explore`, `Plan`, custom agent names, or plugin-scoped names like `^my-plugin:reviewer$` |
 | `PreCompact`, `PostCompact` | what triggered compaction | `manual`, `auto` |
@@ -513,9 +513,14 @@ In addition to the [common fields](https://code.claude.com/docs/en/hooks#common-
 
 Use these placeholders to reference hook scripts relative to the project or plugin root, regardless of the working directory when the hook runs:
 
-- `${CLAUDE_PROJECT_DIR}`: the project root. Claude Code also sets this variable in the environment of [stdio MCP servers](https://code.claude.com/docs/en/mcp#option-3-add-a-local-stdio-server) and plugin LSP servers.
+- `${CLAUDE_PROJECT_DIR}`: the project root where the session started. Claude Code also sets this variable in the environment of [stdio MCP servers](https://code.claude.com/docs/en/mcp#option-3-add-a-local-stdio-server) and plugin LSP servers.
 - `${CLAUDE_PLUGIN_ROOT}`: the plugin’s installation directory, for scripts bundled with a [plugin](https://code.claude.com/docs/en/plugins). Changes on each plugin update.
 - `${CLAUDE_PLUGIN_DATA}`: the plugin’s [persistent data directory](https://code.claude.com/docs/en/plugins-reference#persistent-data-directory), for dependencies and state that should survive plugin updates.
+
+**Worktrees are different.** If Claude enters a [worktree](https://code.claude.com/docs/en/worktrees) during the session, Claude Code keeps `${CLAUDE_PROJECT_DIR}` where it was and passes the worktree path to your hooks a different way:
+
+- **`${CLAUDE_PROJECT_DIR}` stays put**: it still points at the project root where the session started, so a command such as `${CLAUDE_PROJECT_DIR}/.claude/hooks/check-style.sh` still runs the script in the main checkout.
+- **`cwd` follows Claude**: the `cwd` field in the hook’s [input JSON](https://code.claude.com/docs/en/hooks#common-input-fields) is the worktree root after Claude enters a worktree, and the new directory after Claude runs `cd`. Read it when a hook needs to know which directory Claude is working in.
 
 Prefer [exec form](https://code.claude.com/docs/en/hooks#exec-form-and-shell-form) for any hook that references a path placeholder. In shell form, wrap each placeholder in double quotes.
 
@@ -1331,7 +1336,7 @@ Batches with no markdown pass through unchanged. If the script fails, for exampl
 
 ### [​](https://code.claude.com/docs/en/hooks\#pretooluse)  PreToolUse
 
-Runs after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `PowerShell`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Agent`, `WebFetch`, `WebSearch`, `AskUserQuestion`, `ExitPlanMode`, and any [MCP tool names](https://code.claude.com/docs/en/hooks#match-mcp-tools).
+Runs after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `PowerShell`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Agent`, `WebFetch`, `WebSearch`, `AskUserQuestion`, `ExitPlanMode`, and any [MCP tool names](https://code.claude.com/docs/en/hooks#match-mcp-tools).To run a hook when a specific file changes on disk, whatever wrote it, use [FileChanged](https://code.claude.com/docs/en/hooks#filechanged) instead of matching file-editing tools by name. Unlike PreToolUse, Claude Code runs FileChanged hooks after the change, and they have no decision control, so they can’t block the write.
 
 PreToolUse runs only when Claude calls a tool. Files you [reference with `@` in your prompt](https://code.claude.com/docs/en/common-workflows#reference-files-and-directories) are added without any tool call: Claude Code inserts their contents while building the prompt, so no PreToolUse hook fires for them, including hooks matching `Read`. To block specific paths from `@` references, use a [`Read` deny rule](https://code.claude.com/docs/en/permissions#read-and-edit) instead.PreToolUse also doesn’t fire for [`EndConversation`](https://code.claude.com/docs/en/tools-reference#endconversation-tool-behavior).
 
@@ -1515,7 +1520,7 @@ In `PostToolUse`, `tool_response` is an object with `plan` and `filePath` fields
 
 | Field | Description |
 | --- | --- |
-| `permissionDecision` | `"allow"` skips the permission prompt, except for [tools that require user interaction](https://code.claude.com/docs/en/hooks#pretooluse-decision-control) and connector tools [your organization set to `ask`](https://code.claude.com/docs/en/mcp#organization-controls-on-connector-tools). `"deny"` prevents the tool call. `"ask"` prompts the user to confirm. `"defer"` exits gracefully so the tool can be resumed later. [Deny and ask rules](https://code.claude.com/docs/en/permissions#manage-permissions) are still evaluated regardless of what the hook returns |
+| `permissionDecision` | `"allow"` skips the permission prompt, except for the [actions no mode auto-approves](https://code.claude.com/docs/en/permission-modes#actions-no-mode-auto-approves) and for `AskUserQuestion` and `ExitPlanMode`, which need [`updatedInput` paired with it](https://code.claude.com/docs/en/hooks#allow-with-updatedinput). `"deny"` prevents the tool call. `"ask"` prompts the user to confirm. `"defer"` exits gracefully so the tool can be resumed later. [Deny and ask rules](https://code.claude.com/docs/en/permissions#manage-permissions) are still evaluated regardless of what the hook returns |
 | `permissionDecisionReason` | For `"allow"` and `"ask"`, shown to the user but not Claude. For `"deny"`, shown to Claude. For `"defer"`, ignored |
 | `updatedInput` | Modifies the tool’s input parameters before execution. Replaces the entire input object, so include unchanged fields alongside modified ones. Combine with `"allow"` to auto-approve, or `"ask"` to show the modified input to the user. For `"defer"`, ignored |
 | `additionalContext` | String added to Claude’s context alongside the tool result. Ignored when `permissionDecision` is `"defer"`. See [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude) |
@@ -1566,7 +1571,7 @@ The `deferred_tool_use` field carries the tool’s `id`, `name`, and `input`. Th
 }
 ```
 
-There is no timeout or retry limit. The session remains on disk until you resume it, subject to the [`cleanupPeriodDays`](https://code.claude.com/docs/en/settings#available-settings) retention sweep, which deletes session files after 30 days by default, following the [retention sweep rules](https://code.claude.com/docs/en/claude-directory#cleaned-up-automatically). If the answer is not ready when you resume, the hook can return `"defer"` again and the process exits the same way. The calling process controls when to break the loop by eventually returning `"allow"` or `"deny"` from the hook.`"defer"` only works when Claude makes a single tool call in the turn. If Claude makes several tool calls at once, `"defer"` is ignored with a warning and the tool proceeds through the normal permission flow. The constraint exists because resume can only re-run one tool: there is no way to defer one call from a batch without leaving the others unresolved.If the deferred tool is no longer available when you resume, the process exits with `stop_reason: "tool_deferred_unavailable"` and `is_error: true` before the hook fires. This happens when an MCP server that provided the tool is not connected for the resumed session. The `deferred_tool_use` payload is still included so you can identify which tool went missing.
+There is no timeout or retry limit. The session remains on disk until you resume it, subject to the [`cleanupPeriodDays`](https://code.claude.com/docs/en/settings-reference#cleanupperioddays) retention sweep, which deletes session files after 30 days by default, following the [retention sweep rules](https://code.claude.com/docs/en/claude-directory#cleaned-up-automatically). If the answer is not ready when you resume, the hook can return `"defer"` again and the process exits the same way. The calling process controls when to break the loop by eventually returning `"allow"` or `"deny"` from the hook.`"defer"` only works when Claude makes a single tool call in the turn. If Claude makes several tool calls at once, `"defer"` is ignored with a warning and the tool proceeds through the normal permission flow. The constraint exists because resume can only re-run one tool: there is no way to defer one call from a batch without leaving the others unresolved.If the deferred tool is no longer available when you resume, the process exits with `stop_reason: "tool_deferred_unavailable"` and `is_error: true` before the hook fires. This happens when an MCP server that provided the tool is not connected for the resumed session. The `deferred_tool_use` payload is still included so you can identify which tool went missing.
 
 `--resume` restores the permission mode that was active when the tool was deferred, so you don’t need to pass `--permission-mode` again. The exceptions are `plan` and `bypassPermissions`, which are never carried over, and `auto`, which is restored only when your account still meets the [auto mode requirements](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode). Passing `--permission-mode` explicitly on resume overrides the restored value.
 
@@ -1658,7 +1663,10 @@ A hook can echo one of the `permission_suggestions` it received as its own `upda
 
 ### [​](https://code.claude.com/docs/en/hooks\#posttooluse)  PostToolUse
 
-Runs immediately after a tool completes successfully.Matches on tool name, same values as PreToolUse.
+Runs immediately after a tool completes successfully.Matches on tool name, same values as PreToolUse.Match more broadly when the tool name isn’t the right filter:
+
+- To run a hook after any tool completes successfully, omit the `matcher` or set it to `"*"`. Your hook can then discover what changed itself, for example by running `git status --porcelain`, which also lists untracked files that `git diff` misses. For tool calls that fail, add the same hook under [PostToolUseFailure](https://code.claude.com/docs/en/hooks#posttoolusefailure).
+- To run a hook when a specific file changes on disk, whatever wrote it, use [FileChanged](https://code.claude.com/docs/en/hooks#filechanged). Claude Code doesn’t run a `PostToolUse` hook matching `Edit|Write` when a `Bash` command or a process outside Claude Code rewrites the same file.
 
 #### [​](https://code.claude.com/docs/en/hooks\#posttooluse-input)  PostToolUse input
 
@@ -1698,6 +1706,7 @@ Runs immediately after a tool completes successfully.Matches on tool name, same 
 | `decision` | `"block"` adds the `reason` next to the tool result. Claude still sees the original output; to replace it, use `updatedToolOutput` |
 | `reason` | Explanation shown to Claude when `decision` is `"block"` |
 | `additionalContext` | String added to Claude’s context alongside the tool result. See [Add context for Claude](https://code.claude.com/docs/en/hooks#add-context-for-claude) |
+| `classifierContext` | Short note about this call’s result for the [auto mode](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode) classifier rather than for Claude. See [Annotate a result for the auto mode classifier](https://code.claude.com/docs/en/hooks#annotate-a-result-for-the-auto-mode-classifier). Requires Claude Code v2.1.236 or later |
 | `updatedToolOutput` | Replaces the tool’s output with the provided value before it is sent to Claude. The value must match the tool’s output shape |
 | `updatedMCPToolOutput` | Replaces the output for [MCP tools](https://code.claude.com/docs/en/hooks#match-mcp-tools) only. Prefer `updatedToolOutput`, which works for all tools |
 
@@ -1719,6 +1728,33 @@ The example below replaces the output of a `Bash` call. The replacement value ma
 ```
 
 `updatedToolOutput` only changes what Claude sees. The tool has already run by the time the hook fires, so any files written, commands executed, or network requests sent have already taken effect. Telemetry such as OpenTelemetry tool spans and analytics events also captures the original output before the hook runs. To prevent or modify a tool call before it runs, use a [PreToolUse](https://code.claude.com/docs/en/hooks#pretooluse) hook instead.The replacement value must match the tool’s output shape. Built-in tools return structured objects rather than plain strings. For example, `Bash` returns an object with `stdout`, `stderr`, `interrupted`, and `isImage` fields. For built-in tools, a value that doesn’t match the tool’s output schema is ignored and the original output is used. MCP tool output is passed through without schema validation. Stripping error details that Claude needs can cause it to proceed on a false assumption.
+
+#### [​](https://code.claude.com/docs/en/hooks\#annotate-a-result-for-the-auto-mode-classifier)  Annotate a result for the auto mode classifier
+
+Return `classifierContext` to send a short note about the tool call’s result to the [auto mode](https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode) classifier rather than to Claude. The classifier [never receives tool results themselves](https://code.claude.com/docs/en/permission-modes#how-the-classifier-evaluates-actions), so this field is the supported way to tell it something about what a call returned before it reviews later actions. The field requires Claude Code v2.1.236 or later.The example below tells the classifier where a query’s output came from:
+
+```
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PostToolUse",
+    "classifierContext": "This query ran against the staging database, not production."
+  }
+}
+```
+
+How much weight the classifier gives the note depends on where you configured the hook:
+
+- **Hooks configured in Claude Code**: for hooks from settings files, plugins, skills, and agent frontmatter, the classifier treats the note as unverified, application-provided context. The note never establishes user intent, and if it claims you approved or requested something, the classifier checks that claim against your own messages in the conversation
+- **In-process Agent SDK callbacks**: when an application embedding Claude Code registers the hook as a [TypeScript SDK callback](https://code.claude.com/docs/en/agent-sdk/hooks) and returns the note during the live session, the classifier may weigh a user statement relayed in the note as user intent. Such a statement can satisfy a consent requirement the classifier would accept from a message you send, but it never lifts a block that your own message couldn’t lift either. After a session resumes, Claude Code treats restored notes as unverified context. When hooks from both groups annotate the same call, the classifier treats the combined note as unverified
+
+Claude Code applies these limits when delivering the note:
+
+- **Length**: Claude Code caps the notes for one tool call at 2,000 characters and truncates the rest. The cap is shared across every hook that responds to that call
+- **Synchronous responses only**: Claude Code ignores the field in the response of a hook that [runs in the background](https://code.claude.com/docs/en/hooks#run-hooks-in-the-background), because that response arrives after Claude Code records the tool result
+- **Calls that the classifier doesn’t record**: the classifier’s transcript omits read-only lookups such as file reads and searches. Claude Code discards a note attached to one of those calls
+- **Interaction with rewrites**: when the note describes output you’re replacing with `updatedToolOutput`, return both fields in the same hook response. Claude Code drops the note if that rewrite is rejected or another hook’s rewrite replaces it. Claude Code delivers a note you return without a rewrite even when another hook rewrites the output
+
+The classifier reads content you place in `classifierContext` as information from the application hosting the session, so don’t copy untrusted tool output or third-party text into it. Keep the note to a short assertion about this one call, such as a fact about its origin or a user statement about it; don’t use the field to deliver unrelated messages or a stream of events.
 
 ### [​](https://code.claude.com/docs/en/hooks\#posttoolusefailure)  PostToolUseFailure
 
@@ -1994,7 +2030,7 @@ Runs when a Claude Code subagent has finished responding. Matches on agent type,
 
 #### [​](https://code.claude.com/docs/en/hooks\#subagentstop-input)  SubagentStop input
 
-In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), SubagentStop hooks receive `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, and `last_assistant_message`. The `agent_type` field is the value used for matcher filtering. The `transcript_path` is the main session’s transcript, while `agent_transcript_path` is the subagent’s own transcript stored in a nested `subagents/` folder. The `last_assistant_message` field contains the text content of the subagent’s final response, so hooks can access it without parsing the transcript file.SubagentStop hooks also receive the `background_tasks` and `session_crons` arrays described under [Stop input](https://code.claude.com/docs/en/hooks#stop-input), available in Claude Code v2.1.145 or later. Both arrays are scoped to the parent session, not the subagent.
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), SubagentStop hooks receive `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, and `last_assistant_message`. The `agent_type` field is the value used for matcher filtering. The `transcript_path` is the main session’s transcript, while `agent_transcript_path` is the subagent’s own transcript stored in a nested `subagents/` folder. The `last_assistant_message` field contains the text content of the subagent’s final response, so hooks can access it without parsing the transcript file.SubagentStop hooks also receive the `background_tasks` and `session_crons` arrays described under [Stop input](https://code.claude.com/docs/en/hooks#stop-input). Both arrays are scoped to the parent session, not the subagent.
 
 ```
 {
@@ -2132,7 +2168,7 @@ The [`/goal`](https://code.claude.com/docs/en/goal) command is a built-in shortc
 
 #### [​](https://code.claude.com/docs/en/hooks\#stop-input)  Stop input
 
-In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active`, `last_assistant_message`, `background_tasks`, and `session_crons`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks.The `last_assistant_message` field contains the text content of Claude’s final response, so hooks can access it without parsing the transcript file. For hooks that act on the just-completed turn, such as read-aloud or notification hooks, use this field rather than reading `transcript_path`: the transcript file isn’t guaranteed to include the final message at Stop time on all versions.The `background_tasks` and `session_crons` arrays, available in Claude Code v2.1.145 or later, let hooks distinguish “session is done” from “session is paused waiting for background work to wake it back up”. Both arrays are present when the task registry is reachable and are empty when nothing is in flight or scheduled.Each entry in `background_tasks` describes one in-flight task and uses these fields:
+In addition to the [common input fields](https://code.claude.com/docs/en/hooks#common-input-fields), Stop hooks receive `stop_hook_active`, `last_assistant_message`, `background_tasks`, and `session_crons`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks.The `last_assistant_message` field contains the text content of Claude’s final response, so hooks can access it without parsing the transcript file. For hooks that act on the just-completed turn, such as read-aloud or notification hooks, use this field rather than reading `transcript_path`: the transcript file isn’t guaranteed to include the final message at Stop time on all versions.The `background_tasks` and `session_crons` arrays let hooks distinguish “session is done” from “session is paused waiting for background work to wake it back up”. Both arrays are present when the task registry is reachable and are empty when nothing is in flight or scheduled.Each entry in `background_tasks` describes one in-flight task and uses these fields:
 
 | Field | Description |
 | --- | --- |
@@ -2291,14 +2327,14 @@ exit 0
 
 ### [​](https://code.claude.com/docs/en/hooks\#configchange)  ConfigChange
 
-Runs when a configuration file changes during a session. Use this to audit settings changes, enforce security policies, or block unauthorized modifications to configuration files.ConfigChange hooks fire for changes to settings files, managed policy settings, and skill files.The matcher filters on the configuration source:
+Runs when a configuration file changes during a session. Use this to audit settings changes, enforce security policies, or block unauthorized modifications to configuration files.Claude Code runs ConfigChange hooks when a settings file, a managed policy file, or a skill file changes. For managed policy, it runs them only when `managed-settings.json` or a file in `managed-settings.d/` changes. It applies [server-managed settings](https://code.claude.com/docs/en/server-managed-settings) and changes to macOS managed preferences or Windows registry policy without running them. On WSL with [`wslInheritsWindowsSettings`](https://code.claude.com/docs/en/settings#available-settings), it also applies a changed Windows-side managed settings file on its policy poll without running them.The matcher filters on the configuration source:
 
 | Matcher | When it fires |
 | --- | --- |
 | `user_settings` | `~/.claude/settings.json` changes |
 | `project_settings` | `.claude/settings.json` changes |
 | `local_settings` | `.claude/settings.local.json` changes |
-| `policy_settings` | Managed policy settings change |
+| `policy_settings` | `managed-settings.json` or a file in `managed-settings.d/` changes |
 | `skills` | A skill file in `.claude/skills/` changes |
 
 This example logs all configuration changes for security auditing:
@@ -2352,7 +2388,7 @@ ConfigChange hooks can block configuration changes from taking effect. Use exit 
 }
 ```
 
-`policy_settings` changes can’t be blocked. Hooks still fire for `policy_settings` sources, so you can use them for audit logging, but any blocking decision is ignored. This ensures enterprise-managed settings always take effect.Claude Code acts on the blocking decision from a ConfigChange hook’s JSON output and discards `systemMessage` and `continue`. A blocked change surfaces no message to you or to Claude, whether you block with `reason` or with stderr on exit 2. Claude Code only writes a line to the debug log.
+`policy_settings` changes can’t be blocked. Hooks still fire for `policy_settings` sources when a managed settings file on the machine changes, so you can use them to log those edits, but any blocking decision is ignored. This ensures enterprise-managed settings always take effect. Claude Code doesn’t run `ConfigChange` hooks when [server-managed settings](https://code.claude.com/docs/en/server-managed-settings) arrive or refresh.Claude Code acts on the blocking decision from a ConfigChange hook’s JSON output and discards `systemMessage` and `continue`. A blocked change surfaces no message to you or to Claude, whether you block with `reason` or with stderr on exit 2. Claude Code only writes a line to the debug log.
 
 ### [​](https://code.claude.com/docs/en/hooks\#cwdchanged)  CwdChanged
 
@@ -2425,12 +2461,42 @@ DirectoryAdded hooks have no decision control. They can’t block the add, which
 
 ### [​](https://code.claude.com/docs/en/hooks\#filechanged)  FileChanged
 
-Runs when a watched file changes on disk. Useful for reloading environment variables when project configuration files are modified.The `matcher` for this event serves two roles:
+Runs when a watched file changes on disk. Claude Code detects changes with a filesystem watcher, not by inspecting tool calls, so it runs the hook no matter what changed the file: an `Edit` or `Write` tool call, a script Claude runs with `Bash`, or a process outside Claude Code entirely. A common use is reloading environment variables when project configuration files change.The `matcher` for this event serves two roles:
 
 - **Build the watch list**: the value is split on `|` and each segment is registered as a literal filename in the working directory, so `".envrc|.env"` watches exactly those two files. Regex patterns are not useful here: a value like `^\.env` would watch a file literally named `^\.env`.
 - **Filter which hooks run**: when a watched file changes, the same value filters which hook groups run using the standard [matcher rules](https://code.claude.com/docs/en/hooks#matcher-patterns) against the changed file’s basename.
 
-FileChanged hooks have access to `CLAUDE_ENV_FILE`. Variables written to that file persist into subsequent Bash commands for the session, just as in [SessionStart hooks](https://code.claude.com/docs/en/hooks#persist-environment-variables).
+This example normalizes line endings in `data.csv` after any change, including a `Bash` command or an external script rewriting the file:
+
+```
+{
+  "hooks": {
+    "FileChanged": [\
+      {\
+        "matcher": "data.csv",\
+        "hooks": [\
+          {\
+            "type": "command",\
+            "command": "/path/to/normalize-line-endings.sh"\
+          }\
+        ]\
+      }\
+    ]
+  }
+}
+```
+
+The hook reads the changed file’s absolute path from the `file_path` field of the [JSON input](https://code.claude.com/docs/en/hooks#filechanged-input) on stdin. Its `grep` guard tests for the same thing `perl` removes, a CR at the end of a line, so the run after a normalization exits without touching the file. A looser guard loops forever, because `perl -i` rewrites the file even when it substitutes nothing and Claude Code runs the hook again after every rewrite. Save this script at `/path/to/normalize-line-endings.sh` and make it executable:
+
+```
+#!/bin/bash
+FILE=$(jq -r .file_path)
+if grep -q $'\r$' "$FILE"; then
+  perl -pi -e 's/\r$//' "$FILE"
+fi
+```
+
+To confirm the hook works, ask Claude to append a CRLF line to `data.csv` with a `Bash` command. Claude Code runs the hook and the file ends up with LF endings.To watch files you can’t name up front, return [`watchPaths`](https://code.claude.com/docs/en/hooks#filechanged-output) from a hook to update the watch list dynamically. Claude Code starts the watcher only when something names a file to watch, so seed the list with a FileChanged group whose matcher names at least one file, or with a [SessionStart](https://code.claude.com/docs/en/hooks#sessionstart-decision-control) or [CwdChanged](https://code.claude.com/docs/en/hooks#cwdchanged) hook that returns `watchPaths`. The matcher still filters which hook groups run when a watched file changes, so give the group that handles dynamic paths an omitted matcher, which matches every watched file and adds nothing to the watch list. A `"*"` matcher also matches every file, but Claude Code registers it in the watch list like any other value, as a literal file named `*`.FileChanged hooks have access to `CLAUDE_ENV_FILE`. Variables written to that file persist into subsequent Bash commands for the session, just as in [SessionStart hooks](https://code.claude.com/docs/en/hooks#persist-environment-variables).
 
 #### [​](https://code.claude.com/docs/en/hooks\#filechanged-input)  FileChanged input
 
@@ -2614,8 +2680,8 @@ statistics, or saving session state. Supports matchers to filter by exit reason.
 | `resume` | Session switched via interactive `/resume` |
 | `logout` | User logged out |
 | `prompt_input_exit` | User exited while prompt input was visible |
-| `bypass_permissions_disabled` | Bypass permissions mode was disabled |
 | `other` | Other exit reasons |
+| `bypass_permissions_disabled` | Removed in v2.1.234; Claude Code doesn’t send it. Drop it from your `SessionEnd` matchers |
 
 #### [​](https://code.claude.com/docs/en/hooks\#sessionend-input)  SessionEnd input
 
@@ -3031,7 +3097,7 @@ Command hooks execute shell commands with your full user permissions. They can m
 
 Claude Code checks workspace trust before it runs any hook from a settings file. What counts as trusted depends on the session type:
 
-- **Interactive session**: Claude Code holds back hooks from every settings file, including your own `~/.claude/settings.json`, until you accept the [workspace trust dialog](https://code.claude.com/docs/en/permissions#project-allow-rules-and-workspace-trust) for the folder or one of its parent directories
+- **Interactive session**: Claude Code holds back hooks from every settings file, including your own `~/.claude/settings.json`, until you accept the [workspace trust dialog](https://code.claude.com/docs/en/permissions#project-allow-rules-and-workspace-trust) for the folder, or for a parent directory whose trust extends to it
 - **`-p` or SDK session**: Claude Code never shows the dialog and treats the folder as trusted, so hooks committed in a repository’s `.claude/settings.json` run in a folder you’ve never trusted
 
 Before you script `claude -p` over a repository you didn’t write, review its `.claude/` settings files, start with [`--bare`](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode), or [turn hooks off for that run](https://code.claude.com/docs/en/hooks#disable-or-remove-hooks) with `--settings '{"disableAllHooks": true}'`. Frontmatter hooks in a project subagent follow a stricter rule than settings-file hooks. [What runs before you trust a folder](https://code.claude.com/docs/en/permissions#what-runs-before-you-trust-a-folder) lists each kind of repository content by session type.
