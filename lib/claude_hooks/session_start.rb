@@ -26,6 +26,24 @@ module ClaudeHooks
       @input_data['session_title'] || @input_data['sessionTitle']
     end
 
+    # Optional cost/context fields present when source is "resume" or "fork".
+
+    def seconds_since_last_response
+      @input_data['seconds_since_last_response'] || @input_data['secondsSinceLastResponse']
+    end
+
+    def context_tokens
+      @input_data['context_tokens'] || @input_data['contextTokens']
+    end
+
+    def prompt_cache_likely_expired
+      @input_data['prompt_cache_likely_expired'] || @input_data['promptCacheLikelyExpired']
+    end
+
+    def estimated_cache_write_usd
+      @input_data['estimated_cache_write_usd'] || @input_data['estimatedCacheWriteUsd']
+    end
+
     # === OUTPUT DATA HELPERS ===
 
     def add_additional_context!(context)

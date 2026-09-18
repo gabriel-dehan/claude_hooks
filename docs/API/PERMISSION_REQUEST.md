@@ -49,7 +49,7 @@ PermissionRequest hooks use the JSON API with exit code 0 for all permission dec
 |-----------|----------|
 | `exit 0` | Permission decision processed<br/>`STDOUT` contains JSON with decision |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
-| `exit 2` | **Not recommended for PermissionRequest**<br/>Use JSON API with exit 0 instead |
+| `exit 2` | **No longer honored for PermissionRequest** (Claude Code no longer treats it as a denial)<br/>Use the JSON API with exit 0 and a `decision.behavior` object instead |
 
 ## Example: Basic Permission Guard
 

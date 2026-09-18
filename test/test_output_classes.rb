@@ -396,7 +396,9 @@ class TestOutputClasses < Minitest::Test
     refute(merged.continue?)
     assert(merged.suppress_output?)
     assert_equal('Notification error', merged.stop_reason)
-    assert_equal(2, merged.exit_code)
+    # Claude Code ignores Notification's exit code/stderr, so it always exits 0.
+    assert_equal(0, merged.exit_code)
+    assert_equal(:stdout, merged.output_stream)
   end
 
   # === PRE COMPACT MERGE TESTS ===

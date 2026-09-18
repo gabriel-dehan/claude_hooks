@@ -35,3 +35,6 @@ Runs when a permission request is denied. Can request that Claude Code retries t
 ## Hook Exit Codes
 
 Exit code is ignored. Output is via `hookSpecificOutput.retry` (JSON API, exit 0 / stdout).
+
+> [!NOTE]
+> `retry: true` is ignored for "no-verdict" denials (where Claude Code produced no permission verdict to retry). `retry!` remains correct for the cases it applies to.

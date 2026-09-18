@@ -619,4 +619,184 @@ class TestNewHooks < Minitest::Test
     assert_instance_of(ClaudeHooks::Output::MessageDisplay,
                        ClaudeHooks::Output::Base.for_hook_type('MessageDisplay', {}))
   end
+
+  # === PreModelSwitch ===
+
+  def pre_model_switch_input
+    @common.merge(
+      'hook_event_name' => 'PreModelSwitch',
+      'from_model' => 'claude-sonnet-5',
+      'to_model' => 'claude-opus-5',
+      'requested_model' => 'opus',
+      'source' => 'command',
+      'context_tokens' => 182_340,
+      'prompt_cache_warm' => true,
+      'cache_ttl' => '5m',
+      'estimated_cache_write_usd' => 1.1396,
+      'pricing' => 'catalog'
+    )
+  end
+
+  def test_pre_model_switch_hook_type
+    assert_equal('PreModelSwitch', ClaudeHooks::PreModelSwitch.hook_type)
+  end
+
+  def test_pre_model_switch_input_fields
+    assert_equal(%w[from_model to_model requested_model source], ClaudeHooks::PreModelSwitch.input_fields)
+  end
+
+  def test_pre_model_switch_input_readers
+    hook = ClaudeHooks::PreModelSwitch.new(pre_model_switch_input)
+    assert_equal('claude-sonnet-5', hook.from_model)
+    assert_equal('claude-opus-5', hook.to_model)
+    assert_equal('opus', hook.requested_model)
+    assert_equal('command', hook.source)
+    assert_equal(182_340, hook.context_tokens)
+    assert_equal(true, hook.prompt_cache_warm)
+    assert_equal('5m', hook.cache_ttl)
+    assert_in_delta(1.1396, hook.estimated_cache_write_usd)
+    assert_equal('catalog', hook.pricing)
+  end
+
+  def test_pre_model_switch_allow_builder
+    hook = ClaudeHooks::PreModelSwitch.new(pre_model_switch_input)
+    hook.allow!('ok')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('allow', data['hookSpecificOutput']['permissionDecision'])
+    assert_equal('PreModelSwitch', data['hookSpecificOutput']['hookEventName'])
+  end
+
+  def test_pre_model_switch_deny_builder
+    hook = ClaudeHooks::PreModelSwitch.new(pre_model_switch_input)
+    hook.block_switch!('no opus')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('deny', data['hookSpecificOutput']['permissionDecision'])
+    assert_equal('no opus', data['hookSpecificOutput']['permissionDecisionReason'])
+  end
+
+  def test_pre_model_switch_ask_builder
+    hook = ClaudeHooks::PreModelSwitch.new(pre_model_switch_input)
+    hook.ask!('confirm?')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('ask', data['hookSpecificOutput']['permissionDecision'])
+  end
+
+  def test_pre_model_switch_top_level_block_builder
+    hook = ClaudeHooks::PreModelSwitch.new(pre_model_switch_input)
+    hook.block!('cancelled')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('block', data['decision'])
+    assert_equal('cancelled', data['reason'])
+  end
+
+  def test_pre_model_switch_for_hook_type
+    assert_instance_of(ClaudeHooks::Output::PreModelSwitch,
+                       ClaudeHooks::Output::Base.for_hook_type('PreModelSwitch', {}))
+  end
+
+  # === PostModelSwitch ===
+
+  def test_post_model_switch_hook_type
+    assert_equal('PostModelSwitch', ClaudeHooks::PostModelSwitch.hook_type)
+  end
+
+  def test_post_model_switch_input_fields
+    assert_equal(%w[from_model to_model requested_model source], ClaudeHooks::PostModelSwitch.input_fields)
+  end
+
+  def test_post_model_switch_input_readers
+    hook = ClaudeHooks::PostModelSwitch.new(@common.merge(
+      'hook_event_name' => 'PostModelSwitch',
+      'from_model' => 'claude-opus-5',
+      'to_model' => 'claude-sonnet-5',
+      'requested_model' => nil,
+      'source' => 'resume'
+    ))
+    assert_equal('claude-opus-5', hook.from_model)
+    assert_equal('claude-sonnet-5', hook.to_model)
+    assert_nil(hook.requested_model)
+    assert_equal('resume', hook.source)
+  end
+
+  def test_post_model_switch_add_context_builder
+    hook = ClaudeHooks::PostModelSwitch.new(@common.merge('hook_event_name' => 'PostModelSwitch'))
+    hook.add_additional_context!('now on opus')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('now on opus', data['hookSpecificOutput']['additionalContext'])
+    assert_equal('PostModelSwitch', data['hookSpecificOutput']['hookEventName'])
+  end
+
+  def test_post_model_switch_for_hook_type
+    assert_instance_of(ClaudeHooks::Output::PostModelSwitch,
+                       ClaudeHooks::Output::Base.for_hook_type('PostModelSwitch', {}))
+  end
+
+  # === TaskCreated block model ===
+
+  def test_task_created_block_builder
+    hook = ClaudeHooks::TaskCreated.new(@common.merge('hook_event_name' => 'TaskCreated', 'task_id' => 't1', 'task_subject' => 's'))
+    hook.block!('not allowed')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('block', data['decision'])
+    assert_equal('not allowed', data['reason'])
+  end
+
+  def test_task_created_allow_clears_decision
+    hook = ClaudeHooks::TaskCreated.new(@common.merge('hook_event_name' => 'TaskCreated', 'task_id' => 't1', 'task_subject' => 's'))
+    hook.block!('x')
+    hook.allow!
+    data = JSON.parse(hook.stringify_output)
+    assert_nil(data['decision'])
+  end
+
+  # === PostToolUse classifierContext ===
+
+  def test_post_tool_use_classifier_context_builder
+    hook = ClaudeHooks::PostToolUse.new(@common.merge('hook_event_name' => 'PostToolUse', 'tool_name' => 'Bash'))
+    hook.classifier_context!('ran against staging')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('ran against staging', data['hookSpecificOutput']['classifierContext'])
+  end
+
+  def test_post_tool_use_classifier_context_coexists_with_updated_output
+    hook = ClaudeHooks::PostToolUse.new(@common.merge('hook_event_name' => 'PostToolUse', 'tool_name' => 'Bash'))
+    hook.update_tool_output!('out')
+    hook.classifier_context!('note')
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('out', data['hookSpecificOutput']['updatedToolOutput'])
+    assert_equal('note', data['hookSpecificOutput']['classifierContext'])
+  end
+
+  # === scratchpad_dir common reader ===
+
+  def test_scratchpad_dir_reader
+    hook = ClaudeHooks::SessionStart.new(@common.merge('source' => 'startup', 'scratchpad_dir' => '/tmp/sp'))
+    assert_equal('/tmp/sp', hook.scratchpad_dir)
+  end
+
+  def test_scratchpad_dir_camel_fallback
+    hook = ClaudeHooks::SessionStart.new(@common.merge('source' => 'startup', 'scratchpadDir' => '/tmp/sp2'))
+    assert_equal('/tmp/sp2', hook.scratchpad_dir)
+  end
+
+  def test_scratchpad_dir_nil_when_absent
+    hook = ClaudeHooks::SessionStart.new(@common.merge('source' => 'startup'))
+    assert_nil(hook.scratchpad_dir)
+  end
+
+  # === SessionStart resume/fork cost fields ===
+
+  def test_session_start_resume_fields
+    hook = ClaudeHooks::SessionStart.new(@common.merge(
+      'source' => 'resume',
+      'seconds_since_last_response' => 5400,
+      'context_tokens' => 182_340,
+      'prompt_cache_likely_expired' => true,
+      'estimated_cache_write_usd' => 1.1396
+    ))
+    assert_equal(5400, hook.seconds_since_last_response)
+    assert_equal(182_340, hook.context_tokens)
+    assert_equal(true, hook.prompt_cache_likely_expired)
+    assert_in_delta(1.1396, hook.estimated_cache_write_usd)
+  end
 end

@@ -16,6 +16,9 @@ module ClaudeHooks
       @input_data['source']
     end
 
+    # DEPRECATED: Claude Code now discards all Setup JSON output, including
+    # hookSpecificOutput.additionalContext. Kept for backward compatibility, but
+    # this no longer adds context — use a SessionStart hook to inject context instead.
     def add_additional_context!(context)
       @output_data['hookSpecificOutput'] ||= { 'hookEventName' => hook_event_name }
       @output_data['hookSpecificOutput']['additionalContext'] = context
