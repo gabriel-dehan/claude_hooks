@@ -199,8 +199,17 @@ def main() -> None:
     # --- Tools: default set + sub-agent delegation ---
     # register_builtins_agents makes built-in delegation targets (code-reviewer,
     # web-researcher, etc.) available to the TaskToolSet.
-    register_builtins_agents(enable_browser=True)
-    tools = get_default_tools(enable_browser=True, enable_sub_agents=True)
+    #
+    # The browser tool is disabled on purpose. It pulls in browser-use -> mcp ->
+    # fastmcp, none of which we pin, and an unlocked resolve currently lands on
+    # browser-use 0.11.13 + mcp 2.x, an incompatible pair whose MCP server raises
+    # `AttributeError: 'Server' object has no attribute 'list_tools'` at startup.
+    # Because we build the browser server eagerly, that crashes the whole run
+    # rather than degrading to a warning. See OpenHands SDK issue #5152. Mitts
+    # drives everything through bash + the `gh` CLI and never needed the browser,
+    # so turning it off removes the fragile dependency chain outright.
+    register_builtins_agents(enable_browser=False)
+    tools = get_default_tools(enable_browser=False, enable_sub_agents=True)
 
     # Cross-run memory: only when a persistence dir + thread key are configured
     # (i.e. not on fork PRs, where artifacts/secrets are unavailable). When absent
