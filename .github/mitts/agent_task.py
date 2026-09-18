@@ -176,6 +176,19 @@ def main() -> None:
     }
     if base_url:
         llm_config["base_url"] = base_url
+
+    # The OpenCode ("Console Go") gateway rejects requests that don't identify a
+    # conversation, with `400 MissingSessionID`, and expects a non-generic
+    # user-agent (see https://opencode.ai/docs/go/). Send a stable per-thread
+    # session id (our conversation key, e.g. "issue-61") so routing and prompt
+    # caching work, plus a named agent user-agent. These headers are harmless on
+    # other OpenAI-compatible backends, which ignore unknown headers.
+    extra_headers: dict[str, str] = {"User-Agent": "mitts-agent/1.0"}
+    session_id = os.getenv("OPENHANDS_CONVERSATION_KEY")
+    if session_id:
+        extra_headers["x-opencode-session"] = session_id
+    llm_config["extra_headers"] = extra_headers
+
     llm = LLM(**llm_config)
 
     # --- Load skills: AGENTS.md + .agents/skills/ + optional public registry ---
