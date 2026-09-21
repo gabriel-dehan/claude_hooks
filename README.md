@@ -295,7 +295,9 @@ The framework supports the following hook types:
 | **[Elicitation](docs/API/ELICITATION.md)** | `ClaudeHooks::Elicitation` | Runs when an MCP server requests user input |
 | **[ElicitationResult](docs/API/ELICITATION_RESULT.md)** | `ClaudeHooks::ElicitationResult` | Runs after an elicitation response is provided |
 | **[WorktreeCreate](docs/API/WORKTREE_CREATE.md)** | `ClaudeHooks::WorktreeCreate` | Runs when Claude Code creates a git worktree |
-| **[WorktreeRemove](docs/API/WORKTREE_REMOVE.md)** | `ClaudeHooks::WorktreeRemove` | Runs when a git worktree is removed |
+| **[WorktreeRemove](docs/API/WORKTREE_REMOVE.md)** | `ClaudeHooks::WorktreeRemove` | Runs when a git worktree is removed; can block the removal |
+| **[PreModelSwitch](docs/API/PRE_MODEL_SWITCH.md)** | `ClaudeHooks::PreModelSwitch` | Runs before a requested model switch; can allow, deny, ask, or block it |
+| **[PostModelSwitch](docs/API/POST_MODEL_SWITCH.md)** | `ClaudeHooks::PostModelSwitch` | Runs after the session's model changes; adds context (can't block) |
 | **[SessionEnd](docs/API/SESSION_END.md)** | `ClaudeHooks::SessionEnd` | Runs when a Claude Code session ends |
 
 ## 🚀 Claude Hook Flow
@@ -394,8 +396,8 @@ The framework supports all existing hook types with their respective input field
 
 | Hook Type | Input Fields |
 |-----------|--------------|
-| **Common (all hooks)**  | `session_id`, `transcript_path`, `cwd`, `hook_event_name`, `permission_mode`, `prompt_id`, `agent_id`, `agent_type`, `effort` |
-| **SessionStart**  | `source`, `model`, `session_title` |
+| **Common (all hooks)**  | `session_id`, `transcript_path`, `cwd`, `hook_event_name`, `permission_mode`, `prompt_id`, `agent_id`, `agent_type`, `effort`, `scratchpad_dir` |
+| **SessionStart**  | `source`, `model`, `session_title` + on resume/fork: `seconds_since_last_response`, `context_tokens`, `prompt_cache_likely_expired`, `estimated_cache_write_usd` |
 | **Setup**  | `source` |
 | **UserPromptSubmit**  | `prompt` |
 | **UserPromptExpansion**  | `expansion_type`, `command_name`, `command_args`, `command_source`, `prompt` |
@@ -425,6 +427,8 @@ The framework supports all existing hook types with their respective input field
 | **ElicitationResult**  | `mcp_server_name`, `action`, `mode`, `elicitation_id`, `content` |
 | **WorktreeCreate**  | `name` |
 | **WorktreeRemove**  | `worktree_path` |
+| **PreModelSwitch**  | `from_model`, `to_model`, `requested_model`, `source`, `context_tokens`, `prompt_cache_warm`, `cache_ttl`, `estimated_cache_write_usd`, `pricing` |
+| **PostModelSwitch**  | `from_model`, `to_model`, `requested_model`, `source`, `context_tokens`, `prompt_cache_warm`, `cache_ttl`, `estimated_cache_write_usd`, `pricing` |
 | **SessionEnd**  | `reason` |
 
 ### Hooks API
@@ -648,11 +652,11 @@ Claude Code hooks support multiple exit codes with different behaviors depending
 | SessionEnd       | Operation continues<br/><br />Logged to debug only (`--debug`) | Non-blocking error<br/><br />Logged to debug only (`--debug`)                | N/A<br/><br />Logged to debug only (`--debug`)                                   |
 
 > [!NOTE]
-> The 20 events added in `1.2.0` follow the same families. Their per-event exit-code behavior is documented on each API page under [`docs/API/`](docs/API/):
-> - **Blocking via top-level `decision`** (behave like `PreToolUse`/`Stop`): `UserPromptExpansion`, `PostToolBatch`, `ConfigChange`.
-> - **Blocking via `exit 2` / `continue: false`** (no `decision` field): `TaskCreated`, `TaskCompleted`, `TeammateIdle`.
-> - **JSON-API special** (always `exit 0`, decision in `hookSpecificOutput`): `PermissionDenied`, `Elicitation`, `ElicitationResult`, `WorktreeCreate` (bare-path stdout).
-> - **Non-blocking / context-only** (exit code effectively ignored): `Setup`, `SubagentStart`, `PostToolUseFailure`, `StopFailure`, `PostCompact`, `CwdChanged`, `DirectoryAdded`, `FileChanged`, `InstructionsLoaded`, `WorktreeRemove`, `MessageDisplay`.
+> The additional events follow the same families. Their per-event exit-code behavior is documented on each API page under [`docs/API/`](docs/API/):
+> - **Blocking via top-level `decision`** (behave like `PreToolUse`/`Stop`): `UserPromptExpansion`, `PostToolBatch`, `ConfigChange`, `TaskCreated` (also honors `exit 2`).
+> - **Blocking via `exit 2` / `continue: false`** (no `decision` field): `TaskCompleted`, `TeammateIdle`, `WorktreeRemove` (a non-zero exit now fails the removal).
+> - **JSON-API special** (always `exit 0`, decision in `hookSpecificOutput`): `PermissionDenied`, `Elicitation`, `ElicitationResult`, `WorktreeCreate` (bare-path stdout), `PreModelSwitch` (allow/deny/ask, also honors top-level `decision`/`exit 2`).
+> - **Non-blocking / context-only** (exit code effectively ignored): `Setup`, `SubagentStart`, `PostToolUseFailure`, `StopFailure`, `PostCompact`, `CwdChanged`, `DirectoryAdded`, `FileChanged`, `InstructionsLoaded`, `MessageDisplay`, `Notification` (exit code **and** stderr ignored), `PostModelSwitch` (stdout added as context).
 
 
 #### Manually outputing and exiting example with success

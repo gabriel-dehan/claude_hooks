@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-09-18
+
+Spec-parity update tracking the Claude Code hooks documentation changes analyzed in issues #61, #62, #63, and #65. (Issue #64 required no changes.)
+
+### Added
+
+- **`PreModelSwitch` hook event** (`ClaudeHooks::PreModelSwitch` / `ClaudeHooks::Output::PreModelSwitch`): runs before a requested model switch (Claude Code v2.1.251+). Decision-control hook modeled on `PreToolUse` — builders `approve!`/`allow!`, `deny!`/`block_switch!`, `ask!` (via `permissionDecision`), plus a top-level `block!(reason)` (`decision: "block"`). Input readers: `from_model`, `to_model`, `requested_model`, `source`, `context_tokens`, `prompt_cache_warm`, `cache_ttl`, `estimated_cache_write_usd`, `pricing`. Output accessors `allowed?`/`denied?`/`blocked?`/`should_ask?`, `permission_decision`, `permission_reason`, `decision`, `reason`. Always exits 0 (JSON API); merge precedence `deny > ask > allow`.
+- **`PostModelSwitch` hook event** (`ClaudeHooks::PostModelSwitch` / `ClaudeHooks::Output::PostModelSwitch`): runs after the session's model changes (Claude Code v2.1.251+). Context-only (can't block); builder `add_additional_context!` / `add_context!`, output accessor `additional_context`. Same input readers as `PreModelSwitch`, with extra `source` values `"auto"`/`"resume"`.
+- **`PostToolUse#classifier_context!(note)`** and **`Output::PostToolUse#classifier_context`**: set/read `hookSpecificOutput.classifierContext`, a note for the auto-mode classifier (Claude Code v2.1.236+). Carried through multi-handler merge.
+- **`TaskCreated#block!(reason)`** / **`allow!`** and **`Output::TaskCreated#decision`/`#reason`/`#blocked?`**: block task creation via a top-level `decision: "block"` (the `reason` is returned to Claude as the task-creation error).
+- **`scratchpad_dir` common input reader** on `ClaudeHooks::Base` (Claude Code v2.1.257+). Not added to `COMMON_INPUT_FIELDS` — it is version-gated and often absent, so it never triggers the missing-field warning.
+- **`SessionStart` resume/fork cost fields**: readers `seconds_since_last_response`, `context_tokens`, `prompt_cache_likely_expired`, `estimated_cache_write_usd` (present when `source` is `"resume"`/`"fork"`).
+
+### Changed
+
+- **`Notification` now always exits 0.** Claude Code ignores a Notification hook's exit code and stderr, so `Output::Notification` no longer exits 2 on `continue: false` — it always exits 0 and writes JSON to stdout, keeping the `terminal_sequence!` (desktop-notification) pattern working.
+- **`WorktreeRemove` can now block the removal.** Upstream reversed the contract: a non-zero exit now fails the worktree removal when the directory still exists (previously the exit code was ignored). `Output::WorktreeRemove#exit_code` now follows `continue` (0/2) instead of hard-coding 0; use `prevent_continue!(reason)` to block.
+- **`TaskCreated` `continue: false` is ignored** by Claude Code; block via the new `block!` (top-level `decision`) or exit 2 instead.
+
+### Deprecated
+
+- **`suppressOutput` is a no-op.** `suppress_output!` / `show_output!` / `output.suppress_output?` remain callable for backward compatibility, but Claude Code accepts the field without acting on it.
+- **`Setup` output is discarded.** `Setup#add_additional_context!` remains callable but Claude Code discards all Setup JSON output; use a `SessionStart` hook to inject context instead.
+
+### Notes
+
+- Total hook event classes: 33 (was 31).
+- No DSL methods removed — deprecated helpers stay callable as no-ops.
+- All test files pass (`ruby test/run_all_tests.rb`). Two existing tests that used `Notification` as an "exits 2 on `continue: false`" example were retargeted to `PreCompact`, and the `WorktreeRemove` exit-code test was rewritten for the new blocking contract.
+
 ## [1.3.0] - 2026-08-15
 
 ### Added

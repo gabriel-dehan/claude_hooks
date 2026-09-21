@@ -182,6 +182,10 @@ module ClaudeHooks
           WorktreeCreate.new(data)
         when 'DirectoryAdded'
           DirectoryAdded.new(data)
+        when 'PreModelSwitch'
+          PreModelSwitch.new(data)
+        when 'PostModelSwitch'
+          PostModelSwitch.new(data)
         else
           raise ArgumentError, "Unknown hook type: #{hook_type}"
         end

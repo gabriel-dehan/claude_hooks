@@ -47,6 +47,21 @@ class TestBase < Minitest::Test
     assert_equal('claude-default-session', hook.session_id)
   end
 
+  def test_scratchpad_dir_reader
+    hook = @test_hook_class.new(@input_data.merge('scratchpad_dir' => '/tmp/scratch'))
+    assert_equal('/tmp/scratch', hook.scratchpad_dir)
+  end
+
+  def test_scratchpad_dir_nil_when_absent
+    hook = @test_hook_class.new(@input_data)
+    assert_nil(hook.scratchpad_dir)
+  end
+
+  def test_scratchpad_dir_not_a_required_common_field
+    # Version-gated and often absent, so it must not trigger the missing-field warning.
+    refute_includes(ClaudeHooks::Base::COMMON_INPUT_FIELDS, 'scratchpad_dir')
+  end
+
   def test_transcript_path_accessor
     hook = @test_hook_class.new(@input_data)
     assert_equal('/tmp/test_transcript.md', hook.transcript_path)
@@ -326,8 +341,9 @@ class TestBase < Minitest::Test
   end
 
   def test_output_and_exit_exits_2_when_prevent_continue
-    # Use Notification (non-JSON-API, exits 2 when continue:false)
-    hook = ClaudeHooks::Notification.new(@input_data.merge('hook_event_name' => 'Notification'))
+    # Use PreCompact (non-JSON-API, exits 2 when continue:false).
+    # Notification no longer qualifies: Claude Code ignores its exit code, so it always exits 0.
+    hook = ClaudeHooks::PreCompact.new(@input_data.merge('hook_event_name' => 'PreCompact'))
     hook.prevent_continue!('stop')
     exit_status = nil
     begin

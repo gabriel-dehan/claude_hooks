@@ -18,8 +18,8 @@ Runs once during Claude Code startup (before any session begins). Use it to inje
 
 | Method | Description |
 |--------|-------------|
-| `add_additional_context!(context)` | Add contextual information for Claude |
-| `add_context!(context)` | Alias for `add_additional_context!` |
+| `add_additional_context!(context)` | **Deprecated / no-op.** Claude Code now discards all `Setup` JSON output, including `additionalContext`. Use a `SessionStart` hook to inject context instead |
+| `add_context!(context)` | Alias for `add_additional_context!` (also a no-op) |
 
 ## Output Helpers
 
@@ -33,5 +33,5 @@ Runs once during Claude Code startup (before any session begins). Use it to inje
 
 | Exit Code | Behavior |
 |-----------|----------|
-| `exit 0` | Continues normally; `STDOUT` added as context |
+| `exit 0` | Continues normally. Claude Code discards all `Setup` output (including stdout context) |
 | `exit 2` | N/A — non-blocking event |

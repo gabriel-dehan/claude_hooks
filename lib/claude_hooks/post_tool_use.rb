@@ -59,5 +59,12 @@ module ClaudeHooks
       @output_data['hookSpecificOutput'] ||= { 'hookEventName' => hook_event_name }
       @output_data['hookSpecificOutput']['updatedMCPToolOutput'] = value
     end
+
+    # Annotate this call's result for the auto-mode classifier (not for Claude).
+    # Requires Claude Code v2.1.236 or later.
+    def classifier_context!(note)
+      @output_data['hookSpecificOutput'] ||= { 'hookEventName' => hook_event_name }
+      @output_data['hookSpecificOutput']['classifierContext'] = note
+    end
   end
 end

@@ -9,7 +9,13 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 
 | Method | Description |
 |--------|-------------|
-| `source` | Get the session start source: `'startup'`, `'resume'`, `'clear'`, or `'compact'` |
+| `source` | Get the session start source: `'startup'`, `'resume'`, `'clear'`, `'compact'`, or `'fork'` |
+| `model` | The session model (Claude Code doesn't always include it) |
+| `session_title` | The session title, when set |
+| `seconds_since_last_response` | Wall-clock seconds since the last response (present on `resume`/`fork`) |
+| `context_tokens` | Tokens the first request re-sends as its prompt (present on `resume`/`fork`) |
+| `prompt_cache_likely_expired` | Whether the prompt cache is likely expired (present on `resume`/`fork`) |
+| `estimated_cache_write_usd` | Estimated cost of re-caching `context_tokens` (present on `resume`/`fork`) |
 
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.

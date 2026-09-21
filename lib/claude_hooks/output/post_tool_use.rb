@@ -27,6 +27,10 @@ module ClaudeHooks
         hook_specific_output['updatedMCPToolOutput']
       end
 
+      def classifier_context
+        hook_specific_output['classifierContext'] || ''
+      end
+
       # === SEMANTIC HELPERS ===
 
       def blocked?
@@ -64,6 +68,7 @@ module ClaudeHooks
         merged = super(*outputs)
         merged_data = merged.data
         contexts = []
+        classifier_contexts = []
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
@@ -72,13 +77,16 @@ module ClaudeHooks
 
           context = output_data.dig('hookSpecificOutput', 'additionalContext')
           contexts << context if context && !context.empty?
+
+          classifier_context = output_data.dig('hookSpecificOutput', 'classifierContext')
+          classifier_contexts << classifier_context if classifier_context && !classifier_context.empty?
         end
 
-        unless contexts.empty?
-          merged_data['hookSpecificOutput'] = {
-            'hookEventName' => 'PostToolUse',
-            'additionalContext' => contexts.join("\n\n")
-          }
+        if !contexts.empty? || !classifier_contexts.empty?
+          hso = { 'hookEventName' => 'PostToolUse' }
+          hso['additionalContext'] = contexts.join("\n\n") unless contexts.empty?
+          hso['classifierContext'] = classifier_contexts.join("\n\n") unless classifier_contexts.empty?
+          merged_data['hookSpecificOutput'] = hso
         end
 
         new(merged_data)

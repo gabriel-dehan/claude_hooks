@@ -2,7 +2,7 @@
 
 Available when inheriting from `ClaudeHooks::WorktreeRemove`:
 
-Runs when a git worktree is removed. Non-blocking — only `suppressOutput` is honored.
+Runs when a git worktree is removed. Can block the removal: a non-zero exit now **fails** the worktree removal when the directory still exists.
 
 ## Input Helpers
 
@@ -18,7 +18,7 @@ Runs when a git worktree is removed. Non-blocking — only `suppressOutput` is h
 
 | Method | Description |
 |--------|-------------|
-| `suppress_output!` | Hide this hook's `STDOUT` from transcript mode (the only honored output control) |
+| `prevent_continue!(reason)` | Block the worktree removal (results in exit 2) |
 
 ## Output Helpers
 
@@ -26,8 +26,12 @@ Runs when a git worktree is removed. Non-blocking — only `suppressOutput` is h
 
 | Method | Description |
 |--------|-------------|
-| `output.suppress_output?` | Whether output is suppressed |
+| `output.continue?` | Whether the removal is allowed to proceed |
+| `output.stop_reason` | The reason the removal was blocked |
 
 ## Hook Exit Codes
 
-Non-blocking. Exit code is ignored; only `suppressOutput` affects behavior.
+| Exit Code | Behavior |
+|-----------|----------|
+| `exit 0` | Worktree removal proceeds |
+| `exit 2` | **Fails the worktree removal** (when the directory still exists) |

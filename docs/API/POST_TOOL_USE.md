@@ -24,6 +24,9 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `block_tool!(reason)` | Block the tool result from being used |
 | `approve_tool!(reason)` | Clear any previous block decision (default behavior) |
 | `add_additional_context!(context)` | Add context for Claude to consider after tool use |
+| `update_tool_output!(value)` | Rewrite the tool output shown to Claude |
+| `update_mcp_tool_output!(value)` | Rewrite an MCP tool's output |
+| `classifier_context!(note)` | Add a short note about this call's result for the auto-mode classifier, not for Claude (Claude Code v2.1.236+) |
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.
@@ -36,6 +39,9 @@ Output helpers provide access to the hook's output data and helper methods for w
 | `output.reason` | Get the reason that was set for the decision |
 | `output.blocked?` | Check if the tool result has been blocked |
 | `output.additional_context` | Get the additional context that was added |
+| `output.classifier_context` | Get the note sent to the auto-mode classifier |
+| `output.updated_tool_output` | Get the rewritten tool output (if any) |
+| `output.updated_mcp_tool_output` | Get the rewritten MCP tool output (if any) |
 
 ## Hook Exit Codes
 
