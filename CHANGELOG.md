@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0] - 2026-09-18
 
-Spec-parity update tracking the Claude Code hooks documentation changes analyzed in issues #61, #62, #63, and #65. (Issue #64 required no changes.)
+Spec-parity update tracking the Claude Code hooks documentation changes analyzed in issues #61, #62, #63, #65, #69, and #70. (Issue #64 required no changes; #70 is docs-only.)
 
 ### Added
 
@@ -16,6 +16,7 @@ Spec-parity update tracking the Claude Code hooks documentation changes analyzed
 - **`PostToolUse#classifier_context!(note)`** and **`Output::PostToolUse#classifier_context`**: set/read `hookSpecificOutput.classifierContext`, a note for the auto-mode classifier (Claude Code v2.1.236+). Carried through multi-handler merge.
 - **`TaskCreated#block!(reason)`** / **`allow!`** and **`Output::TaskCreated#decision`/`#reason`/`#blocked?`**: block task creation via a top-level `decision: "block"` (the `reason` is returned to Claude as the task-creation error).
 - **`scratchpad_dir` common input reader** on `ClaudeHooks::Base` (Claude Code v2.1.257+). Not added to `COMMON_INPUT_FIELDS` — it is version-gated and often absent, so it never triggers the missing-field warning.
+- **`mcp_server` input reader** on `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PostToolUseFailure`, and `PermissionDenied` (Claude Code v2.1.274+): for MCP tools, a hash with the server's `name` and `source` (where its definition came from). `nil` for non-MCP tools; not added to `input_fields`.
 - **`SessionStart` resume/fork cost fields**: readers `seconds_since_last_response`, `context_tokens`, `prompt_cache_likely_expired`, `estimated_cache_write_usd` (present when `source` is `"resume"`/`"fork"`).
 
 ### Changed
@@ -23,6 +24,8 @@ Spec-parity update tracking the Claude Code hooks documentation changes analyzed
 - **`Notification` now always exits 0.** Claude Code ignores a Notification hook's exit code and stderr, so `Output::Notification` no longer exits 2 on `continue: false` — it always exits 0 and writes JSON to stdout, keeping the `terminal_sequence!` (desktop-notification) pattern working.
 - **`WorktreeRemove` can now block the removal.** Upstream reversed the contract: a non-zero exit now fails the worktree removal when the directory still exists (previously the exit code was ignored). `Output::WorktreeRemove#exit_code` now follows `continue` (0/2) instead of hard-coding 0; use `prevent_continue!(reason)` to block.
 - **`TaskCreated` `continue: false` is ignored** by Claude Code; block via the new `block!` (top-level `decision`) or exit 2 instead.
+
+- **Docs**: `Stop`/`SubagentStop` input tables now list the inherited `last_assistant_message`, `background_tasks`, and `session_crons` readers; notes added for the stop-hook continuation cap (`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`), SubagentStop firing for internal agents, and expanded pasted content in `UserPromptSubmit#prompt`.
 
 ### Deprecated
 

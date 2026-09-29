@@ -13,6 +13,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `tool_input` | Get the input that was passed to the tool |
 | `tool_response` | Get the tool's response/output |
 | `tool_use_id` | Get the unique identifier for this tool use (e.g., `"toolu_01ABC123..."`) |
+| `mcp_server` | For MCP tools, a hash with the server's `name` and `source` (where its definition came from: `plugin`, `sdk`, `user`, `project`, …). Base trust decisions on `source`, not the name. `nil` for non-MCP tools (Claude Code v2.1.274+) |
 
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.

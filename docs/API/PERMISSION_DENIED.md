@@ -13,6 +13,7 @@ Runs when a permission request is denied. Can request that Claude Code retries t
 | `tool_name` | The name of the tool whose permission was denied |
 | `tool_input` | The input data for the tool |
 | `tool_use_id` | The unique identifier for this tool use |
+| `mcp_server` | For MCP tools, a hash with the server's `name` and `source` (where its definition came from: `plugin`, `sdk`, `user`, `project`, …). Base trust decisions on `source`, not the name. `nil` for non-MCP tools (Claude Code v2.1.274+) |
 | `reason` | The reason the permission was denied |
 
 ## Hook State Helpers

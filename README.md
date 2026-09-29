@@ -403,16 +403,16 @@ The framework supports all existing hook types with their respective input field
 | **UserPromptExpansion**  | `expansion_type`, `command_name`, `command_args`, `command_source`, `prompt` |
 | **Notification**  | `message`, `notification_type` |
 | **MessageDisplay**  | `turn_id`, `message_id`, `index`, `final`, `delta` |
-| **PreToolUse**  | `tool_name`, `tool_input`, `tool_use_id` |
-| **PermissionRequest**  | `tool_name`, `tool_input`, `tool_use_id`, `permission_suggestions` |
-| **PermissionDenied**  | `tool_name`, `tool_input`, `tool_use_id`, `reason` |
-| **PostToolUse**  | `tool_name`, `tool_input`, `tool_response`, `tool_use_id` |
+| **PreToolUse**  | `tool_name`, `tool_input`, `tool_use_id`, `mcp_server` (MCP tools) |
+| **PermissionRequest**  | `tool_name`, `tool_input`, `tool_use_id`, `permission_suggestions`, `mcp_server` (MCP tools) |
+| **PermissionDenied**  | `tool_name`, `tool_input`, `tool_use_id`, `reason`, `mcp_server` (MCP tools) |
+| **PostToolUse**  | `tool_name`, `tool_input`, `tool_response`, `tool_use_id`, `mcp_server` (MCP tools) |
 | **PostToolBatch**  | `tool_calls` |
-| **PostToolUseFailure**  | `tool_name`, `tool_input`, `tool_use_id`, `error`, `is_interrupt`, `duration_ms` |
+| **PostToolUseFailure**  | `tool_name`, `tool_input`, `tool_use_id`, `error`, `is_interrupt`, `duration_ms`, `mcp_server` (MCP tools) |
 | **Stop**  | `stop_hook_active`, `last_assistant_message`, `background_tasks`, `session_crons` |
 | **StopFailure**  | `error`, `error_details`, `last_assistant_message` |
 | **SubagentStart**  | *(common only: `agent_id`, `agent_type`)* |
-| **SubagentStop**  | `stop_hook_active`, `agent_transcript_path` + common `agent_id`/`agent_type` |
+| **SubagentStop**  | `stop_hook_active`, `last_assistant_message`, `background_tasks`, `session_crons`, `agent_transcript_path` + common `agent_id`/`agent_type` |
 | **TaskCreated**  | `task_id`, `task_subject`, `task_description`, `teammate_name`, `team_name` |
 | **TaskCompleted**  | `task_id`, `task_subject`, `task_description`, `teammate_name`, `team_name` |
 | **TeammateIdle**  | `teammate_name`, `team_name` |

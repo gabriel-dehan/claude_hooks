@@ -26,6 +26,13 @@ module ClaudeHooks
       @input_data['tool_use_id'] || @input_data['toolUseId']
     end
 
+    # For MCP tools: { 'name' => ..., 'source' => ... } describing where the server's
+    # definition came from (e.g. 'plugin', 'sdk', 'user', 'project'). Base trust
+    # decisions on 'source', not on the name. nil for non-MCP tools. Requires Claude Code v2.1.274+.
+    def mcp_server
+      @input_data['mcp_server'] || @input_data['mcpServer']
+    end
+
     # === OUTPUT DATA HELPERS ===
 
     def approve_tool!(reason = '')

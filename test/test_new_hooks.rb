@@ -799,4 +799,30 @@ class TestNewHooks < Minitest::Test
     assert_equal(true, hook.prompt_cache_likely_expired)
     assert_in_delta(1.1396, hook.estimated_cache_write_usd)
   end
+
+  # === mcp_server input object (tool events) ===
+
+  MCP_SERVER_HOOKS = [
+    ClaudeHooks::PreToolUse, ClaudeHooks::PermissionRequest, ClaudeHooks::PostToolUse,
+    ClaudeHooks::PostToolUseFailure, ClaudeHooks::PermissionDenied
+  ].freeze
+
+  def test_mcp_server_reader_on_tool_events
+    server = { 'name' => 'db', 'source' => 'plugin' }
+    MCP_SERVER_HOOKS.each do |klass|
+      hook = klass.new(@common.merge('tool_name' => 'mcp__db__query', 'mcp_server' => server))
+      assert_equal(server, hook.mcp_server, klass.name)
+    end
+  end
+
+  def test_mcp_server_camel_fallback
+    hook = ClaudeHooks::PreToolUse.new(@common.merge('mcpServer' => { 'name' => 'db', 'source' => 'user' }))
+    assert_equal('user', hook.mcp_server['source'])
+  end
+
+  def test_mcp_server_nil_for_non_mcp_tools
+    MCP_SERVER_HOOKS.each do |klass|
+      assert_nil(klass.new(@common.merge('tool_name' => 'Bash')).mcp_server, klass.name)
+    end
+  end
 end

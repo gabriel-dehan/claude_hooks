@@ -13,6 +13,9 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `user_prompt` | Alias for `prompt` |
 | `current_prompt` | Alias for `prompt` |
 
+> [!NOTE]
+> Pasted content that collapsed to a `[Pasted text #N]` placeholder arrives expanded in `prompt`. When Claude Code marks pasted text for Claude, it sits between `<pasted_content id="…">` and `</pasted_content id="…">` lines — account for them if you parse the prompt.
+
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
 
