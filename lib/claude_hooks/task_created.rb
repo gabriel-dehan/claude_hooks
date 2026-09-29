@@ -31,5 +31,22 @@ module ClaudeHooks
     def team_name
       @input_data['team_name'] || @input_data['teamName']
     end
+
+    # === OUTPUT DATA HELPERS ===
+    #
+    # Claude Code ignores `continue: false` for TaskCreated. Block task creation
+    # either by exiting 2 or with a top-level decision:block; `reason` is returned
+    # to Claude as the task-creation error.
+
+    def block!(reason = '')
+      @output_data['decision'] = 'block'
+      @output_data['reason'] = reason
+    end
+
+    def allow!
+      @output_data['decision'] = nil
+      @output_data['reason'] = nil
+    end
+    alias_method :unblock!, :allow!
   end
 end

@@ -10,6 +10,9 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | Method | Description |
 |--------|-------------|
 | `stop_hook_active` | Check if Claude Code is already continuing as a result of a stop hook |
+| `last_assistant_message` | Text of Claude's final response for this turn |
+| `background_tasks` | Background tasks still running (array) |
+| `session_crons` | Scheduled session crons (array) |
 
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
@@ -25,6 +28,9 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `continue_with_instructions!(instructions)` | Block Claude from stopping and provide instructions to continue |
 | `block!(instructions)` | Alias for `continue_with_instructions!` |
 | `ensure_stopping!` | Allow Claude to stop normally (default behavior) |
+
+> [!NOTE]
+> Claude Code caps consecutive stop-hook continuations: after 8 in a row it lets the turn end despite the next block. Raise the cap with the `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` environment variable. Check `stop_hook_active` to avoid loops.
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.

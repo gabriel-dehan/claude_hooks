@@ -304,11 +304,17 @@ class TestNewOutputClasses < Minitest::Test
     assert_equal(0, out.exit_code)
   end
 
-  # === WorktreeRemove always exits 0 ===
+  # === WorktreeRemove exit code follows continue (can block removal) ===
 
-  def test_worktree_remove_exit_code_always_zero
-    out = ClaudeHooks::Output::WorktreeRemove.new({ 'continue' => false })
+  def test_worktree_remove_exit_code_zero_by_default
+    out = ClaudeHooks::Output::WorktreeRemove.new({ 'continue' => true })
     assert_equal(0, out.exit_code)
+  end
+
+  def test_worktree_remove_blocks_with_exit_2_when_continue_false
+    # A non-zero exit now fails the removal when the directory still exists.
+    out = ClaudeHooks::Output::WorktreeRemove.new({ 'continue' => false })
+    assert_equal(2, out.exit_code)
   end
 
   # === DirectoryAdded always exits 0 ===
@@ -467,5 +473,96 @@ class TestNewOutputClasses < Minitest::Test
     o2 = ClaudeHooks::Output::MessageDisplay.new({ 'hookSpecificOutput' => { 'displayContent' => 'second' } })
     merged = ClaudeHooks::Output::MessageDisplay.merge(o1, o2)
     assert_equal('second', merged.display_content)
+  end
+
+  # === PreModelSwitch output ===
+
+  def test_pre_model_switch_exit_code_and_stream
+    out = ClaudeHooks::Output::PreModelSwitch.new({ 'continue' => false })
+    assert_equal(0, out.exit_code)
+    assert_equal(:stdout, out.output_stream)
+  end
+
+  def test_pre_model_switch_decision_predicates
+    allow = ClaudeHooks::Output::PreModelSwitch.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'allow' } })
+    assert(allow.allowed?)
+    deny = ClaudeHooks::Output::PreModelSwitch.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'deny' } })
+    assert(deny.denied?)
+    assert(deny.blocked?)
+    ask = ClaudeHooks::Output::PreModelSwitch.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'ask' } })
+    assert(ask.should_ask?)
+    top = ClaudeHooks::Output::PreModelSwitch.new({ 'decision' => 'block', 'reason' => 'no' })
+    assert(top.blocked?)
+    assert_equal('no', top.reason)
+  end
+
+  def test_pre_model_switch_merge_deny_wins_over_ask
+    o1 = ClaudeHooks::Output::PreModelSwitch.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'ask', 'permissionDecisionReason' => 'confirm' } })
+    o2 = ClaudeHooks::Output::PreModelSwitch.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'deny', 'permissionDecisionReason' => 'blocked' } })
+    merged = ClaudeHooks::Output::PreModelSwitch.merge(o1, o2)
+    assert_equal('deny', merged.permission_decision)
+    assert_includes(merged.permission_reason, 'blocked')
+  end
+
+  def test_pre_model_switch_merge_carries_top_level_block
+    o1 = ClaudeHooks::Output::PreModelSwitch.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'allow' } })
+    o2 = ClaudeHooks::Output::PreModelSwitch.new({ 'decision' => 'block', 'reason' => 'stop' })
+    merged = ClaudeHooks::Output::PreModelSwitch.merge(o1, o2)
+    assert(merged.blocked?)
+    assert_equal('stop', merged.reason)
+  end
+
+  # === PostModelSwitch output ===
+
+  def test_post_model_switch_context_accessor_and_exit
+    out = ClaudeHooks::Output::PostModelSwitch.new({ 'hookSpecificOutput' => { 'additionalContext' => 'ctx' } })
+    assert_equal('ctx', out.additional_context)
+    assert_equal(0, out.exit_code)
+  end
+
+  def test_post_model_switch_merge_joins_context
+    o1 = ClaudeHooks::Output::PostModelSwitch.new({ 'hookSpecificOutput' => { 'additionalContext' => 'a' } })
+    o2 = ClaudeHooks::Output::PostModelSwitch.new({ 'hookSpecificOutput' => { 'additionalContext' => 'b' } })
+    merged = ClaudeHooks::Output::PostModelSwitch.merge(o1, o2)
+    assert_equal("a\n\nb", merged.additional_context)
+  end
+
+  # === TaskCreated block model output ===
+
+  def test_task_created_decision_accessors
+    out = ClaudeHooks::Output::TaskCreated.new({ 'decision' => 'block', 'reason' => 'nope' })
+    assert(out.blocked?)
+    assert_equal('nope', out.reason)
+  end
+
+  def test_task_created_merge_blocks_and_joins_reasons
+    o1 = ClaudeHooks::Output::TaskCreated.new({ 'reason' => 'r1' })
+    o2 = ClaudeHooks::Output::TaskCreated.new({ 'decision' => 'block', 'reason' => 'r2' })
+    merged = ClaudeHooks::Output::TaskCreated.merge(o1, o2)
+    assert(merged.blocked?)
+    assert_equal('r1; r2', merged.reason)
+  end
+
+  # === Notification always exits 0 ===
+
+  def test_notification_exit_code_zero_even_when_blocked
+    out = ClaudeHooks::Output::Notification.new({ 'continue' => false })
+    assert_equal(0, out.exit_code)
+    assert_equal(:stdout, out.output_stream)
+  end
+
+  # === PostToolUse classifierContext output ===
+
+  def test_post_tool_use_classifier_context_accessor
+    out = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'classifierContext' => 'note' } })
+    assert_equal('note', out.classifier_context)
+  end
+
+  def test_post_tool_use_merge_carries_classifier_context
+    o1 = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'classifierContext' => 'c1' } })
+    o2 = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'additionalContext' => 'ctx' } })
+    merged = ClaudeHooks::Output::PostToolUse.merge(o1, o2)
+    assert_equal('c1', merged.classifier_context)
+    assert_equal('ctx', merged.additional_context)
   end
 end
