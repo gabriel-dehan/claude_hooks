@@ -38,6 +38,8 @@ require_relative "claude_hooks/elicitation"
 require_relative "claude_hooks/elicitation_result"
 require_relative "claude_hooks/worktree_create"
 require_relative "claude_hooks/directory_added"
+require_relative "claude_hooks/pre_model_switch"
+require_relative "claude_hooks/post_model_switch"
 
 # Output classes
 require_relative "claude_hooks/output/base"
@@ -72,6 +74,8 @@ require_relative "claude_hooks/output/elicitation"
 require_relative "claude_hooks/output/elicitation_result"
 require_relative "claude_hooks/output/worktree_create"
 require_relative "claude_hooks/output/directory_added"
+require_relative "claude_hooks/output/pre_model_switch"
+require_relative "claude_hooks/output/post_model_switch"
 
 module ClaudeHooks
   class Error < StandardError; end
