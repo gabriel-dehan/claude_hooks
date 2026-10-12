@@ -30,7 +30,7 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 | `ensure_stopping!` | Allow Claude to stop normally (default behavior) |
 
 > [!NOTE]
-> Claude Code caps consecutive stop-hook continuations: after 8 in a row it lets the turn end despite the next block. Raise the cap with the `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` environment variable. Check `stop_hook_active` to avoid loops.
+> Claude Code caps consecutive stop-hook continuations: after 8 in a row it lets the turn end despite the next block. The count resets each time Claude calls a tool. Raise the cap with the `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` environment variable. Check `stop_hook_active` to avoid loops.
 
 ## Output Helpers
 Output helpers provide access to the hook's output data and helper methods for working with the output state.

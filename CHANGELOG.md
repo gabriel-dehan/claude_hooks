@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.0] - 2026-09-18
 
-Spec-parity update tracking the Claude Code hooks documentation changes analyzed in issues #61, #62, #63, #65, #69, and #70. (Issue #64 required no changes; #70 is docs-only.)
+Spec-parity update tracking the Claude Code hooks documentation changes analyzed in issues #61, #62, #63, #65, #69, #70, and #71. (Issue #64 required no changes; #70 is docs-only.)
 
 ### Added
 
@@ -17,12 +17,14 @@ Spec-parity update tracking the Claude Code hooks documentation changes analyzed
 - **`TaskCreated#block!(reason)`** / **`allow!`** and **`Output::TaskCreated#decision`/`#reason`/`#blocked?`**: block task creation via a top-level `decision: "block"` (the `reason` is returned to Claude as the task-creation error).
 - **`scratchpad_dir` common input reader** on `ClaudeHooks::Base` (Claude Code v2.1.257+). Not added to `COMMON_INPUT_FIELDS` — it is version-gated and often absent, so it never triggers the missing-field warning.
 - **`mcp_server` input reader** on `PreToolUse`, `PermissionRequest`, `PostToolUse`, `PostToolUseFailure`, and `PermissionDenied` (Claude Code v2.1.274+): for MCP tools, a hash with the server's `name` and `source` (where its definition came from). `nil` for non-MCP tools; not added to `input_fields`.
+- **`UserPromptSubmit` session title and prompt suppression**: `session_title` input reader; `session_title!(title)` and `suppress_original_prompt!` builders (`hookSpecificOutput.sessionTitle` / `suppressOriginalPrompt`); `output.session_title` / `output.suppress_original_prompt?` accessors, both carried through merge (last title wins; suppression wins if any hook asks). `suppress_original_prompt!` keeps a blocked prompt's text out of the block message and transcript.
 - **`SessionStart` resume/fork cost fields**: readers `seconds_since_last_response`, `context_tokens`, `prompt_cache_likely_expired`, `estimated_cache_write_usd` (present when `source` is `"resume"`/`"fork"`).
 
 ### Changed
 
 - **`Notification` now always exits 0.** Claude Code ignores a Notification hook's exit code and stderr, so `Output::Notification` no longer exits 2 on `continue: false` — it always exits 0 and writes JSON to stdout, keeping the `terminal_sequence!` (desktop-notification) pattern working.
-- **`WorktreeRemove` can now block the removal.** Upstream reversed the contract: a non-zero exit now fails the worktree removal when the directory still exists (previously the exit code was ignored). `Output::WorktreeRemove#exit_code` now follows `continue` (0/2) instead of hard-coding 0; use `prevent_continue!(reason)` to block.
+- **`WorktreeRemove` exit code now reports failure.** Upstream reversed the contract: a non-zero exit now fails the worktree removal when the directory still exists (previously the exit code was ignored). With a `WorktreeRemove` hook configured, the hook itself does the cleanup (exit 0 means "counts as removed") and its JSON output is discarded. `Output::WorktreeRemove#exit_code` now follows `continue` (0/2) instead of hard-coding 0; use `prevent_continue!(reason)` to block.
+- **`UserPromptSubmit#add_additional_context!` / `#empty_additional_context!` no longer wipe other `hookSpecificOutput` fields**, so they compose with the new title/suppression builders in any order. Output for existing single-call usage is unchanged.
 - **`TaskCreated` `continue: false` is ignored** by Claude Code; block via the new `block!` (top-level `decision`) or exit 2 instead.
 
 - **Docs**: `Stop`/`SubagentStop` input tables now list the inherited `last_assistant_message`, `background_tasks`, and `session_crons` readers; notes added for the stop-hook continuation cap (`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`), SubagentStop firing for internal agents, and expanded pasted content in `UserPromptSubmit#prompt`.

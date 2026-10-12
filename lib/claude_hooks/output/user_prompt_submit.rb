@@ -19,6 +19,14 @@ module ClaudeHooks
         hook_specific_output['additionalContext'] || ''
       end
 
+      def session_title
+        hook_specific_output['sessionTitle']
+      end
+
+      def suppress_original_prompt?
+        hook_specific_output['suppressOriginalPrompt'] == true
+      end
+
       # === SEMANTIC HELPERS ===
 
       def blocked?
@@ -53,22 +61,27 @@ module ClaudeHooks
         merged_data = merged.data
 
         contexts = []
+        specific = {}
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
+          hso = output_data['hookSpecificOutput'] || {}
 
           merged_data['decision'] = 'block' if output_data['decision'] == 'block'
           merged_data['reason'] = [merged_data['reason'], output_data['reason']].compact.reject(&:empty?).join('; ')
 
-          context = output_data.dig('hookSpecificOutput', 'additionalContext')
+          context = hso['additionalContext']
           contexts << context if context && !context.empty?
+
+          # Last non-nil title wins; suppressing the prompt wins if any hook asks for it.
+          specific['sessionTitle'] = hso['sessionTitle'] unless hso['sessionTitle'].nil?
+          specific['suppressOriginalPrompt'] = true if hso['suppressOriginalPrompt'] == true
         end
 
-        unless contexts.empty?
-          merged_data['hookSpecificOutput'] = {
-            'hookEventName' => 'UserPromptSubmit',
-            'additionalContext' => contexts.join("\n\n")
-          }
+        specific['additionalContext'] = contexts.join("\n\n") unless contexts.empty?
+
+        unless specific.empty?
+          merged_data['hookSpecificOutput'] = { 'hookEventName' => 'UserPromptSubmit' }.merge(specific)
         end
 
         new(merged_data)

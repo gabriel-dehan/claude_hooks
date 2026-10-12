@@ -825,4 +825,62 @@ class TestNewHooks < Minitest::Test
       assert_nil(klass.new(@common.merge('tool_name' => 'Bash')).mcp_server, klass.name)
     end
   end
+
+  # === UserPromptSubmit session_title / suppressOriginalPrompt ===
+
+  def ups_hook(extra = {})
+    ClaudeHooks::UserPromptSubmit.new(@common.merge('hook_event_name' => 'UserPromptSubmit', 'prompt' => 'hi').merge(extra))
+  end
+
+  def test_user_prompt_submit_session_title_reader
+    assert_equal('My session', ups_hook('session_title' => 'My session').session_title)
+    assert_nil(ups_hook.session_title)
+  end
+
+  def test_user_prompt_submit_block_with_suppressed_prompt
+    hook = ups_hook
+    hook.block_prompt!('contains a secret')
+    hook.suppress_original_prompt!
+    data = JSON.parse(hook.stringify_output)
+    assert_equal('block', data['decision'])
+    assert_equal(true, data['hookSpecificOutput']['suppressOriginalPrompt'])
+    assert(hook.output.suppress_original_prompt?)
+  end
+
+  def test_user_prompt_submit_builders_compose_in_any_order
+    hook = ups_hook
+    hook.session_title!('Refactor auth')
+    hook.add_additional_context!('ctx')
+    hso = JSON.parse(hook.stringify_output)['hookSpecificOutput']
+    assert_equal('Refactor auth', hso['sessionTitle'])
+    assert_equal('ctx', hso['additionalContext'])
+    assert_equal('Refactor auth', hook.output.session_title)
+  end
+
+  def test_user_prompt_submit_empty_context_keeps_other_fields
+    hook = ups_hook
+    hook.add_additional_context!('ctx')
+    hook.session_title!('t')
+    hook.empty_additional_context!
+    hso = JSON.parse(hook.stringify_output)['hookSpecificOutput']
+    assert_nil(hso['additionalContext'])
+    assert_equal('t', hso['sessionTitle'])
+  end
+
+  def test_user_prompt_submit_empty_context_clears_hso_when_only_context
+    hook = ups_hook
+    hook.add_additional_context!('ctx')
+    hook.empty_additional_context!
+    assert_nil(JSON.parse(hook.stringify_output)['hookSpecificOutput'])
+  end
+
+  def test_user_prompt_submit_merge_carries_title_and_suppression
+    o1 = ClaudeHooks::Output::UserPromptSubmit.new({ 'hookSpecificOutput' => { 'additionalContext' => 'a', 'sessionTitle' => 'first' } })
+    o2 = ClaudeHooks::Output::UserPromptSubmit.new({ 'decision' => 'block', 'hookSpecificOutput' => { 'sessionTitle' => 'second', 'suppressOriginalPrompt' => true } })
+    merged = ClaudeHooks::Output::UserPromptSubmit.merge(o1, o2)
+    assert(merged.blocked?)
+    assert_equal('second', merged.session_title)
+    assert(merged.suppress_original_prompt?)
+    assert_equal('a', merged.additional_context)
+  end
 end

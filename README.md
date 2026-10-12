@@ -399,7 +399,7 @@ The framework supports all existing hook types with their respective input field
 | **Common (all hooks)**  | `session_id`, `transcript_path`, `cwd`, `hook_event_name`, `permission_mode`, `prompt_id`, `agent_id`, `agent_type`, `effort`, `scratchpad_dir` |
 | **SessionStart**  | `source`, `model`, `session_title` + on resume/fork: `seconds_since_last_response`, `context_tokens`, `prompt_cache_likely_expired`, `estimated_cache_write_usd` |
 | **Setup**  | `source` |
-| **UserPromptSubmit**  | `prompt` |
+| **UserPromptSubmit**  | `prompt`, `session_title` |
 | **UserPromptExpansion**  | `expansion_type`, `command_name`, `command_args`, `command_source`, `prompt` |
 | **Notification**  | `message`, `notification_type` |
 | **MessageDisplay**  | `turn_id`, `message_id`, `index`, `final`, `delta` |
