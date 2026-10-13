@@ -69,7 +69,8 @@ module ClaudeHooks
         merged_data = merged.data
 
         # PreModelSwitch precedence: deny > ask > allow (most restrictive wins).
-        permission_decision = 'allow'
+        # Stays nil when no hook decided, so the merge doesn't invent an 'allow'.
+        permission_decision = nil
         permission_reasons = []
         block_reasons = []
         any_block = false
@@ -88,15 +89,25 @@ module ClaudeHooks
             permission_decision = 'deny'
           when 'ask'
             permission_decision = 'ask' unless permission_decision == 'deny'
+          when 'allow'
+            permission_decision ||= 'allow'
           end
 
           reason = output_data.dig('hookSpecificOutput', 'permissionDecisionReason')
           permission_reasons << reason if reason && !reason.empty?
         end
 
-        merged_data['hookSpecificOutput'] ||= { 'hookEventName' => 'PreModelSwitch' }
-        merged_data['hookSpecificOutput']['permissionDecision'] = permission_decision
-        merged_data['hookSpecificOutput']['permissionDecisionReason'] = permission_reasons.any? ? permission_reasons.join('; ') : ''
+        # A top-level block cancels the switch, so the merged permissionDecision
+        # must agree with it instead of saying 'allow'.
+        permission_decision = 'deny' if any_block && permission_decision
+
+        if permission_decision
+          merged_data['hookSpecificOutput'] = {
+            'hookEventName' => 'PreModelSwitch',
+            'permissionDecision' => permission_decision,
+            'permissionDecisionReason' => permission_reasons.join('; ')
+          }
+        end
 
         if any_block
           merged_data['decision'] = 'block'

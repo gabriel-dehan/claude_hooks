@@ -37,7 +37,7 @@ module ClaudeHooks
     end
 
     def prompt_cache_likely_expired
-      @input_data['prompt_cache_likely_expired'] || @input_data['promptCacheLikelyExpired']
+      @input_data.key?('prompt_cache_likely_expired') ? @input_data['prompt_cache_likely_expired'] : @input_data['promptCacheLikelyExpired']
     end
 
     def estimated_cache_write_usd

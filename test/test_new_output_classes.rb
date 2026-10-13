@@ -510,6 +510,34 @@ class TestNewOutputClasses < Minitest::Test
     merged = ClaudeHooks::Output::PreModelSwitch.merge(o1, o2)
     assert(merged.blocked?)
     assert_equal('stop', merged.reason)
+    # The permissionDecision must agree with the block, not say 'allow'
+    assert_equal('deny', merged.permission_decision)
+  end
+
+  def test_pre_model_switch_merge_block_alone_emits_no_permission_decision
+    o1 = ClaudeHooks::Output::PreModelSwitch.new({ 'decision' => 'block', 'reason' => 'stop' })
+    o2 = ClaudeHooks::Output::PreModelSwitch.new({})
+    merged = ClaudeHooks::Output::PreModelSwitch.merge(o1, o2)
+    assert(merged.blocked?)
+    assert_nil(merged.data['hookSpecificOutput'])
+  end
+
+  def test_pre_model_switch_merge_without_decisions_does_not_invent_allow
+    o1 = ClaudeHooks::Output::PreModelSwitch.new({ 'systemMessage' => 'costs $0.40' })
+    o2 = ClaudeHooks::Output::PreModelSwitch.new({})
+    merged = ClaudeHooks::Output::PreModelSwitch.merge(o1, o2)
+    assert_nil(merged.data['hookSpecificOutput'])
+    assert_nil(merged.permission_decision)
+    refute(merged.blocked?)
+    assert_equal('costs $0.40', merged.system_message)
+  end
+
+  def test_pre_model_switch_merge_allow_only
+    o1 = ClaudeHooks::Output::PreModelSwitch.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'allow', 'permissionDecisionReason' => 'ok' } })
+    o2 = ClaudeHooks::Output::PreModelSwitch.new({})
+    merged = ClaudeHooks::Output::PreModelSwitch.merge(o1, o2)
+    assert_equal('allow', merged.permission_decision)
+    assert_equal('ok', merged.permission_reason)
   end
 
   # === PostModelSwitch output ===

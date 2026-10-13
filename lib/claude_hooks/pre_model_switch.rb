@@ -35,7 +35,7 @@ module ClaudeHooks
     end
 
     def prompt_cache_warm
-      @input_data['prompt_cache_warm'] || @input_data['promptCacheWarm']
+      @input_data.key?('prompt_cache_warm') ? @input_data['prompt_cache_warm'] : @input_data['promptCacheWarm']
     end
 
     def cache_ttl

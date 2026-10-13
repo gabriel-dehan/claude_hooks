@@ -51,7 +51,7 @@ Output helpers provide access to the hook's output data and helper methods for w
 | `output.decision` | The top-level decision (`'block'` or `nil`) |
 | `output.reason` | The top-level block reason |
 
-When multiple hooks return different decisions, precedence is `deny > ask > allow`.
+When multiple hooks return different decisions, precedence is `deny > ask > allow`. `Output::PreModelSwitch.merge` follows the same order. If any hook calls `block!`, the merged `permissionDecision` becomes `deny`. If no hook set a `permissionDecision`, the merge leaves the field out rather than adding an `allow`.
 
 ## Hook Exit Codes
 

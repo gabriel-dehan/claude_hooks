@@ -35,3 +35,4 @@ Runs when a worktree is removed. Pair it with a `WorktreeCreate` hook to control
 |-----------|----------|
 | `exit 0` | The worktree **counts as removed** — make sure your hook deleted the directory |
 | `exit 2` | **The removal fails** if the directory at `worktree_path` still exists; it stays on disk with no git fallback. A hook that deleted the directory before exiting non-zero still counts as removed |
+| `exit 1` | Same as `exit 2` — Claude Code fails the removal on **any** non-zero exit. This includes a hook that raises: `CLI.run_hook` exits 1 on an error (even with the default `on_error: :allow`), so a crashing `WorktreeRemove` hook leaves the worktree on disk |

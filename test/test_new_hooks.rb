@@ -658,6 +658,14 @@ class TestNewHooks < Minitest::Test
     assert_equal('catalog', hook.pricing)
   end
 
+  def test_model_switch_prompt_cache_warm_preserves_false
+    [ClaudeHooks::PreModelSwitch, ClaudeHooks::PostModelSwitch].each do |klass|
+      assert_equal(false, klass.new(pre_model_switch_input.merge('prompt_cache_warm' => false)).prompt_cache_warm)
+      assert_equal(false, klass.new(@common.merge('promptCacheWarm' => false)).prompt_cache_warm)
+      assert_nil(klass.new(@common).prompt_cache_warm)
+    end
+  end
+
   def test_pre_model_switch_allow_builder
     hook = ClaudeHooks::PreModelSwitch.new(pre_model_switch_input)
     hook.allow!('ok')
@@ -798,6 +806,12 @@ class TestNewHooks < Minitest::Test
     assert_equal(182_340, hook.context_tokens)
     assert_equal(true, hook.prompt_cache_likely_expired)
     assert_in_delta(1.1396, hook.estimated_cache_write_usd)
+  end
+
+  def test_session_start_prompt_cache_likely_expired_preserves_false
+    hook = ClaudeHooks::SessionStart.new(@common.merge('source' => 'resume', 'prompt_cache_likely_expired' => false))
+    assert_equal(false, hook.prompt_cache_likely_expired)
+    assert_nil(ClaudeHooks::SessionStart.new(@common.merge('source' => 'startup')).prompt_cache_likely_expired)
   end
 
   # === mcp_server input object (tool events) ===
