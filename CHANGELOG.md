@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.0] - 2026-09-18
+## [1.4.0] - 2026-10-13
 
 Spec-parity update tracking the Claude Code hooks documentation changes analyzed in issues #61, #62, #63, #65, #69, #70, and #71. (Issue #64 required no changes; #70 is docs-only.)
 
