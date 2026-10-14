@@ -102,6 +102,14 @@ The `pr-review` action loads `AGENTS.md` (via its own `load_project_skills` call
 but does not use `agent_task.py`, so it doesn't have cross-run memory or the
 guardrail hook.
 
+The workflow runs the upstream review script (`plugins/pr-review/scripts/agent_script.py`,
+pinned to an `OpenHands/extensions` commit) through `.github/mitts/pr_review_entry.py`.
+The upstream script can't pass extra request headers, and the OpenCode gateway rejects
+requests without `x-opencode-session`. So the wrapper adds the same headers as
+`agent_task.py`: `User-Agent: mitts-agent/1.0`, plus `x-opencode-session` set to
+`OPENHANDS_CONVERSATION_KEY` (`pr-review-<number>`). The wrapper is checked out from the
+default branch, never from the PR under review.
+
 ### Issue and PR bots — `agent_task.py`
 
 There is no turnkey OpenHands Action for "issue → PR" or "PR follow-up", so these
