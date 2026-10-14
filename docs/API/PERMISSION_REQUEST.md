@@ -11,7 +11,8 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 |--------|-------------|
 | `tool_name` | Get the name of the tool requiring permission |
 | `tool_input` | Get the input data for the tool |
-| `tool_use_id` | Get the unique identifier for this tool use |
+| `tool_use_id` | **Deprecated** — Claude Code doesn't send `tool_use_id` to PermissionRequest hooks, so this is always `nil`. Kept for backward compatibility |
+| `mcp_server` | For MCP tools, a hash with the server's `name` and `source` (where its definition came from: `plugin`, `sdk`, `user`, `project`, …). Base trust decisions on `source`, not the name. `nil` for non-MCP tools (Claude Code v2.1.274+) |
 
 ## Hook State Helpers
 Hook state methods are helpers to modify the hook's internal state (`output_data`) before yielding back to Claude Code.
@@ -49,7 +50,7 @@ PermissionRequest hooks use the JSON API with exit code 0 for all permission dec
 |-----------|----------|
 | `exit 0` | Permission decision processed<br/>`STDOUT` contains JSON with decision |
 | `exit 1` | Non-blocking error<br/>`STDERR` shown to user |
-| `exit 2` | **Not recommended for PermissionRequest**<br/>Use JSON API with exit 0 instead |
+| `exit 2` | **No longer honored for PermissionRequest** (Claude Code no longer treats it as a denial)<br/>Use the JSON API with exit 0 and a `decision.behavior` object instead |
 
 ## Example: Basic Permission Guard
 
@@ -63,7 +64,6 @@ class PermissionGuard < ClaudeHooks::PermissionRequest
 
   def call
     log "Permission requested for: #{tool_name}"
-    log "Tool use ID: #{tool_use_id}"
     log "Permission mode: #{permission_mode}"
 
     # Auto-allow safe tools

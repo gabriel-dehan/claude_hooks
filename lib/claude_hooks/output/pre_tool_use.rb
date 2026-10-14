@@ -111,6 +111,14 @@ module ClaudeHooks
 
         merged_data['hookSpecificOutput']['updatedInput'] = updated_inputs.last if updated_inputs.any?
 
+        # Join every handler's additionalContext, as the other context-carrying merges do.
+        contexts = compacted_outputs.filter_map do |output|
+          output_data = output.respond_to?(:data) ? output.data : output
+          context = output_data.dig('hookSpecificOutput', 'additionalContext')
+          context unless context.nil? || context.empty?
+        end
+        merged_data['hookSpecificOutput']['additionalContext'] = contexts.join("\n\n") if contexts.any?
+
         new(merged_data)
       end
     end

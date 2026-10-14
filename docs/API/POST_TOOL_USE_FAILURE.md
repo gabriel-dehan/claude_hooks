@@ -13,6 +13,7 @@ Runs when a tool call fails. Non-blocking — output and exit code are ignored e
 | `tool_name` | The name of the tool that failed |
 | `tool_input` | The input data for the tool |
 | `tool_use_id` | The unique identifier for this tool use |
+| `mcp_server` | For MCP tools, a hash with the server's `name` and `source` (where its definition came from: `plugin`, `sdk`, `user`, `project`, …). Base trust decisions on `source`, not the name. `nil` for non-MCP tools (Claude Code v2.1.274+) |
 | `error` | The error message |
 | `is_interrupt` | Whether the failure was caused by an interrupt (`true`/`false`) |
 | `interrupt?` | Alias for `is_interrupt` |

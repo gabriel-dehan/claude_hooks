@@ -92,6 +92,14 @@ module ClaudeHooks
       @input_data.dig('effort', 'level')
     end
 
+    # Path to the session's scratchpad directory. Absent when the session has no
+    # scratchpad or the temp directory is unavailable. Requires Claude Code v2.1.257+.
+    # Intentionally not in COMMON_INPUT_FIELDS: it is version-gated and often absent,
+    # so it must not trigger the missing-field warning in validate_input!.
+    def scratchpad_dir
+      @input_data['scratchpad_dir'] || @input_data['scratchpadDir']
+    end
+
     def read_transcript
       unless transcript_path && File.exist?(transcript_path)
         log "Transcript file not found at #{transcript_path}", level: :warn
@@ -120,10 +128,14 @@ module ClaudeHooks
     end
 
     # Hide stdout from transcript mode (default: false)
+    #
+    # DEPRECATED: Claude Code accepts the `suppressOutput` field but no longer acts
+    # on it (it has no effect). Kept for backward compatibility; safe to call, but a no-op.
     def suppress_output!
       @output_data['suppressOutput'] = true
     end
 
+    # DEPRECATED: see suppress_output! — `suppressOutput` is now a no-op in Claude Code.
     def show_output!
       @output_data['suppressOutput'] = false
     end

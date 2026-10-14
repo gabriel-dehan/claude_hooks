@@ -2,7 +2,7 @@
 
 Available when inheriting from `ClaudeHooks::TaskCreated`:
 
-Runs when a teammate task is created. Can block Claude from continuing via `prevent_continue!` or exit 2.
+Runs when a teammate task is created. Block task creation via `block!` (top-level `decision: "block"`) or exit 2. Claude Code **ignores** `continue: false` for this event, so `prevent_continue!` alone no longer blocks unless it results in exit 2.
 
 ## Input Helpers
 
@@ -22,9 +22,10 @@ Runs when a teammate task is created. Can block Claude from continuing via `prev
 
 | Method | Description |
 |--------|-------------|
-| `prevent_continue!(reason)` | Block Claude from continuing (`continue: false` + `stopReason`) |
+| `block!(reason)` | Block task creation via top-level `decision: "block"`; `reason` is returned to Claude as the task-creation error |
+| `allow!` / `unblock!` | Clear a previously set block |
 
-There is no top-level `decision` field for this event — block via `prevent_continue!` or exit 2.
+Block via `block!` (top-level `decision`) or exit 2. `continue: false` is ignored for this event.
 
 ## Output Helpers
 
@@ -32,12 +33,13 @@ There is no top-level `decision` field for this event — block via `prevent_con
 
 | Method | Description |
 |--------|-------------|
-| `output.continue?` | Whether Claude will continue |
-| `output.stop_reason` | The reason Claude was stopped |
+| `output.decision` | The decision (`'block'` or `nil`) |
+| `output.reason` | The block reason returned to Claude |
+| `output.blocked?` | Whether task creation was blocked (`decision == 'block'`) |
 
 ## Hook Exit Codes
 
 | Exit Code | Behavior |
 |-----------|----------|
-| `exit 0` | Claude continues |
-| `exit 2` | Blocks Claude (`continue: false`) |
+| `exit 0` | Task creation proceeds (unless `decision: "block"` is set) |
+| `exit 2` | Blocks task creation |

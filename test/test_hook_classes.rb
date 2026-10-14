@@ -336,13 +336,21 @@ class TestHookClasses < Minitest::Test
     ClaudeHooks::PermissionRequest.new(@common_input_data.merge(
       'hook_event_name' => 'PermissionRequest',
       'tool_name' => 'Bash',
-      'tool_input' => { 'command' => 'ls' },
-      'tool_use_id' => 'u-1'
+      'tool_input' => { 'command' => 'ls' }
     ))
   end
 
   def test_permission_request_input_fields
-    assert_equal(%w[tool_name tool_input tool_use_id], ClaudeHooks::PermissionRequest.input_fields)
+    # Claude Code doesn't send tool_use_id to PermissionRequest, so it must not be required
+    assert_equal(%w[tool_name tool_input], ClaudeHooks::PermissionRequest.input_fields)
+  end
+
+  def test_permission_request_without_tool_use_id_logs_no_missing_field_warning
+    hook = ClaudeHooks::PermissionRequest.new(@common_input_data.merge(
+      'hook_event_name' => 'PermissionRequest', 'tool_name' => 'Bash', 'tool_input' => {}
+    ))
+    assert_empty(ClaudeHooks::PermissionRequest.input_fields - hook.input_data.keys)
+    assert_nil(hook.tool_use_id)
   end
 
   def test_permission_request_permission_suggestions_reader

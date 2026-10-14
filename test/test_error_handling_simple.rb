@@ -122,7 +122,9 @@ class TestErrorHandlingSimple < Minitest::Test
   end
 
   def test_output_and_exit_with_error_exit_code
-    hook_with_error = Class.new(ClaudeHooks::Notification) do
+    # PreCompact belongs to the exit-2-on-continue:false family. (Notification no
+    # longer qualifies — Claude Code ignores its exit code, so it always exits 0.)
+    hook_with_error = Class.new(ClaudeHooks::PreCompact) do
       def call
         prevent_continue!('Error occurred')
         @output_data

@@ -17,6 +17,7 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `agent_id` | Get the agent ID (present in subagent contexts) |
 | `agent_type` | Get the agent type (present in subagent contexts) |
 | `effort` | Get the effort level string (reads `effort.level`) |
+| `scratchpad_dir` | Path to the session's scratchpad directory. Absent (`nil`) when there is no scratchpad or the temp dir is unavailable (Claude Code v2.1.257+) |
 | `read_transcript` | Read the transcript file |
 | `transcript` | Alias for `read_transcript` |
 
@@ -27,8 +28,8 @@ Hook state methods are helpers to modify the hook's internal state (`output_data
 |--------|-------------|
 | `allow_continue!` | Allow Claude to continue (default) |
 | `prevent_continue!(reason)` | Stop Claude with reason |
-| `suppress_output!` | Hide stdout from transcript |
-| `show_output!` | Show stdout in transcript (default) |
+| `suppress_output!` | **Deprecated / no-op.** Claude Code accepts `suppressOutput` but no longer acts on it. Safe to call; has no effect |
+| `show_output!` | **Deprecated / no-op** (see `suppress_output!`) |
 | `clear_specifics!` | Clear hook-specific output |
 | `system_message!(message)` | Set a system message shown to the user (not to Claude) |
 | `clear_system_message!` | Clear the system message |
@@ -47,7 +48,7 @@ This object provides helpers to access output data, for merging multiple outputs
 | `output_data` | RAW output data accessor |
 | `output.continue?` | Check if Claude should continue processing |
 | `output.stop_reason` | Get the stop reason if continue is false |
-| `output.suppress_output?` | Check if output should be suppressed from transcript |
+| `output.suppress_output?` | Check the `suppressOutput` flag (deprecated — Claude Code ignores it) |
 | `output.hook_specific_output` | Get the hook-specific output data |
 | `output.system_message` | Get the system message if any |
 | `output.terminal_sequence` | Get the terminal escape sequence (if set) |
