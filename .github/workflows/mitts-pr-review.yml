@@ -40,13 +40,27 @@ jobs:
             "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
             -f content='eyes'
 
-      # Checkout extensions repo (provides the review script).
+      # Checkout extensions repo (provides the review script). Pinned to a commit
+      # so upstream changes can't silently break pr_review_entry.py, which relies
+      # on the script building its LLM via openhands.sdk.LLM(...). Bump deliberately.
       - name: Checkout extensions repository
         uses: actions/checkout@v4
         with:
           repository: OpenHands/extensions
-          ref: main
+          ref: f1919e4e3e02c0bab65c2417761aee775f1ffbaa
           path: extensions
+
+      # Our wrapper that adds the OpenCode gateway headers. Taken from the default
+      # branch, never from the PR under review, so a PR can't swap in its own
+      # wrapper and run it with the LLM secrets.
+      - name: Checkout trusted mitts scripts
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: mitts-trusted
+          persist-credentials: false
+          sparse-checkout: .github/mitts
+          sparse-checkout-cone-mode: true
 
       # Fetch PR metadata — works for both pull_request and issue_comment triggers.
       - name: Resolve PR metadata
@@ -137,10 +151,15 @@ jobs:
           USE_SUB_AGENTS: 'false'
           LOAD_PUBLIC_SKILLS: 'false'
           REVIEW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Sent as x-opencode-session (same key scheme as the run-mitts bots).
+          OPENHANDS_CONVERSATION_KEY: pr-review-${{ steps.pr.outputs.number }}
         run: |
           cd pr-repo
+          # pr_review_entry.py adds the OpenCode gateway headers (see agent_task.py),
+          # then runs the upstream review script unchanged.
           uv run --no-project --with openhands-sdk --with openhands-tools --with lmnr --with fastapi \
-            python ../extensions/plugins/pr-review/scripts/agent_script.py
+            python ../mitts-trusted/.github/mitts/pr_review_entry.py \
+            ../extensions/plugins/pr-review/scripts/agent_script.py
 
       - name: Upload logs as artifact
         uses: actions/upload-artifact@v4

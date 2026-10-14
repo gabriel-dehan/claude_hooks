@@ -183,6 +183,7 @@ def main() -> None:
     # session id (our conversation key, e.g. "issue-61") so routing and prompt
     # caching work, plus a named agent user-agent. These headers are harmless on
     # other OpenAI-compatible backends, which ignore unknown headers.
+    # Keep in sync with pr_review_entry.py (the PR review workflow's wrapper).
     extra_headers: dict[str, str] = {"User-Agent": "mitts-agent/1.0"}
     session_id = os.getenv("OPENHANDS_CONVERSATION_KEY")
     if session_id:
