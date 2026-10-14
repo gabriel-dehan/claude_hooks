@@ -33,6 +33,7 @@ module ClaudeHooks
         merged = super(*outputs)
         merged_data = merged.data
         reasons = []
+        contexts = []
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
@@ -41,9 +42,18 @@ module ClaudeHooks
             r = output_data['reason']
             reasons << r if r && !r.empty?
           end
+
+          context = output_data.dig('hookSpecificOutput', 'additionalContext')
+          contexts << context if context && !context.empty?
         end
 
         merged_data['reason'] = reasons.join('; ') if reasons.any?
+        unless contexts.empty?
+          merged_data['hookSpecificOutput'] = {
+            'hookEventName' => 'UserPromptExpansion',
+            'additionalContext' => contexts.join("\n\n")
+          }
+        end
         new(merged_data)
       end
     end

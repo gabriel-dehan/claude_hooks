@@ -593,4 +593,51 @@ class TestNewOutputClasses < Minitest::Test
     assert_equal('c1', merged.classifier_context)
     assert_equal('ctx', merged.additional_context)
   end
+
+  # === Merges must not drop hookSpecificOutput fields ===
+
+  def test_post_tool_use_merge_keeps_tool_output_rewrite_with_context
+    o1 = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'updatedToolOutput' => 'REDACTED' } })
+    o2 = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'additionalContext' => 'ctx' } })
+    merged = ClaudeHooks::Output::PostToolUse.merge(o1, o2)
+    assert_equal('REDACTED', merged.updated_tool_output)
+    assert_equal('ctx', merged.additional_context)
+  end
+
+  def test_post_tool_use_merge_keeps_tool_output_rewrite_with_empty_output
+    o1 = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'updatedMCPToolOutput' => { 'x' => 1 } } })
+    merged = ClaudeHooks::Output::PostToolUse.merge(o1, ClaudeHooks::Output::PostToolUse.new({}))
+    assert_equal({ 'x' => 1 }, merged.updated_mcp_tool_output)
+    assert_equal('PostToolUse', merged.hook_specific_output['hookEventName'])
+  end
+
+  def test_post_tool_use_merge_last_rewrite_wins
+    o1 = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'updatedToolOutput' => 'first' } })
+    o2 = ClaudeHooks::Output::PostToolUse.new({ 'hookSpecificOutput' => { 'updatedToolOutput' => 'second' } })
+    assert_equal('second', ClaudeHooks::Output::PostToolUse.merge(o1, o2).updated_tool_output)
+  end
+
+  def test_pre_tool_use_merge_joins_additional_context
+    o1 = ClaudeHooks::Output::PreToolUse.new({ 'hookSpecificOutput' => { 'permissionDecision' => 'allow', 'additionalContext' => 'a' } })
+    o2 = ClaudeHooks::Output::PreToolUse.new({ 'hookSpecificOutput' => { 'additionalContext' => 'b' } })
+    o3 = ClaudeHooks::Output::PreToolUse.new({})
+    merged = ClaudeHooks::Output::PreToolUse.merge(o1, o2, o3)
+    assert_equal("a\n\nb", merged.data.dig('hookSpecificOutput', 'additionalContext'))
+    assert_equal('allow', merged.permission_decision)
+  end
+
+  def test_post_tool_batch_and_user_prompt_expansion_merge_join_additional_context
+    [ClaudeHooks::Output::PostToolBatch, ClaudeHooks::Output::UserPromptExpansion].each do |klass|
+      event = klass.name.split('::').last
+      o1 = klass.new({ 'hookSpecificOutput' => { 'hookEventName' => event, 'additionalContext' => 'a' } })
+      o2 = klass.new({ 'decision' => 'block', 'reason' => 'no' })
+      o3 = klass.new({ 'hookSpecificOutput' => { 'hookEventName' => event, 'additionalContext' => 'b' } })
+      merged = klass.merge(o1, o2, o3)
+      assert_equal("a\n\nb", merged.additional_context, event)
+      assert_equal(event, merged.hook_specific_output['hookEventName'], event)
+      assert(merged.blocked?, event)
+      # A lone context survives a merge with an empty output, too
+      assert_equal('a', klass.merge(o1, klass.new({})).additional_context, event)
+    end
+  end
 end

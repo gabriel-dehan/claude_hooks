@@ -404,7 +404,7 @@ The framework supports all existing hook types with their respective input field
 | **Notification**  | `message`, `notification_type` |
 | **MessageDisplay**  | `turn_id`, `message_id`, `index`, `final`, `delta` |
 | **PreToolUse**  | `tool_name`, `tool_input`, `tool_use_id`, `mcp_server` (MCP tools) |
-| **PermissionRequest**  | `tool_name`, `tool_input`, `tool_use_id`, `permission_suggestions`, `mcp_server` (MCP tools) |
+| **PermissionRequest**  | `tool_name`, `tool_input`, `permission_suggestions`, `mcp_server` (MCP tools) |
 | **PermissionDenied**  | `tool_name`, `tool_input`, `tool_use_id`, `reason`, `mcp_server` (MCP tools) |
 | **PostToolUse**  | `tool_name`, `tool_input`, `tool_response`, `tool_use_id`, `mcp_server` (MCP tools) |
 | **PostToolBatch**  | `tool_calls` |

@@ -69,6 +69,10 @@ module ClaudeHooks
         merged_data = merged.data
         contexts = []
         classifier_contexts = []
+        # Tool-output rewrites: last non-nil wins (most recent transformation), as with
+        # PreToolUse's updatedInput. Dropping them would let e.g. a redacted output
+        # revert to the original when composed with another handler.
+        rewrites = {}
 
         compacted_outputs.each do |output|
           output_data = output.respond_to?(:data) ? output.data : output
@@ -80,12 +84,18 @@ module ClaudeHooks
 
           classifier_context = output_data.dig('hookSpecificOutput', 'classifierContext')
           classifier_contexts << classifier_context if classifier_context && !classifier_context.empty?
+
+          %w[updatedToolOutput updatedMCPToolOutput].each do |key|
+            value = output_data.dig('hookSpecificOutput', key)
+            rewrites[key] = value unless value.nil?
+          end
         end
 
-        if !contexts.empty? || !classifier_contexts.empty?
+        if !contexts.empty? || !classifier_contexts.empty? || !rewrites.empty?
           hso = { 'hookEventName' => 'PostToolUse' }
           hso['additionalContext'] = contexts.join("\n\n") unless contexts.empty?
           hso['classifierContext'] = classifier_contexts.join("\n\n") unless classifier_contexts.empty?
+          hso.merge!(rewrites)
           merged_data['hookSpecificOutput'] = hso
         end
 

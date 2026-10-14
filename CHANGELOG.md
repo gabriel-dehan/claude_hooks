@@ -28,10 +28,17 @@ Spec-parity update tracking the Claude Code hooks documentation changes analyzed
 - **`TaskCreated` `continue: false` is ignored** by Claude Code; block via the new `block!` (top-level `decision`) or exit 2 instead.
 - **Docs**: `Stop`/`SubagentStop` input tables now list the inherited `last_assistant_message`, `background_tasks`, and `session_crons` readers; notes added for the stop-hook continuation cap (`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`), SubagentStop firing for internal agents, and expanded pasted content in `UserPromptSubmit#prompt`.
 
+### Fixed
+
+- **`Output::PostToolUse.merge` no longer drops rewritten tool output.** `updatedToolOutput` / `updatedMCPToolOutput` (from `update_tool_output!` / `update_mcp_tool_output!`) were lost when merged with any other output, so e.g. a redacting hook's rewrite was silently discarded when composed with a context hook. The last non-nil rewrite now wins, as with `PreToolUse`'s `updatedInput`.
+- **`additionalContext` survives merging on `PreToolUse`, `PostToolBatch`, and `UserPromptExpansion`.** These merges dropped it; contexts are now joined with `"\n\n"` like the other context-carrying events.
+- **`PermissionRequest` no longer warns about a missing `tool_use_id`.** Claude Code doesn't send that field to PermissionRequest hooks, so it was removed from `input_fields` (and the README/API docs); every real invocation used to log a spurious missing-field warning.
+
 ### Deprecated
 
 - **`suppressOutput` is a no-op.** `suppress_output!` / `show_output!` / `output.suppress_output?` remain callable for backward compatibility, but Claude Code accepts the field without acting on it.
 - **`Setup` output is discarded.** `Setup#add_additional_context!` remains callable but Claude Code discards all Setup JSON output; use a `SessionStart` hook to inject context instead.
+- **`PermissionRequest#tool_use_id`** always returns `nil` (Claude Code doesn't send the field); kept callable for backward compatibility.
 
 ### Notes
 

@@ -9,7 +9,7 @@ module ClaudeHooks
     end
 
     def self.input_fields
-      %w[tool_name tool_input tool_use_id]
+      %w[tool_name tool_input]
     end
 
     # === INPUT DATA ACCESS ===
@@ -22,6 +22,8 @@ module ClaudeHooks
       @input_data['tool_input']
     end
 
+    # DEPRECATED: Claude Code doesn't send tool_use_id to PermissionRequest hooks, so this
+    # is always nil. Kept for backward compatibility; not part of input_fields.
     def tool_use_id
       @input_data['tool_use_id'] || @input_data['toolUseId']
     end
