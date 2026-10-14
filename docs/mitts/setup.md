@@ -267,9 +267,11 @@ reference:
 - `OPENHANDS_CONVERSATION_KEY` — per-thread key for the artifact (e.g. `pr-42`,
   `issue-7`).
 
-The `mitts-pr-review.yml` review action also accepts an `extensions-version:`
-input (currently `main`) — pin it to a tag/SHA alongside `EXTENSIONS_REF` when
-you want reproducible reviews.
+`mitts-pr-review.yml` sets its own `OPENHANDS_CONVERSATION_KEY` (`pr-review-<number>`),
+which `.github/mitts/pr_review_entry.py` sends as the `x-opencode-session` header. It
+pins the `OpenHands/extensions` checkout to a commit SHA. When you bump that SHA, check
+that the upstream `agent_script.py` still builds its LLM with `openhands.sdk.LLM(...)`,
+because the wrapper relies on it.
 
 ---
 
