@@ -14,8 +14,8 @@ Input helpers to access the data provided by Claude Code through `STDIN`.
 | `hook_event_name` | Get the hook event name |
 | `permission_mode` | Get the permission mode: `'default'`, `'plan'`, `'acceptEdits'`, `'auto'`, `'dontAsk'`, `'bypassPermissions'` (defaults to `'default'`) |
 | `prompt_id` | Get the current prompt ID |
-| `agent_id` | Get the agent ID (present in subagent contexts) |
-| `agent_type` | Get the agent type (present in subagent contexts) |
+| `agent_id` | Get the agent ID (present when the hook fires in a subagent or an in-process teammate) |
+| `agent_type` | Get the agent type (present in a subagent, an in-process teammate, or the agent chosen with `--agent`) |
 | `effort` | Get the effort level string (reads `effort.level`) |
 | `scratchpad_dir` | Path to the session's scratchpad directory. Absent (`nil`) when there is no scratchpad or the temp dir is unavailable (Claude Code v2.1.257+) |
 | `read_transcript` | Read the transcript file |

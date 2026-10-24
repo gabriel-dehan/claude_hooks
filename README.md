@@ -889,6 +889,27 @@ end
 > [!WARNING]
 > If you're writing a `PreToolUse` or `UserPromptSubmit` hook that enforces security policy, use `on_error: :block`. Without it, a Ruby exception (network timeout, nil reference, etc.) will silently allow the action through.
 
+`on_error: :block` only covers exceptions raised inside `CLI.run_hook`. It can't help when the hook fails before or outside your Ruby code: a mistyped script path, a missing `ruby` or gem, a `LoadError` at require time, or a timeout. To block the action in those cases too, set `onFailure: "block"` on the handler in your `.claude/settings.json` (Claude Code v2.1.295+):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "path/to/your/guard.rb",
+          "onFailure": "block"
+        }
+      ]
+    }]
+  }
+}
+```
+
+With `onFailure: "block"`, any exit code other than 0 or 2 counts as a failure and blocks the action, so the default fail-open `exit 1` blocks as well. See [Block the action when a hook fails](https://code.claude.com/docs/en/hooks#block-the-action-when-a-hook-fails) for the full list of failures and the events where the setting has no effect.
+
 ### CLI.test_runner — local testing
 
 Use `test_runner` when running the script directly (outside of Claude Code) to inject custom input data:
