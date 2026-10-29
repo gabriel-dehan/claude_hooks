@@ -182,7 +182,7 @@ class GithubGuard < ClaudeHooks::PreToolUse
   end
 
   def remote_branch_deletion_command?
-    command.match?(/\Agit\s+push.*(--delete|-d|-D)/)
+    command.match?(/\Agit\s+push\b/) && command.match?(/(?:\A|\s)(?:--delete|-d|-D)(?=\s|\z)/)
   end
 
   def remote_branch_deletion?
@@ -209,7 +209,7 @@ class GithubGuard < ClaudeHooks::PreToolUse
   end
 
   def extract_branch_from_deletion
-    command.match(/(?:--delete|-d|-D)\s+(\S+)/)&.[](1)
+    command.match(/(?:\A|\s)(?:--delete|-d|-D)\s+(\S+)/)&.[](1)
   end
 
   def get_pr_owner(pr_number)
