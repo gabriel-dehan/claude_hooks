@@ -8,6 +8,7 @@ require 'open3'
 # GitHub Guard hook to prevent unauthorized or dangerous GitHub/Git actions
 class GithubGuard < ClaudeHooks::PreToolUse
   BLOCKED_TOOL_TIP = 'If they are sure they want to proceed, the user should run the command themselves using `!` (e.g. `!gh pr merge`, `!git push --force`, etc...)'
+  DELETE_FLAG = /\s(?:--delete|-d|-D)(?=\s|\z)/
 
   RULES = {
     # MCP GitHub tools
@@ -182,7 +183,7 @@ class GithubGuard < ClaudeHooks::PreToolUse
   end
 
   def remote_branch_deletion_command?
-    command.match?(/\Agit\s+push\b/) && command.match?(/(?:\A|\s)(?:--delete|-d|-D)(?=\s|\z)/)
+    command.match?(/\Agit\s+push\b.*#{DELETE_FLAG}/)
   end
 
   def remote_branch_deletion?
@@ -209,7 +210,7 @@ class GithubGuard < ClaudeHooks::PreToolUse
   end
 
   def extract_branch_from_deletion
-    command.match(/(?:\A|\s)(?:--delete|-d|-D)\s+(\S+)/)&.[](1)
+    command.match(/#{DELETE_FLAG}\s+(\S+)/)&.[](1)
   end
 
   def get_pr_owner(pr_number)

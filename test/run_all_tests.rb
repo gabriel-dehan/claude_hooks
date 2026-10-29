@@ -18,7 +18,8 @@ test_files = [
   'test_error_handling_simple.rb',
   'test_new_hooks.rb',
   'test_new_output_classes.rb',
-  'test_backward_compat.rb'
+  'test_backward_compat.rb',
+  'test_example_github_guard.rb'
 ]
 
 test_files.each do |test_file|
