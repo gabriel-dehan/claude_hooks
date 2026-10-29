@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
+# Ensure we load the local version, not the gem
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
+
 require 'minitest/autorun'
-require 'json'
-require 'open3'
+require 'claude_hooks'
+require_relative '../example_dotclaude/hooks/github_guard'
 
 class TestExampleGithubGuard < Minitest::Test
-  HOOK_PATH = File.expand_path('../example_dotclaude/hooks/github_guard.rb', __dir__)
-  LIB_PATH = File.expand_path('../lib', __dir__)
-
   def test_push_of_branch_containing_dash_d_is_allowed
     assert_equal 'allow', decision_for('git push -u origin feat/123-document-api')
   end
@@ -31,8 +31,7 @@ class TestExampleGithubGuard < Minitest::Test
       'tool_name' => 'Bash',
       'tool_input' => { 'command' => command }
     }
-    stdout, = Open3.capture3('ruby', '-I', LIB_PATH, HOOK_PATH, stdin_data: JSON.generate(input))
 
-    JSON.parse(stdout).dig('hookSpecificOutput', 'permissionDecision')
+    GithubGuard.new(input).call.dig('hookSpecificOutput', 'permissionDecision')
   end
 end

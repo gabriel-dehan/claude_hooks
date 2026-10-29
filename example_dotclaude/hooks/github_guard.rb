@@ -245,4 +245,6 @@ end
 #
 # Debug it by piping sample JSON:
 #   echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git push --force"}}' | ruby github_guard.rb
-ClaudeHooks::CLI.run_hook(GithubGuard, on_error: :block)
+if __FILE__ == $0
+  ClaudeHooks::CLI.run_hook(GithubGuard, on_error: :block)
+end
