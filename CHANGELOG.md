@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Example `github_guard.rb`**: `git push` of a branch whose name contains `-d` or `-D` (e.g. `feat/123-document-api`) was treated as a remote branch deletion and asked "Could not determine branch name". The delete flags (`--delete`, `-d`, `-D`) now only match as standalone arguments.
+- **Example `github_guard.rb`**: `git push` of a branch whose name contains `-d` or `-D` (e.g. `feat/123-document-api`) was treated as a remote branch deletion and asked "Could not determine branch name". The command is now split into shell arguments, and only arguments that are delete flags count, including quoted (`'--delete'`), abbreviated (`--del`) and bundled (`-ud`) forms.
 
 ## [1.4.0] - 2026-10-14
 

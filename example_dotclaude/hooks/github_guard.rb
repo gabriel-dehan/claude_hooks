@@ -4,11 +4,13 @@
 require 'claude_hooks'
 require 'json'
 require 'open3'
+require 'shellwords'
 
 # GitHub Guard hook to prevent unauthorized or dangerous GitHub/Git actions
 class GithubGuard < ClaudeHooks::PreToolUse
   BLOCKED_TOOL_TIP = 'If they are sure they want to proceed, the user should run the command themselves using `!` (e.g. `!gh pr merge`, `!git push --force`, etc...)'
-  DELETE_FLAG = /\s(?:--delete|-d|-D)(?=\s|\z)/
+  # Git accepts bundled short flags (-ud) and unambiguous long-flag prefixes (--del)
+  DELETE_FLAG = /\A(?:-[a-zA-Z]*[dD]|--de)/
 
   RULES = {
     # MCP GitHub tools
@@ -182,8 +184,12 @@ class GithubGuard < ClaudeHooks::PreToolUse
     RULES[:bash_patterns][:pr_draft_required].any? { |cmd| command.start_with?(cmd) }
   end
 
+  # Unparseable push commands count as deletions so the user is asked
   def remote_branch_deletion_command?
-    command.match?(/\Agit\s+push\b.*#{DELETE_FLAG}/)
+    return false unless command.match?(/\Agit\s+push\b/)
+    return true unless push_arguments
+
+    push_arguments.any? { |argument| argument.match?(DELETE_FLAG) }
   end
 
   def remote_branch_deletion?
@@ -209,8 +215,14 @@ class GithubGuard < ClaudeHooks::PreToolUse
     command.match(/\s+(\d+)/)&.[](1)&.to_i
   end
 
+  def push_arguments
+    @push_arguments ||= Shellwords.split(command).drop(2)
+  rescue ArgumentError
+    nil
+  end
+
   def extract_branch_from_deletion
-    command.match(/#{DELETE_FLAG}\s+(\S+)/)&.[](1)
+    push_arguments&.reject { |argument| argument.start_with?('-') }&.last
   end
 
   def get_pr_owner(pr_number)
