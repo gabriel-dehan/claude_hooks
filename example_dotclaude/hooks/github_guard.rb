@@ -216,9 +216,13 @@ class GithubGuard < ClaudeHooks::PreToolUse
   end
 
   def push_arguments
-    @push_arguments ||= Shellwords.split(command).drop(2)
-  rescue ArgumentError
-    nil
+    return @push_arguments if defined?(@push_arguments)
+
+    @push_arguments = begin
+      Shellwords.split(command).drop(2)
+    rescue ArgumentError
+      nil
+    end
   end
 
   def extract_branch_from_deletion
